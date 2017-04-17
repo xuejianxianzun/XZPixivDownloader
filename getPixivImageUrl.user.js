@@ -1269,13 +1269,6 @@
 				});
 			}
 
-			window.onbeforeunload = function() {
-				if (!allowWork) {
-					if (!window.confirm("本页面有进行中的任务，确定关闭本页面吗？")) {
-						return false;
-					};
-				}
-			}
 		} else if (window.location.href.indexOf("ranking_area.php") > -1 && window.location.href !== "http://www.pixiv.net/ranking_area.php") { //6.on_ranking_area
 			pageType = 6;
 
@@ -1294,7 +1287,7 @@
 			(function() {
 				var clearMultiple = document.createElement("div");
 				document.body.appendChild(clearMultiple);
-				$(clearMultiple).text("清除多图作品");
+				$(clearMultiple).text("排除多图作品");
 				$(clearMultiple).attr("title", "如果不想下载多图作品可以清除掉。")
 				clearMultiple.style.cssText = "background: #DA7002;border-radius: 3px;color: #fff;text-align: center;padding: 10px 5px;position: fixed;top: 335px;right: 0;z-index: 9999;cursor: pointer;";
 				clearMultiple.addEventListener("click", function() {
@@ -1304,6 +1297,7 @@
 							allPicArea.eq(i).remove();
 						};
 					};
+					alert("已排除多图作品。");
 				}, false);
 			})();
 
@@ -1401,13 +1395,6 @@
 				});
 			}
 
-			window.onbeforeunload = function() {
-				if (!allowWork) {
-					if (!window.confirm("本页面有进行中的任务，确定关闭本页面吗？")) {
-						return false;
-					};
-				}
-			}
 		} else if (window.location.href.indexOf("ranking.php") > -1) { //7.on_ranking_else
 			pageType = 7;
 
@@ -1603,13 +1590,6 @@
 				});
 			}
 
-			window.onbeforeunload = function() {
-				if (!allowWork) {
-					if (!window.confirm("本页面有进行中的任务，确定关闭本页面吗？")) {
-						return false;
-					};
-				}
-			}
 		}
 	}
 }()
