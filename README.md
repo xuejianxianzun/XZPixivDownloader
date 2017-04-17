@@ -1,4 +1,4 @@
-这是一个用来批量获取pixiv图片的url的工具，之后你可以复制url，然后使用下载工具来下载图片。
+这是一个用来批量获取pixiv图片的url的工具，获取到url之后你可以复制url，并使用下载工具来下载图片。
 
 getPixivImageUrl.user.js是个UserScript，你可以通过UserScript管理器（如Greasemonkey、Tampermonkey）安装该脚本，或手动在浏览器控制台执行里面的代码。
 （虽然此脚本会使用testURL.php，但您不需要下载及部署它，因为我在我的服务器上部署过了，js里调用的testURL.php是在我服务器的上的）
