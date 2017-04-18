@@ -2,8 +2,6 @@
 
 getPixivImageUrl.user.js是个UserScript，你可以通过UserScript管理器（如Greasemonkey、Tampermonkey）安装该脚本，或手动在浏览器控制台执行里面的代码。
 
-（虽然此脚本会使用testURL.php，但您不需要下载及部署它，因为我在我的服务器上部署过了，js里调用的testURL.php是在我服务器的上的）
-
 js里的代码运行后，会在它可以下载的页面上显示下载功能按钮，你可以先设定抓取条件，然后开始抓取。
 
 抓取完毕后会打开一个新标签页并输出抓取到的图片url。之后你可以全选复制所有url，然后使用下载软件（如迅雷、IDM等）批量下载。
@@ -26,6 +24,11 @@ js里的代码运行后，会在它可以下载的页面上显示下载功能按
 
 tag搜索页面
 
-此脚本也发布在greasyfork.org上，网址：
+收藏作品后的相似作品页面
+
+pixivision上的插画、漫画、cosplay
+
+
+ps：此脚本也发布在greasyfork.org上，网址：
 
 https://greasyfork.org/zh-CN/scripts/24252
