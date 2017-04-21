@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         批量获取并导出pixiv图片的网址
 // @namespace    http://saber.love/?p=3102
-// @version      1.1
+// @version      1.2
 // @description  在多种情景下，批量抓取并导出pixiv图片的网址，以便使用下载软件批量下载
 // @author       雪见仙尊
 // @include      *://www.pixiv.net/*
@@ -20,8 +20,8 @@
 	if (window.location.href.indexOf("whitecube") > -1) {
 		alert("本脚本不能在新版pixiv上执行，抱歉");
 	} else {
-		var maxGetNum = -1, //向下获取多少个页面。0位仅获取当前页，-1为不限制
-			ajax1Bingfa = 5, //抓取页面（而非下载图片）时的并发数
+		var maxGetNum = -1, //向下获取多少个页面。-1为默认值
+			ajax1Bingfa = 5, //抓取页面时的并发数
 			ajax1Jiange = 100, //抓取页面的并发请求每个间隔多少毫秒
 			ajax1No = 0, //统计有几个并发线程完成所有请求
 			allPageUrl = [], //储存列表的url
@@ -31,6 +31,8 @@
 			nowhtml, //输出内容时使用
 			ajaxDocIsEnd = true, //使用ajax加载页面并解析页面元素的任务是否执行完毕
 			ajaxDoc2IsEnd = true, //检查网址正确性的函数是否执行完毕
+			testExtIsEnd=true,//检查图片后缀名是否正确的函数是否执行完毕
+			testExtNo=0;//检查图片后缀名函数的计数
 			locationHref = window.location.href;
 
 		// DOMParser，将字符串形式的html代码解析为DOM结构
@@ -62,7 +64,7 @@
 
 		// 在新标签页输出图片的url 有时会被拦截，请注意
 		function outputUrls(imgUrlList) {
-			if (ajaxDocIsEnd && ajaxDoc2IsEnd) { // 检查加载页面的任务 以及 检查网址的任务 是否都全部完成。
+			if (ajaxDocIsEnd && ajaxDoc2IsEnd&&testExtIsEnd) { // 检查加载页面的任务 以及 检查网址的任务 是否都全部完成。
 				$(outputInfo).html($(outputInfo).html() + "<br>获取完毕，共" + imgUrlList.length + "个图片地址<br><br>");
 				nowhtml = $(outputInfo).html();
 				var outputPage = window.open();
@@ -104,7 +106,34 @@
 				}
 			});
 		}
-		// 说起来，以前有种mode=big的单图作品类型，现在搜索“pixiv mode=big”还能搜到一些网址。现在我发现mode=big的都被p站改成了普通的mode=medium，可以当做普通单图处理了
+
+		function testExt(url,length){	//对于mode=big的作品和pixivision的插画作品，因为无法获取包含图片真实地址的页面，所以通过测试图片url是否正确，来区分哪个是正确的后缀名
+			testExtIsEnd=false;
+			// 初步获取到的后缀名都是jpg的
+			var testImg=new Image();
+			testImg.src=url;
+			testImg.onload=function(){
+				imgUrlList.push(url);
+				nextStep();
+			}
+			testImg.onerror=function(){
+				imgUrlList.push(url.replace(".jpg",".png"));
+				nextStep();
+			}
+			function nextStep(){
+				testExtIsEnd = true;
+				output();
+				if (!!length) {	//length参数只有在获取pixivision插画时才会传入
+					testExtNo++;
+					if (testExtNo === length) { //如果所有请求都执行完毕
+						outputUrls(imgUrlList);
+					}
+				}
+			}
+
+		}
+		// mode=big的网址如https://www.pixiv.net/member_illust.php?mode=medium&illust_id=56155666，虽然是单图，但是点击后是在新页面打开一张图片的，新页面要求referer，因此无法获取
+		// pixivision则是因为跨域问题
 
 		// --------------------------------------------------------------------------
 
@@ -128,7 +157,10 @@
 							if (!!doc1_jq.find(".full-screen._ui-tooltip")[0]) { //如果是动图 DOMParser之后无法解析（找到）canvas标签，不然判断更简单
 								imgUrlList.push(doc1_jq.find("#wrapper script").eq(0).text().split("\"src\":\"")[2].split("\",\"mime_type")[0].replace(/\\/g, "")); //DOMParser之后js不会执行，所以无法用p站自己的动图变量来获取动图网址了
 								output();
-							} else {
+							} else if (doc1_jq.find(".works_display a").eq(0).attr("href").indexOf("mode=big") > -1) { //对于mode=big
+								var tempUrl= doc1_jq.find(".bookmark_modal_thumbnail").attr("data-src").replace("c/150x150/img-master", "img-original").replace("_master1200", "");
+								testExt(tempUrl);
+							}	else {
 								var pNo = parseInt(doc1_jq.find("ul.meta li").eq(1).text().split(" ")[1].split("P")[0]); //P数
 								ajaxfordoc2(doc1_jq.find(".works_display a").eq(0).attr("href"), pNo);
 							}
@@ -315,7 +347,10 @@
 							if (!!doc1_jq.find(".full-screen._ui-tooltip")[0]) { //如果是动图 DOMParser之后无法解析（找到）canvas标签，不然判断更简单
 								imgUrlList.push(doc1_jq.find("#wrapper script").eq(0).text().split("\"src\":\"")[2].split("\",\"mime_type")[0].replace(/\\/g, "")); //DOMParser之后js不会执行，所以无法用p站自己的动图变量来获取动图网址了
 								output();
-							} else {
+							} else if (doc1_jq.find(".works_display a").eq(0).attr("href").indexOf("mode=big") > -1) { //对于mode=big
+								var tempUrl= doc1_jq.find(".bookmark_modal_thumbnail").attr("data-src").replace("c/150x150/img-master", "img-original").replace("_master1200", "");
+								testExt(tempUrl);
+							}	else {
 								var pNo = parseInt(doc1_jq.find("ul.meta li").eq(1).text().split(" ")[1].split("P")[0]); //P数
 								ajaxfordoc2(doc1_jq.find(".works_display a").eq(0).attr("href"), pNo);
 							}
@@ -545,7 +580,10 @@
 							if (!!doc1_jq.find(".full-screen._ui-tooltip")[0]) { //如果是动图 DOMParser之后无法解析（找到）canvas标签，不然判断更简单
 								imgUrlList.push(doc1_jq.find("#wrapper script").eq(0).text().split("\"src\":\"")[2].split("\",\"mime_type")[0].replace(/\\/g, "")); //DOMParser之后js不会执行，所以无法用p站自己的动图变量来获取动图网址了
 								output();
-							} else {
+							} else if (doc1_jq.find(".works_display a").eq(0).attr("href").indexOf("mode=big") > -1) { //对于mode=big
+								var tempUrl= doc1_jq.find(".bookmark_modal_thumbnail").attr("data-src").replace("c/150x150/img-master", "img-original").replace("_master1200", "");
+								testExt(tempUrl);
+							}	else {
 								var pNo = parseInt(doc1_jq.find("ul.meta li").eq(1).text().split(" ")[1].split("P")[0]); //P数
 								ajaxfordoc2(doc1_jq.find(".works_display a").eq(0).attr("href"), pNo);
 							}
@@ -733,7 +771,10 @@
 							if (!!doc1_jq.find(".full-screen._ui-tooltip")[0]) { //如果是动图 DOMParser之后无法解析（找到）canvas标签，不然判断更简单
 								imgUrlList.push(doc1_jq.find("#wrapper script").eq(0).text().split("\"src\":\"")[2].split("\",\"mime_type")[0].replace(/\\/g, "")); //DOMParser之后js不会执行，所以无法用p站自己的动图变量来获取动图网址了
 								output();
-							} else {
+							} else if (doc1_jq.find(".works_display a").eq(0).attr("href").indexOf("mode=big") > -1) { //对于mode=big
+								var tempUrl= doc1_jq.find(".bookmark_modal_thumbnail").attr("data-src").replace("c/150x150/img-master", "img-original").replace("_master1200", "");
+								testExt(tempUrl);
+							}	else {
 								var pNo = parseInt(doc1_jq.find("ul.meta li").eq(1).text().split(" ")[1].split("P")[0]); //P数
 								ajaxfordoc2(doc1_jq.find(".works_display a").eq(0).attr("href"), pNo);
 							}
@@ -1148,7 +1189,10 @@
 							if (!!doc1_jq.find(".full-screen._ui-tooltip")[0]) { //如果是动图 DOMParser之后无法解析（找到）canvas标签，不然判断更简单
 								imgUrlList.push(doc1_jq.find("#wrapper script").eq(0).text().split("\"src\":\"")[2].split("\",\"mime_type")[0].replace(/\\/g, "")); //DOMParser之后js不会执行，所以无法用p站自己的动图变量来获取动图网址了
 								output();
-							} else {
+							} else if (doc1_jq.find(".works_display a").eq(0).attr("href").indexOf("mode=big") > -1) { //对于mode=big
+								var tempUrl= doc1_jq.find(".bookmark_modal_thumbnail").attr("data-src").replace("c/150x150/img-master", "img-original").replace("_master1200", "");
+								testExt(tempUrl);
+							}	else {
 								var pNo = parseInt(doc1_jq.find("ul.meta li").eq(1).text().split(" ")[1].split("P")[0]); //P数
 								ajaxfordoc2(doc1_jq.find(".works_display a").eq(0).attr("href"), pNo, interrupt);
 							}
@@ -1260,7 +1304,10 @@
 							if (!!doc1_jq.find(".full-screen._ui-tooltip")[0]) { //如果是动图 DOMParser之后无法解析（找到）canvas标签，不然判断更简单
 								imgUrlList.push(doc1_jq.find("#wrapper script").eq(0).text().split("\"src\":\"")[2].split("\",\"mime_type")[0].replace(/\\/g, "")); //DOMParser之后js不会执行，所以无法用p站自己的动图变量来获取动图网址了
 								output();
-							} else {
+							} else if (doc1_jq.find(".works_display a").eq(0).attr("href").indexOf("mode=big") > -1) { //对于mode=big
+								var tempUrl= doc1_jq.find(".bookmark_modal_thumbnail").attr("data-src").replace("c/150x150/img-master", "img-original").replace("_master1200", "");
+								testExt(tempUrl);
+							}	else {
 								var pNo = parseInt(doc1_jq.find("ul.meta li").eq(1).text().split(" ")[1].split("P")[0]); //P数
 								ajaxfordoc2(doc1_jq.find(".works_display a").eq(0).attr("href"), pNo);
 							}
@@ -1440,7 +1487,10 @@
 							if (!!doc1_jq.find(".full-screen._ui-tooltip")[0]) { //如果是动图 DOMParser之后无法解析（找到）canvas标签，不然判断更简单
 								imgUrlList.push(doc1_jq.find("#wrapper script").eq(0).text().split("\"src\":\"")[2].split("\",\"mime_type")[0].replace(/\\/g, "")); //DOMParser之后js不会执行，所以无法用p站自己的动图变量来获取动图网址了
 								output();
-							} else {
+							} else if (doc1_jq.find(".works_display a").eq(0).attr("href").indexOf("mode=big") > -1) { //对于mode=big
+								var tempUrl= doc1_jq.find(".bookmark_modal_thumbnail").attr("data-src").replace("c/150x150/img-master", "img-original").replace("_master1200", "");
+								testExt(tempUrl);
+							}	else {
 								var pNo = parseInt(doc1_jq.find("ul.meta li").eq(1).text().split(" ")[1].split("P")[0]); //P数
 								ajaxfordoc2(doc1_jq.find(".works_display a").eq(0).attr("href"), pNo);
 							}
@@ -1486,11 +1536,7 @@
 				(function() {
 					var downloadBotton = document.createElement("div");
 					document.body.appendChild(downloadBotton);
-					if (type == "illustration") {
-						$(downloadBotton).html("下载该页面的图片<br><br>插画仅能获取小图");
-					} else {
-						$(downloadBotton).html("下载该页面的图片");
-					}
+					$(downloadBotton).html("下载该页面的图片");
 					$(downloadBotton).attr("title", "下载该页面的图片")
 					downloadBotton.style.cssText = "background: #00A514;border-radius: 3px;color: #fff;text-align: center;padding: 10px 5px;position: fixed;top: 335px;right: 0;z-index: 9999;cursor: pointer;";
 					downloadBotton.addEventListener("click", function() {
@@ -1504,19 +1550,22 @@
 					var imageList = []; //图片元素的列表
 					if (type == "illustration") { // 针对不同的类型，选择器不同
 						imageList = $(".am__work__main img");
+						var urls=[];
+						// 插画有首图，并且网页里的图片是小图，所以要特殊处理
+						urls.push($(".aie__illust")[0].src.replace("c/768x1200_80/img-master", "img-original").replace("_master1200", "")); //添加首图的url 此时是不确定后缀名是否正确的url
+						for (var i = 0; i < imageList.length; i++) { // 把图片url添加进数组
+							urls.push(imageList[i].src.replace("c/768x1200_80/img-master", "img-original").replace("_master1200", ""));
+						}
+						for (var j = 0; j < urls.length; j++) {
+							setTimeout(testExt(urls[j],urls.length), j * ajax1Jiange);
+						}
 					} else {
 						imageList = $(".fab__image-block__image img");
+						for (var i = 0; i < imageList.length; i++) { // 把图片url添加进数组
+							imgUrlList.push(imageList[i].src);
+						}
+						outputUrls(imgUrlList);
 					}
-
-					for (var i = 0; i < imageList.length; i++) { // 把图片url添加进数组
-						imgUrlList.push(imageList[i].src);
-					}
-
-					// 插画有首图，并且网页里的图片是小图，所以要特殊处理
-					if (type == "illustration") {
-						imgUrlList.push($(".aie__illust")[0].src); //添加首图的url 但是都是pixivision页面里的小图
-					}
-					outputUrls(imgUrlList);
 				}
 			}
 		} else if (locationHref.indexOf("bookmark_add.php?id=") > -1 || locationHref.indexOf("bookmark_detail.php?illust_id=") > -1) { //9.on_bookmark_add	bookmark_add的页面刷新就变成bookmark_detail了
@@ -1637,7 +1686,10 @@
 							if (!!doc1_jq.find(".full-screen._ui-tooltip")[0]) { //如果是动图 DOMParser之后无法解析（找到）canvas标签，不然判断更简单
 								imgUrlList.push(doc1_jq.find("#wrapper script").eq(0).text().split("\"src\":\"")[2].split("\",\"mime_type")[0].replace(/\\/g, "")); //DOMParser之后js不会执行，所以无法用p站自己的动图变量来获取动图网址了
 								output();
-							} else {
+							} else if (doc1_jq.find(".works_display a").eq(0).attr("href").indexOf("mode=big") > -1) { //对于mode=big
+								var tempUrl= doc1_jq.find(".bookmark_modal_thumbnail").attr("data-src").replace("c/150x150/img-master", "img-original").replace("_master1200", "");
+								testExt(tempUrl);
+							}else{
 								if (!not_down_duotu) { //如果没有设置排除大图，则抓取大图。这个判断的位置和其他的不同，不是在获取列表页的时候判断
 									var pNo = parseInt(doc1_jq.find("ul.meta li").eq(1).text().split(" ")[1].split("P")[0]); //P数
 									ajaxfordoc2(doc1_jq.find(".works_display a").eq(0).attr("href"), pNo);
