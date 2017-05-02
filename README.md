@@ -1,6 +1,6 @@
 # 简介：
 
-这是一个纯JavaScript的pixiv爬虫，同时也是个用户脚本（js是个UserScript），用来批量获取pixiv图片的url。获取url之后你可以复制url来使用下载软件下载图片。
+这是一个纯JavaScript编写的pixiv爬虫，同时也是个用户脚本（UserScript），用来批量获取pixiv图片的url。获取url之后你可以复制url来使用下载软件下载图片。
 
 # 使用：
 
