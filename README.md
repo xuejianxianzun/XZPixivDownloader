@@ -1,4 +1,8 @@
-这是一个用来批量获取pixiv图片的url的工具，你可以通过复制url来使用下载软件下载图片。
+# 简介：
+
+这是一个纯JavaScript的pixiv爬虫，同时也是个用户脚本（js是个UserScript），用来批量获取pixiv图片的url。获取url之后你可以复制url来使用下载软件下载图片。
+
+# 使用：
 
 getPixivImageUrl.user.js是个UserScript，你可以在greasyfork.org上安装它：
 
@@ -12,8 +16,7 @@ https://greasyfork.org/zh-CN/scripts/24252
 
 （如果你遇到脚本运行完了却没有打开新标签页的情况，请注意一下是不是浏览器拦截新窗口。）
 
-
-可以使用的场景：
+# 可以使用的场景：
 
 任何人的作品详情页
 
