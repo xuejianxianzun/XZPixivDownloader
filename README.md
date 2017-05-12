@@ -36,4 +36,6 @@ tag搜索页面
 
 pixivision上的插画、漫画、cosplay
 
+大家的新作品
 
+关注的人的新作品
