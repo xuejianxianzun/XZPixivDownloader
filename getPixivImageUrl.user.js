@@ -1,11 +1,11 @@
 // ==UserScript==
-// @name         仙尊pixiv图片下载器_批量获取并导出pixiv图片的网址
-// @namespace    http://saber.love/?p=3102
-// @version      2.0.1
-// @description  在多种情景下，批量抓取并导出pixiv图片的网址，以便使用下载软件批量下载
-// @author       雪见仙尊
-// @include      *://www.pixiv.net/*
-// @include      *://www.pixivision.net/*
+// @name		仙尊pixiv图片下载器_批量获取并导出pixiv图片的网址
+// @namespace	http://saber.love/?p=3102
+// @version		2.1
+// @description	在多种情景下，批量抓取并导出pixiv图片的网址，以便使用下载软件批量下载
+// @author		雪见仙尊
+// @include		*://www.pixiv.net/*
+// @include		*://www.pixivision.net/*
 // @run-at		document-end
 // ==/UserScript==
 /*
@@ -324,7 +324,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 		get_Need_Tag();
 
 		nowhtml = $(outputInfo).html();
-		img_url_list = [];
+		resetImgUrlList();
 		if (page_type !== 6) {
 			allow_work = false; //开始执行时更改许可状态
 		}
@@ -467,7 +467,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			if (interrupt) {
 				interrupt = false;
 			}
-			img_url_list = [];
+			resetImgUrlList();
 			$("._global-header").eq(0).before(outputInfo);
 			// 获取要排除的tag 因为tag搜索页里的下载按钮没有启动startGet，而是在这里
 			get_NotNeed_Tag();
@@ -650,7 +650,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			dataType: "text",
 			success: function(data) {
 				if (interrupt) { //这里判断的是tag搜索页的中断状态。如果已经中断，则清空数据并返回
-					img_url_list = [];
+					resetImgUrlList();
 					return false;
 				}
 				var imgsrc = parser.parseFromString(data, "text/html").querySelector("img").src; //取出第一张图片的url
@@ -722,7 +722,69 @@ if (window.location.href.indexOf("whitecube") > -1) {
 		}
 	}
 
-	// 在新标签页输出图片的url 有时会被拦截，请注意
+	// 设置输出url区域的样式和dom元素
+	styleE.innerHTML +=
+		'.outputWrap{padding: 20px 30px;width: 520px;background:#fff;border-radius: 20px;z-index: 999;box-shadow: 0px 0px 20px #666;display: none;position: fixed;top: 12%; margin-left: -300px;left: 50%;}' +
+		'.outputTitle{height: 20px;line-height: 20px;text-align: center;font-size:18px;color:#179FDD;}' +
+		'.outputContent{border: 1px solid #ccc;transition: .3s;font-size: 14px;margin-top: 10px;padding: 5px 10px;overflow: auto;max-height:500px;line-height:20px;}' +
+		'.outputContent::selection{background:#179FDD;color:#fff;}' +
+		'.outputFooter{height: 60px;text-align: center;}' +
+		'.outputClose{cursor: pointer;position: absolute;width: 30px;height: 30px;top:20px;right:30px;z-index: 9999;font-size:18px;text-align:center;}' +
+		'.outputClose:hover{color:#179FDD;}' +
+		'.outputCopy{height: 34px;line-height: 34px;min-width:100px;padding: 2px 25px;margin-top: 15px;background:#179FDD;display:inline-block;color:#fff;font-size:14px;border-radius:6px;cursor:pointer;}';
+	var outputImgUrlWrap = document.createElement("div");
+	document.body.appendChild(outputImgUrlWrap);
+	outputImgUrlWrap.outerHTML =
+		'<div class="outputWrap">' +
+		'<div class="outputClose" title="隐藏输出区域">X</div>' +
+		'<div class="outputTitle">图片url列表</div>' +
+		'<div class="outputContent"></div>' +
+		'<div class="outputFooter">' +
+		'<div class="outputCopy" title="点击按钮自动复制图片url到剪贴板">复制图片url</div>' +
+		'</div>' +
+		'</div>';
+	// 绑定关闭输出url区域的事件
+	$(".outputClose").on("click", function() {
+		$(".outputWrap").hide();
+	});
+	// 绑定复制url的事件
+	$(".outputCopy").on("click", function() {
+		var range = document.createRange();
+		range.selectNodeContents($(".outputContent")[0]);
+		window.getSelection().removeAllRanges();
+		window.getSelection().addRange(range);
+		document.execCommand('copy');
+		// 改变提示文字
+		$(".outputCopy").text("已复制到剪贴板，可直接粘贴");
+		setTimeout(function() {
+			window.getSelection().removeAllRanges();
+			$(".outputCopy").text("复制图片url");
+		}, 2000);
+	});
+
+	// 添加控制输出图片url区域的按钮
+	var outputImgUrlWrap_ctr;
+	(function() {
+		outputImgUrlWrap_ctr = document.createElement("div");
+		document.body.appendChild(outputImgUrlWrap_ctr);
+		$(outputImgUrlWrap_ctr).hide();
+		$(outputImgUrlWrap_ctr).text("显示/隐藏输出区域");
+		$(outputImgUrlWrap_ctr).attr("title", "显示/隐藏输出区域");
+		setButtonStyle(outputImgUrlWrap_ctr, 0, "#179FDD");
+		outputImgUrlWrap_ctr.addEventListener("click", function() {
+			$(".outputWrap").toggle();
+		}, false);
+	})();
+
+	// 清空图片url列表并重置输出url的区域
+	function resetImgUrlList() {
+		img_url_list = [];
+		$(".outputWrap").hide();
+		$(".outputContent").text(null);
+		$(outputImgUrlWrap_ctr).hide();
+	}
+
+	// 输出图片的url
 	function outputUrls(img_url_list) {
 		if (ajax_for_list_is_end && ajax_for_illust_is_end && test_suffix_finished) { // 检查加载页面的任务 以及 检查网址的任务 是否都全部完成。
 			$(outputInfo).html($(outputInfo).html() + "<br>获取完毕，共" + img_url_list.length + "个图片地址<br>");
@@ -730,13 +792,17 @@ if (window.location.href.indexOf("whitecube") > -1) {
 				$(outputInfo).html($(outputInfo).html() + "没有符合条件的作品！<br>任务结束。<br><br>");
 				return false;
 			}
-			nowhtml = $(outputInfo).html();
-			var outputPage = window.open();
+			// 显示输出结果
+			var result = "";
 			for (var i = 0; i < img_url_list.length; i++) {
-				outputPage.document.write(img_url_list[i] + "<br>");
+				result = result + img_url_list[i] + "<br>";
 			}
-			outputPage.document.close();
+			$(".outputContent").html(result);
+			$(".outputWrap").show();
+			$(outputImgUrlWrap_ctr).show();
+			// 显示输出结果完毕
 			$(outputInfo).html($(outputInfo).html() + "输出完毕。<br><br>");
+			alert("抓取完毕！");
 			nowhtml = $(outputInfo).html();
 		} else { //如果没有完成，则延迟一段时间后再执行
 			setTimeout(function() {
@@ -844,7 +910,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			baseUrl = "https://www.pixiv.net/bookmark.php" + $(".page-list").eq(0).find("a").eq(0).attr("href").split("&p=")[0] + "&p="; //从页码中取值，作为列表页url的规则（等同于上面注释里的代码，但更便捷）
 		} else { //否则只有1页
 			startpage_no = 1;
-			baseUrl = loc_url;
+			baseUrl = loc_url + "&p=";
 		}
 
 		(function() {
@@ -1189,7 +1255,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 				downloadBotton.addEventListener("click", function() {
 					$(".logo-area h1").hide();
 					document.body.insertBefore(outputInfo, $(".body-container")[0]);
-					img_url_list = [];
+					resetImgUrlList();
 					var imageList = []; //图片元素的列表
 					if (type == "illustration") { // 针对不同的类型，选择器不同
 						imageList = $(".am__work__main img");
