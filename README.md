@@ -1,18 +1,18 @@
 # 简介：
 
-这是一个纯JavaScript编写的pixiv爬虫，同时也是个用户脚本（UserScript），用来批量获取pixiv图片的url。获取url之后你可以复制url来使用下载软件下载图片。
+这是一个使用JavaScript编写的pixiv图片下载器。它是一个用户脚本（UserScript），其下载部分为解决跨域问题，使用了用户脚本管理器的API。
 
 # 使用：
 
-getPixivImageUrl.user.js是个UserScript，你可以在greasyfork.org上安装它：
+你可以在greasyfork.org上安装它：
 
 https://greasyfork.org/zh-CN/scripts/24252
 
-也可以手动在浏览器控制台执行本js代码，一样可以使用。
+安装后，在pixiv上可以进行下载的页面上就会显示下载功能按钮，你可以先设定抓取条件，然后开始抓取。
 
-代码运行后，会在pixiv上可以进行下载的页面上显示下载功能按钮，你可以先设定抓取条件，然后开始抓取。
+抓取完毕后可以建立下载，或者复制图片url。下载的文件会保存在浏览器的下载目录里。
 
-抓取完毕后会输出抓取到的图片url。之后你可以复制所有url，然后使用下载软件（如迅雷、IDM等）批量下载。
+ps：在火狐上用油猴安装本脚本后，执行有异常。推荐使用tampermonkey这个脚本管理器。
 
 # 可以使用的场景：
 
