@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		仙尊pixiv图片下载器
 // @namespace	http://saber.love/?p=3102
-// @version		2.9
+// @version		2.9.5
 // @description	可在多种情景下批量下载pixiv上的图片
 // @author		雪见仙尊 xuejianxianzun
 // @include		*://www.pixiv.net/*
@@ -43,6 +43,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 		listPage_finished = 0, //记录一共抓取了多少列表页
 		listPage_finished2 = 0, //记录tag搜索页本次任务已经抓取了多少页
 		want_page, //要抓取几页
+		quick = false, // 快速下载当前页面
 		want_favorite_number = 0, //tag搜索页要求的最低收藏数
 		interrupt = false, //是否中断正在进行的任务，目前仅在tag搜索页使用
 		allow_work = true, //当前是否允许展开工作（如果有未完成的任务则会变为false
@@ -73,6 +74,8 @@ if (window.location.href.indexOf("whitecube") > -1) {
 		download_stop_num = 0, // 已停止的线程数
 		download_pause = false, // 是否暂停下载
 		download_pause_num = 0, // 已暂停的线程数
+		xianzun_btns_ctr,
+		xianzun_btns_con,
 		LANG = {}; //储存语言配置
 
 	// 去除广告
@@ -133,7 +136,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 	function setNotDownType(no) {
 		var notDownType = document.createElement("div");
 		notDownType.id = "notDownType";
-		document.body.appendChild(notDownType);
+		xianzun_btns_con.appendChild(notDownType);
 		$(notDownType).text("排除指定类型的作品");
 		$(notDownType).attr("title", "在下载前，您可以设置想要排除的作品类型。");
 		setButtonStyle(notDownType, no, "#DA7002");
@@ -167,7 +170,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 	function setFilterTag_notNeed(no) {
 		var nottag = document.createElement("div");
 		nottag.id = "nottag";
-		document.body.appendChild(nottag);
+		xianzun_btns_con.appendChild(nottag);
 		$(nottag).text("设置作品不能包含的tag");
 		$(nottag).attr("title", "在下载前，您可以设置想要排除的tag。");
 		setButtonStyle(nottag, no, "#DE0000");
@@ -224,7 +227,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 	function setFilterTag_Need(no) {
 		var needtag = document.createElement("div");
 		needtag.id = "needtag";
-		document.body.appendChild(needtag);
+		xianzun_btns_con.appendChild(needtag);
 		$(needtag).text("设置作品必须包含的tag");
 		$(needtag).attr("title", "在下载前，您可以设置必须包含的tag。");
 		setButtonStyle(needtag, no, "#00A514");
@@ -254,7 +257,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 	function setFilterWH(no) {
 		var filterWHBotton = document.createElement("div");
 		filterWHBotton.id = "filterWHBotton";
-		document.body.appendChild(filterWHBotton);
+		xianzun_btns_con.appendChild(filterWHBotton);
 		$(filterWHBotton).text("设置宽高条件");
 		$(filterWHBotton).attr("title", "在下载前，您可以设置要下载的图片的宽高条件。");
 		setButtonStyle(filterWHBotton, no, "#179FDD");
@@ -342,14 +345,18 @@ if (window.location.href.indexOf("whitecube") > -1) {
 
 		// 设置要获取的作品数或页数
 		if (page_type === 1) {
-			var result = check_want_page_rule1(
-				"如果要下载全部作品，请保持默认值。\n如果需要设置下载的作品数，请输入从1开始的数字，1为仅下载当前作品。",
-				"参数不合法，本次操作已取消。<br>",
-				"任务开始<br>本次任务条件: 从本页开始下载-num-个作品",
-				"任务开始<br>本次任务条件: 向下获取所有作品"
-			);
-			if (!result) {
-				return false;
+			if (quick) {
+				want_page = 1;
+			} else {
+				var result = check_want_page_rule1(
+					"如果要下载全部作品，请保持默认值。\n如果需要设置下载的作品数，请输入从1开始的数字，1为仅下载当前作品。",
+					"参数不合法，本次操作已取消。<br>",
+					"任务开始<br>本次任务条件: 从本页开始下载-num-个作品",
+					"任务开始<br>本次任务条件: 向下获取所有作品"
+				);
+				if (!result) {
+					return false;
+				}
 			}
 		} else if (page_type === 2 || page_type === 3 || page_type === 4) {
 			var result = check_want_page_rule1(
@@ -601,6 +608,10 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			allow_work = true;
 			return false;
 		}
+		if (quick) { // 在快速获取之外的情况，可能是下载多个图片，所以不输出以避免循环输出多次
+			$(outputInfo).html($(outputInfo).html() + "<br>开始获取作品页面");
+			nowhtml = $(outputInfo).html();
+		}
 		$.ajax({
 			url: url,
 			type: "get",
@@ -614,10 +625,39 @@ if (window.location.href.indexOf("whitecube") > -1) {
 				}
 				var illust_document = $(parser.parseFromString(data, "text/html"));
 
+				// 处理无权访问的作品 测试id35697511
+				var test_title = illust_document.find(".work-info .title");
+				if (test_title.length === 0) {
+					console.log("访问不到 " + url);
+					ajax_for_list_is_end = true;
+					if (page_type === 1) { // 在作品页内下载时，设置的want_page其实是作品数
+						if (want_page > 0) {
+							want_page--;
+						}
+						// 获取不到下一个作品了，直接结束
+						$(outputInfo).html($(outputInfo).html() + "<br>无权访问" + url + "，抓取中断。<br>");
+						allow_work = true;
+						allWorkFinished();
+					} else { // 跳过当前作品
+						$(outputInfo).html($(outputInfo).html() + "<br>无权访问" + url + "，跳过该作品。<br>");
+						if (illust_url_list.length > 0) { //如果存在下一个作品，则
+							getIllustPage(illust_url_list[0]);
+						} else { //没有剩余作品
+							ajax_threads_finished++;
+							if (ajax_threads_finished === ajax_for_illust_threads) { //如果所有并发请求都执行完毕
+								ajax_threads_finished = 0; //复位
+								allow_work = true;
+								allWorkFinished();
+							}
+						}
+					}
+					return false;
+				}
+
 				// 预设及获取图片信息
 				var imgUrl = "",
 					id,
-					title = illust_document.find(".work-info .title").text(), //标题
+					title = test_title.text(), //标题
 					user = illust_document.find("h1.user").text(), //画师
 					jsInfo = illust_document.find("#wrapper script").eq(0).text(), //包含作品信息的js代码
 					sizeInfo = /\[.*?\]/.exec(jsInfo)[0].replace(/\[|\]/g, "").split(","), //取出pixiv.context.illustSize属性
@@ -868,278 +908,328 @@ if (window.location.href.indexOf("whitecube") > -1) {
 		}
 	}
 
-	// 设置按钮的通用样式
-	var styleE = document.createElement("style");
-	document.body.appendChild(styleE);
-	styleE.innerHTML = ".download_btn{width:150px;height:18px;line-height:18px;font-size:14px;box-sizing:content-box;border-radius: 3px;color: #fff;text-align: center;padding: 10px 10px;cursor: pointer;position: fixed;right: 0px;z-index: 9999;opacity:0.9;transition: .1s;}.download_btn:hover{opacity:1;}";
-
 	// 单独设置按钮的位置和背景颜色
 	function setButtonStyle(e, no, bg) {
-		var startTop = 230,
-			unitTop = 50;
+		var startTop = 200,
+			unitTop = 55;
 		e.className = "download_btn";
-		e.style.top = startTop + unitTop * (no - 1) + "px";
+		// e.style.top = startTop + unitTop * (no - 1) + "px";
 		e.style.backgroundColor = bg;
 	}
 
-	// 添加输出url的区域
-	var outputImgUrlWrap = document.createElement("div");
-	document.body.appendChild(outputImgUrlWrap);
-	outputImgUrlWrap.outerHTML =
-		'<div class="outputUrlWrap">' +
-		'<div class="outputUrlClose" title="关闭">X</div>' +
-		'<div class="outputUrlTitle">图片url列表</div>' +
-		'<div class="outputUrlContent"></div>' +
-		'<div class="outputUrlFooter">' +
-		'<div class="outputUrlCopy" title="点击按钮自动复制图片url到剪贴板">复制图片url</div>' +
-		'</div>' +
-		'</div>';
-	styleE.innerHTML +=
-		'.outputUrlWrap{padding: 20px 30px;width: 520px;background:#fff;border-radius: 20px;z-index: 9999;box-shadow: 0px 0px 15px #2ca6df;display: none;position: fixed;top: 15%; margin-left: -300px;left: 50%;}' +
-		'.outputUrlTitle{height: 20px;line-height: 20px;text-align: center;font-size:18px;color:#179FDD;}' +
-		'.outputUrlContent{border: 1px solid #ccc;transition: .3s;font-size: 14px;margin-top: 10px;padding: 5px 10px;overflow: auto;max-height:500px;line-height:20px;}' +
-		'.outputUrlContent::selection{background:#179FDD;color:#fff;}' +
-		'.outputUrlFooter{height: 60px;text-align: center;}' +
-		'.outputUrlClose{cursor: pointer;position: absolute;width: 30px;height: 30px;top:20px;right:30px;z-index: 9999;font-size:18px;text-align:center;}' +
-		'.outputUrlClose:hover{color:#179FDD;}' +
-		'.outputUrlCopy{height: 34px;line-height: 34px;min-width:100px;padding: 2px 25px;margin-top: 15px;background:#179FDD;display:inline-block;color:#fff;font-size:14px;border-radius:6px;cursor:pointer;}';
-	// 绑定关闭输出url区域的事件
-	$(".outputUrlClose").on("click", function() {
-		$(".outputUrlWrap").hide();
-	});
-	// 绑定复制url的事件
-	$(".outputUrlCopy").on("click", function() {
-		var range = document.createRange();
-		range.selectNodeContents($(".outputUrlContent")[0]);
-		window.getSelection().removeAllRanges();
-		window.getSelection().addRange(range);
-		document.execCommand('copy');
-		// 改变提示文字
-		$(".outputUrlCopy").text("已复制到剪贴板，可直接粘贴");
-		setTimeout(function() {
+	// 添加css样式表
+	var styleE = document.createElement("style");
+	document.body.appendChild(styleE);
+	styleE.innerHTML = "";
+
+	function addBtnsAreaCtrl() {
+		// 输出右侧按钮区域
+		var xianzun_btns_wrap = document.createElement("div");
+		document.body.appendChild(xianzun_btns_wrap);
+		xianzun_btns_wrap.outerHTML =
+			'<div class="xianzun_btns_wrap">' +
+			'<div class="xianzun_btns_ctr" data-show="0"><span class="xianzun_arrow_left"></span><span>展开下载按钮</span></div>' +
+			'<div class="xianzun_btns_con">' +
+			'</div>' +
+			'</div>';
+		// 设置右侧按钮的样式
+		styleE.innerHTML +=
+			'.xianzun_btns_wrap{position: fixed;top: 140px;right: -180px;z-index: 999;font-size: 0;transition: right .3s;}' +
+			'.xianzun_btns_wrap *{box-sizing:content-box;}' +
+			'.xianzun_btns_ctr{width: 16px;padding: 11px 8px;cursor: pointer;display: inline-block;vertical-align: top;font-size: 14px;text-align: center;background: #34b0e0;color: #fff;border-radius: 5px;transition: background .3s;}' +
+			'.xianzun_btns_ctr span:nth-child(1){display: inline-block;width: 0;height: 0;line-height: 0;}' +
+			'.xianzun_arrow_left{border-bottom: 6px solid transparent;border-left: 6px solid transparent;border-right: 6px solid #fff;border-top: 6px solid transparent;}' +
+			'.xianzun_arrow_right{border-bottom: 6px solid transparent;border-left: 6px solid #fff;border-right: 6px solid transparent;border-top: 6px solid transparent;}' +
+			'.xianzun_btns_ctr:hover{background: #179FDD;}' +
+			'.xianzun_btns_con{vertical-align: top;padding-left: 10px;display: inline-block;position: relative;}' +
+			'.download_btn{width:170px;height:40px;line-height:40px;font-size:14px;border-radius: 3px;color: #fff;text-align: center;cursor: pointer;margin-bottom: 12px;}';
+		// 绑定切换右侧按钮显示的事件
+		xianzun_btns_wrap = document.querySelector(".xianzun_btns_wrap");
+		xianzun_btns_ctr = document.querySelector(".xianzun_btns_ctr");
+		xianzun_btns_con = document.querySelector(".xianzun_btns_con");
+		xianzun_btns_ctr.addEventListener("click", function() {
+			if (this.getAttribute("data-show") === "0") {
+				xianzun_btns_wrap.style.right = "0px";
+				this.querySelector("span").className = "xianzun_arrow_right";
+				this.querySelectorAll("span")[1].innerHTML = "收起下载按钮";
+				this.setAttribute("data-show", "1");
+			} else if (this.getAttribute("data-show") === "1") {
+				xianzun_btns_wrap.style.right = "-180px";
+				this.querySelector("span").className = "xianzun_arrow_left";
+				this.querySelectorAll("span")[1].innerHTML = "展开下载按钮";
+				this.setAttribute("data-show", "0");
+			}
+		});
+	}
+
+	function addOutputWarp() {
+		// 添加输出url的区域
+		var outputImgUrlWrap = document.createElement("div");
+		document.body.appendChild(outputImgUrlWrap);
+		outputImgUrlWrap.outerHTML =
+			'<div class="outputUrlWrap">' +
+			'<div class="outputUrlClose" title="关闭">X</div>' +
+			'<div class="outputUrlTitle">图片url列表</div>' +
+			'<div class="outputUrlContent"></div>' +
+			'<div class="outputUrlFooter">' +
+			'<div class="outputUrlCopy" title="点击按钮自动复制图片url到剪贴板">复制图片url</div>' +
+			'</div>' +
+			'</div>';
+		styleE.innerHTML +=
+			'.outputUrlWrap{padding: 20px 30px;width: 520px;background:#fff;border-radius: 20px;z-index: 9999;box-shadow: 0px 0px 15px #2ca6df;display: none;position: fixed;top: 15%; margin-left: -300px;left: 50%;}' +
+			'.outputUrlTitle{height: 20px;line-height: 20px;text-align: center;font-size:18px;color:#179FDD;}' +
+			'.outputUrlContent{border: 1px solid #ccc;transition: .3s;font-size: 14px;margin-top: 10px;padding: 5px 10px;overflow: auto;max-height:400px;line-height:20px;}' +
+			'.outputUrlContent::selection{background:#179FDD;color:#fff;}' +
+			'.outputUrlFooter{height: 60px;text-align: center;}' +
+			'.outputUrlClose{cursor: pointer;position: absolute;width: 30px;height: 30px;top:20px;right:30px;z-index: 9999;font-size:18px;text-align:center;}' +
+			'.outputUrlClose:hover{color:#179FDD;}' +
+			'.outputUrlCopy{height: 34px;line-height: 34px;min-width:100px;padding: 2px 25px;margin-top: 15px;background:#179FDD;display:inline-block;color:#fff;font-size:14px;border-radius:6px;cursor:pointer;}';
+		// 绑定关闭输出url区域的事件
+		$(".outputUrlClose").on("click", function() {
+			$(".outputUrlWrap").hide();
+		});
+		// 绑定复制url的事件
+		$(".outputUrlCopy").on("click", function() {
+			var range = document.createRange();
+			range.selectNodeContents($(".outputUrlContent")[0]);
 			window.getSelection().removeAllRanges();
-			$(".outputUrlCopy").text("复制图片url");
-		}, 2000);
-	});
+			window.getSelection().addRange(range);
+			document.execCommand('copy');
+			// 改变提示文字
+			$(".outputUrlCopy").text("已复制到剪贴板，可直接粘贴");
+			setTimeout(function() {
+				window.getSelection().removeAllRanges();
+				$(".outputUrlCopy").text("复制图片url");
+			}, 2000);
+		});
 
-	// 设置下载区域
-	var outputWrap = document.createElement("div");
-	document.body.appendChild(outputWrap);
-	outputWrap.outerHTML =
-		'<div class="outputWrap">' +
-		'<div class="outputWrap_head">' +
-		'<span class="outputWrap_title blue">下载设置</span>' +
-		'<div class="outputWrap_close" title="隐藏">X</div>' +
-		'</div>' +
-		'<div class="outputWrap_con">' +
-		'<p>共抓取到<span class="imgNum blue">0</span>个图片，请设置文件命名规则：</p>' +
-		'<p>' +
-		'<input type="text" name="fileNameRule" class="fileNameRule" value="{id}_{tags}">' +
-		'&nbsp;.{ext}&nbsp;&nbsp;&nbsp;&nbsp;' +
-		'<span class="blue showFileNameTip">查看可用的标记</span>' +
-		'</p>' +
-		'<p class="fileNameTip tip">' +
-		'<span class="blue">{id}</span>' +
-		'作品id，包含序号，如"63011502_p0"' +
-		'<br>' +
-		'<span class="blue">{title}</span>' +
-		'作品标题' +
-		'<br>' +
-		'<span class="blue">{tags}</span>' +
-		'作品的tag列表' +
-		'<br>' +
-		'<span class="blue">{user}</span>' +
-		'画师的名字' +
-		'<br>' +
-		'* 在pixivision上，只有id标记会生效' +
-		'<br></p>' +
-		'<div class="outputWrap_btns">' +
-		'<div class="startDownload" style="background:#00A514;">开始下载</div>' +
-		'<div class="pauseDownload" style="background:#d29203;">暂停下载</div>' +
-		'<div class="stopDownload" style="background:#DE0000;">停止下载</div>' +
-		'<div class="copyUrl" style="background:#179FDD;">复制url</div>' +
-		'</div>' +
-		'<div class="outputWrap_down_tips">' +
-		'<p>' +
-		'当前状态：' +
-		'<span class="down_status blue">未开始下载</span>' +
-		'</p>' +
-		'<div>' +
-		'下载进度：' +
-		'<div class="right1">' +
-		'<div class="progressBar progressBar1">' +
-		'<div class="progress progress1"></div>' +
-		'</div>' +
-		'<div class="progressTip progressTip1">' +
-		'<span class="downloaded">0</span>' +
-		'/' +
-		'<span class="imgNum">0</span>' +
-		'</div>' +
-		'</div>' +
-		'</div>' +
-		'</div>' +
-		'<div class="outputWrap_down_list">' +
-		'<p>下载线程：</p>' +
-		'<ul>' +
-		'<li class="donwloadBar">' +
-		'<div class="progressBar progressBar2">' +
-		'<div class="progress progress2"></div>' +
-		'</div>' +
-		'<div class="progressTip progressTip2">' +
-		'<span class="download_fileName"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;已下载<span class="loaded">0/0</span>KB' +
-		'</div>' +
-		'</li>' +
-		'</ul>' +
-		'</div>' +
-		'<a class="downloadA" download=""></a>' +
-		'<p class="blue showDownTip">查看下载说明</p>' +
-		'<p class="downTip tip">' +
-		'下载的文件保存在浏览器的下载目录里。<br>' +
-		'本脚本不支持自动创建文件夹。<br>' +
-		'你可能会下载到.zip格式的文件，这是动态图的源文件。<br>' +
-		'请不要在浏览器的下载选项里选中"总是询问每个文件的保存位置"。<br>' +
-		'如果浏览器询问"是否允许下载多个文件"，请选择"允许"。<br>' +
-		'如果浏览器询问"保存"文件还是"打开"文件，请选择"保存"。<br>' +
-		'如果浏览器提示文件名过长，请将浏览器的下载文件夹改为名字较短的文件夹，之后重试。<br>' +
-		'如果作品标题或tag里含有不能做文件名的字符，会被替换成下划线"_"。<br>' +
-		'任务暂停成功后，你可以使用"开始下载"按钮继续下载;<br>' +
-		'任务下载完毕或停止后，你可以使用"开始下载"按钮重新下载。<br>' +
-		'如果任务下载缓慢或失败，可使用"复制url"功能，之后尝试使用其他下载软件进行下载。' +
-		'</p>' +
-		'</div>' +
-		'</div>';
-	styleE.innerHTML +=
-		'li{list-style: none;}' +
-		'.outputWrap{display:none;width: 650px;position: fixed;left: -350px;margin-left: 50%;background: #fff;top: 13%;color: #333;z-index: 999;font-size: 14px;padding: 25px;border-radius: 15px;border:1px solid #ddd;box-shadow: 0px 0px 25px #2ca6df;}' +
-		'.outputWrap p{line-height: 24px;}' +
-		'.outputWrap .blue{color: #03a4e2;}' +
-		'.outputWrap .tip{color: #999;}' +
-		'.outputWrap_head{height: 30px;position: relative;padding-bottom: 10px;}' +
-		'.outputWrap_title{display: block;line-height: 30px;text-align: center;font-size: 18px;}' +
-		'.outputWrap_close{font-size: 18px;position: absolute;top: 0px;right: 0px;width: 30px;height: 30px;text-align: center;cursor: pointer;}' +
-		'.outputWrap_close:hover{color:#4a9fff;}' +
-		'.fileNameRule{min-width: 200px;line-height: 20px;font-size: 14px;height: 20px;text-indent: 4px;}' +
-		'.showFileNameTip{cursor: pointer;}' +
-		'.fileNameTip{display: none;padding-top: 5px;}' +
-		'.outputWrap_btns{padding: 15px 0 8px;font-size: 0;}' +
-		'.outputWrap_btns div{display: inline-block;min-width: 100px;padding: 0 10px;text-align: center;height: 36px;line-height: 36px;color: #fff;border-radius: 4px;margin-right: 35px;font-size: 14px;cursor: pointer;}' +
-		'.outputWrap_down_tips{padding: 10px 0 0;line-height: 28px;}' +
-		'.download_progress1{position: relative;}' +
-		'.right1{position: relative;display: inline-block;width: 500px;height: 22px;vertical-align: middle;}' +
-		'.progressBar{position: absolute;background: #6792A2;height: 22px;border-radius: 11px;}' +
-		'.progress{background: #15BEFF;height: 22px;border-radius: 11px;transition: .15s;}' +
-		'.progressTip{color: #fff;position: absolute;line-height: 22px;font-size: 14px;}' +
-		'.progressBar1{width: 500px;}' +
-		'.progress1{width:0%;}' +
-		'.progressTip1{width: 500px;text-align: center;}' +
-		'.outputWrap_down_list{display:none;}' +
-		'.outputWrap_down_list ul{padding-top: 5px;}' +
-		'.donwloadBar{position: relative;width: 100%;padding: 5px 0;height: 22px;box-sizing:content-box;}' +
-		'.progressBar2{width: 100%;}' +
-		'.progress2{width:0%;}' +
-		'.progressTip2{width: 100%;}' +
-		'.download_fileName{max-width: 60%;white-space:nowrap;  text-overflow:ellipsis;overflow: hidden;vertical-align:top;display: inline-block;text-indent: 1em;}' +
-		'.showDownTip{padding-top: 10px;cursor: pointer;display: inline-block;}' +
-		'.downloadA{display: none;}' +
-		'.downTip{display: none;}';
-	// 绑定下载区域的相关事件
-	$(".outputWrap_close").on("click", function() {
-		$(".outputWrap").hide();
-	});
-	$(".showFileNameTip").on("click", function() {
-		$(".fileNameTip").toggle();
-	});
-	$(".showDownTip").on("click", function() {
-		$(".downTip").toggle();
-	});
-	// 开始下载按钮
-	$(".startDownload").on("click", function() { // 准备下载
-		if (download_started || download_pause === "ready_pause" || download_stop === "ready_stop") { // 如果正在下载中，或正在进行暂停任务，或正在进行停止任务，则不予处理
-			return false;
-		}
-		// 重置一些条件
-		download_started = true;
-		if (!download_pause) { // 如果没有暂停，则重新下载，否则继续下载
-			downloaded = 0;
-			$(".downloaded").html("0");
-			$(".download_fileName").html("");
-			$(".loaded").html("0/0");
-			$(".progress").css("width", "0%");
-		}
-		download_pause = false;
-		download_pause_num = 0;
-		download_stop = false;
-		download_stop_num = 0;
-		fileNameRule = $(".fileNameRule").val();
-
-		if (img_info.length < download_thread) { // 检查下载线程数
-			download_thread = img_info.length;
-		}
-		var outputWrap_down_list = $(".outputWrap_down_list");
-		outputWrap_down_list.show(); // 显示下载队列
-		if ($(".donwloadBar").length < download_thread) { // 如果下载队列的显示数组小于线程数，则增加队列
-			var need_add = download_thread - $(".donwloadBar").length;
-			var donwloadBar = outputWrap_down_list.find(".donwloadBar").eq(0);
-			// 增加下载队列的数量
-			for (var i = 0; i < need_add; i++) {
-				outputWrap_down_list.append(donwloadBar.clone());
-			}
-		}
-		// 启动或继续 建立并发下载线程
-		for (var i = 0; i < download_thread; i++) {
-			if (i + downloaded < img_info.length) {
-				(function(ii) {
-					setTimeout(function() {
-						startDownload(ii + downloaded, ii);
-					}, 100);
-				})(i);
-			}
-		}
-		$(".down_status").html("下载中");
-		donwloadBar_list = $(".donwloadBar");
-		downloadA = document.querySelector(".downloadA");
-	});
-	// 暂停下载按钮
-	$(".pauseDownload").on("click", function() {
-		if (download_stop === true) { // 停止的优先级高于暂停。点击停止可以取消暂停状态，但点击暂停不能取消停止状态
-			return false;
-		}
-		if (download_pause === false) {
-			if (download_started) { // 如果正在下载中
-				download_pause = "ready_pause"; //发出暂停信号
-				$(".down_status").html("任务正在暂停中，但当前位于下载线程中的文件会继续下载");
-			} else { // 不在下载中的话不允许启用暂停功能
+		// 设置下载区域
+		var outputWrap = document.createElement("div");
+		document.body.appendChild(outputWrap);
+		outputWrap.outerHTML =
+			'<div class="outputWrap">' +
+			'<div class="outputWrap_head">' +
+			'<span class="outputWrap_title blue">下载设置</span>' +
+			'<div class="outputWrap_close" title="隐藏">X</div>' +
+			'</div>' +
+			'<div class="outputWrap_con">' +
+			'<p>共抓取到<span class="imgNum blue">0</span>个图片，请设置文件命名规则：</p>' +
+			'<p>' +
+			'<input type="text" name="fileNameRule" class="fileNameRule" value="{id}">' +
+			'&nbsp;.{ext}&nbsp;&nbsp;&nbsp;&nbsp;' +
+			'<span class="blue showFileNameTip">查看可用的标记</span>' +
+			'</p>' +
+			'<p class="fileNameTip tip">' +
+			'<span class="blue">{id}</span>' +
+			'作品id，包含序号，如"63011502_p0"' +
+			'<br>' +
+			'<span class="blue">{title}</span>' +
+			'作品标题' +
+			'<br>' +
+			'<span class="blue">{tags}</span>' +
+			'作品的tag列表' +
+			'<br>' +
+			'<span class="blue">{user}</span>' +
+			'画师的名字' +
+			'<br>' +
+			'* 在pixivision上，只有id标记会生效' +
+			'<br></p>' +
+			'<div class="outputWrap_btns">' +
+			'<div class="startDownload" style="background:#00A514;">开始下载</div>' +
+			'<div class="pauseDownload" style="background:#d29203;">暂停下载</div>' +
+			'<div class="stopDownload" style="background:#DE0000;">停止下载</div>' +
+			'<div class="copyUrl" style="background:#179FDD;">复制url</div>' +
+			'</div>' +
+			'<div class="outputWrap_down_tips">' +
+			'<p>' +
+			'当前状态：' +
+			'<span class="down_status blue">未开始下载</span>' +
+			'</p>' +
+			'<div>' +
+			'下载进度：' +
+			'<div class="right1">' +
+			'<div class="progressBar progressBar1">' +
+			'<div class="progress progress1"></div>' +
+			'</div>' +
+			'<div class="progressTip progressTip1">' +
+			'<span class="downloaded">0</span>' +
+			'/' +
+			'<span class="imgNum">0</span>' +
+			'</div>' +
+			'</div>' +
+			'</div>' +
+			'</div>' +
+			'<div class="outputWrap_down_list">' +
+			'<p>下载线程：</p>' +
+			'<ul>' +
+			'<li class="donwloadBar">' +
+			'<div class="progressBar progressBar2">' +
+			'<div class="progress progress2"></div>' +
+			'</div>' +
+			'<div class="progressTip progressTip2">' +
+			'<span class="download_fileName"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;已下载<span class="loaded">0/0</span>KB' +
+			'</div>' +
+			'</li>' +
+			'</ul>' +
+			'</div>' +
+			'<a class="downloadA" download=""></a>' +
+			'<p class="blue showDownTip">查看下载说明</p>' +
+			'<p class="downTip tip">' +
+			'下载的文件保存在浏览器的下载目录里。<br>' +
+			'本脚本不支持自动创建文件夹。<br>' +
+			'你可能会下载到.zip格式的文件，这是动态图的源文件。<br>' +
+			'请不要在浏览器的下载选项里选中"总是询问每个文件的保存位置"。<br>' +
+			'如果浏览器询问"是否允许下载多个文件"，请选择"允许"。<br>' +
+			'如果浏览器询问"保存"文件还是"打开"文件，请选择"保存"。<br>' +
+			'如果浏览器提示文件名过长，请将浏览器的下载文件夹改为名字较短的文件夹，之后重试。<br>' +
+			'如果作品标题或tag里含有不能做文件名的字符，会被替换成下划线"_"。<br>' +
+			'任务暂停成功后，你可以使用"开始下载"按钮继续下载;<br>' +
+			'任务下载完毕或停止后，你可以使用"开始下载"按钮重新下载。<br>' +
+			'如果任务下载缓慢或失败，可使用"复制url"功能，之后尝试使用其他下载软件进行下载。' +
+			'</p>' +
+			'</div>' +
+			'</div>';
+		styleE.innerHTML +=
+			'li{list-style: none;}' +
+			'.outputWrap{display:none;width: 650px;position: fixed;left: -350px;margin-left: 50%;background: #fff;top: 13%;color: #333;z-index: 999;font-size: 14px;padding: 25px;border-radius: 15px;border:1px solid #ddd;box-shadow: 0px 0px 25px #2ca6df;}' +
+			'.outputWrap p{line-height: 24px;}' +
+			'.outputWrap .blue{color: #03a4e2;}' +
+			'.outputWrap .tip{color: #999;}' +
+			'.outputWrap_head{height: 30px;position: relative;padding-bottom: 10px;}' +
+			'.outputWrap_title{display: block;line-height: 30px;text-align: center;font-size: 18px;}' +
+			'.outputWrap_close{font-size: 18px;position: absolute;top: 0px;right: 0px;width: 30px;height: 30px;text-align: center;cursor: pointer;}' +
+			'.outputWrap_close:hover{color:#4a9fff;}' +
+			'.fileNameRule{min-width: 200px;line-height: 20px;font-size: 14px;height: 20px;text-indent: 4px;}' +
+			'.showFileNameTip{cursor: pointer;}' +
+			'.fileNameTip{display: none;padding-top: 5px;}' +
+			'.outputWrap_btns{padding: 15px 0 8px;font-size: 0;}' +
+			'.outputWrap_btns div{display: inline-block;min-width: 100px;padding: 0 10px;text-align: center;height: 36px;line-height: 36px;color: #fff;border-radius: 4px;margin-right: 35px;font-size: 14px;cursor: pointer;}' +
+			'.outputWrap_down_tips{padding: 10px 0 0;line-height: 28px;}' +
+			'.download_progress1{position: relative;}' +
+			'.right1{position: relative;display: inline-block;width: 500px;height: 22px;vertical-align: middle;}' +
+			'.progressBar{position: absolute;background: #6792A2;height: 22px;border-radius: 11px;}' +
+			'.progress{background: #15BEFF;height: 22px;border-radius: 11px;transition: .15s;}' +
+			'.progressTip{color: #fff;position: absolute;line-height: 22px;font-size: 14px;}' +
+			'.progressBar1{width: 500px;}' +
+			'.progress1{width:0%;}' +
+			'.progressTip1{width: 500px;text-align: center;}' +
+			'.outputWrap_down_list{display:none;}' +
+			'.outputWrap_down_list ul{padding-top: 5px;}' +
+			'.donwloadBar{position: relative;width: 100%;padding: 5px 0;height: 22px;box-sizing:content-box;}' +
+			'.progressBar2{width: 100%;}' +
+			'.progress2{width:0%;}' +
+			'.progressTip2{width: 100%;}' +
+			'.download_fileName{max-width: 60%;white-space:nowrap;  text-overflow:ellipsis;overflow: hidden;vertical-align:top;display: inline-block;text-indent: 1em;}' +
+			'.showDownTip{padding-top: 10px;cursor: pointer;display: inline-block;}' +
+			'.downloadA{display: none;}' +
+			'.downTip{display: none;}';
+		// 绑定下载区域的相关事件
+		$(".outputWrap_close").on("click", function() {
+			$(".outputWrap").hide();
+		});
+		$(".showFileNameTip").on("click", function() {
+			$(".fileNameTip").toggle();
+		});
+		$(".showDownTip").on("click", function() {
+			$(".downTip").toggle();
+		});
+		// 开始下载按钮
+		$(".startDownload").on("click", function() { // 准备下载
+			if (download_started || download_pause === "ready_pause" || download_stop === "ready_stop" || img_info.length === 0) { // 如果正在下载中，或正在进行暂停任务，或正在进行停止任务，则不予处理
 				return false;
 			}
-		}
-	});
-	// 停止下载按钮
-	$(".stopDownload").on("click", function() {
-		if (download_stop === false) {
-			if (download_started) { // 如果正在下载中
-				download_stop = "ready_stop"; //发出停止下载的信号
-				$(".down_status").html("任务正在停止中，但当前位于下载线程中的文件会继续下载");
-			} else { // 不在下载中的话允许启用停止功能
-				download_stop = true;
-				$(".down_status").html('<span style="color:#f00">下载已停止</span>');
+			// 重置一些条件
+			download_started = true;
+			if (!download_pause) { // 如果没有暂停，则重新下载，否则继续下载
+				downloaded = 0;
+				$(".downloaded").html("0");
+				$(".download_fileName").html("");
+				$(".loaded").html("0/0");
+				$(".progress").css("width", "0%");
 			}
 			download_pause = false;
-		}
-	});
-	// 复制url按钮
-	$(".copyUrl").on("click", function() { // 显示图片url列表
-		var result = "";
-		for (var i = 0; i < img_info.length; i++) {
-			result = result + img_info[i].url + "<br>";
-		}
-		$(".outputUrlContent").html(result);
-		$(".outputUrlWrap").show();
-		$(outputlWrap_ctr).show();
-	});
+			download_pause_num = 0;
+			download_stop = false;
+			download_stop_num = 0;
+			fileNameRule = $(".fileNameRule").val();
+
+			// 启动或继续 建立并发下载线程
+			$(outputInfo).html($(outputInfo).html() + "正在下载中<br>");
+			for (var i = 0; i < download_thread; i++) {
+				if (i + downloaded < img_info.length) {
+					(function(ii) {
+						setTimeout(function() {
+							startDownload(ii + downloaded, ii);
+						}, 100);
+					})(i);
+				}
+			}
+			$(".down_status").html("下载中");
+			donwloadBar_list = $(".donwloadBar");
+			downloadA = document.querySelector(".downloadA");
+		});
+		// 暂停下载按钮
+		$(".pauseDownload").on("click", function() {
+			if (img_info.length === 0) {
+				return false;
+			}
+			if (download_stop === true) { // 停止的优先级高于暂停。点击停止可以取消暂停状态，但点击暂停不能取消停止状态
+				return false;
+			}
+			if (download_pause === false) {
+				if (download_started) { // 如果正在下载中
+					download_pause = "ready_pause"; //发出暂停信号
+					$(".down_status").html("任务正在暂停中，但当前位于下载线程中的文件会继续下载");
+				} else { // 不在下载中的话不允许启用暂停功能
+					return false;
+				}
+			}
+		});
+		// 停止下载按钮
+		$(".stopDownload").on("click", function() {
+			if (img_info.length === 0) {
+				return false;
+			}
+			if (download_stop === false) {
+				if (download_started) { // 如果正在下载中
+					download_stop = "ready_stop"; //发出停止下载的信号
+					$(".down_status").html("任务正在停止中，但当前位于下载线程中的文件会继续下载");
+				} else { // 不在下载中的话允许启用停止功能
+					download_stop = true;
+					$(".down_status").html('<span style="color:#f00">下载已停止</span>');
+					$(outputInfo).html($(outputInfo).html() + "下载已停止!<br><br>");
+				}
+				download_pause = false;
+			}
+		});
+		// 复制url按钮
+		$(".copyUrl").on("click", function() { // 显示图片url列表
+			if (img_info.length === 0) {
+				return false;
+			}
+			var result = "";
+			for (var i = 0; i < img_info.length; i++) {
+				result = result + img_info[i].url + "<br>";
+			}
+			$(".outputUrlContent").html(result);
+			$(".outputUrlWrap").show();
+		});
+
+		// 添加控制下载区域的按钮
+		var outputlWrap_ctr = document.createElement("div");
+		outputlWrap_ctr.id = "outputlWrap_ctr";
+		xianzun_btns_con.appendChild(outputlWrap_ctr);
+		$(outputlWrap_ctr).text("显示/隐藏下载面板");
+		$(outputlWrap_ctr).attr("title", "显示/隐藏下载面板");
+		setButtonStyle(outputlWrap_ctr, -1, "#179FDD");
+		outputlWrap_ctr.addEventListener("click", function() {
+			$(".outputWrap").toggle();
+		}, false);
+	}
 
 	// 开始下载 下载序号，要使用的显示队列的序号
 	function startDownload(downloadNo, donwloadBar_no) {
-		console.log(downloadNo);
+		quick = false;
 		// 拼接文件名
 		var fullFileName = fileNameRule.replace("{id}", img_info[downloadNo].id).replace("{title}", img_info[downloadNo].title).replace("{user}", img_info[downloadNo].user).replace("{tags}", img_info[downloadNo].tags.join(",")).replace(safe_fileName_rule, "_");
 		// 处理文件名长度 这里有个问题，因为无法预知浏览器下载文件夹的长度，所以只能预先设置一个预设值
@@ -1193,6 +1283,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 					download_pause = false;
 					downloaded = 0;
 					$(".down_status").html("下载完毕");
+					$(outputInfo).html($(outputInfo).html() + "下载完毕!<br><br>");
 					setTimeout(function() {
 						alert("下载完毕!");
 					}, 200);
@@ -1201,6 +1292,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 					if (download_pause === "ready_pause") {
 						download_pause_num++; // 统计中断数量
 						if (download_pause_num === download_thread) {
+							$(outputInfo).html($(outputInfo).html() + "下载已暂停<br>");
 							$(".down_status").html('<span style="color:#d25b03">下载已暂停</span>');
 							download_started = false;
 							download_pause = true;
@@ -1216,6 +1308,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 					if (download_stop === "ready_stop") {
 						download_stop_num++; // 统计中断数量
 						if (download_stop_num === download_thread) {
+							$(outputInfo).html($(outputInfo).html() + "下载已停止!<br><br>");
 							$(".down_status").html('<span style="color:#f00">下载已停止</span>');
 							download_started = false;
 							download_stop = true;
@@ -1233,23 +1326,8 @@ if (window.location.href.indexOf("whitecube") > -1) {
 					}
 				}
 			}
-		})
+		});
 	}
-
-	// 控制下载区域的按钮
-	var outputlWrap_ctr;
-	(function() {
-		outputlWrap_ctr = document.createElement("div");
-		outputlWrap_ctr.id = "outputlWrap_ctr";
-		document.body.appendChild(outputlWrap_ctr);
-		$(outputlWrap_ctr).hide();
-		$(outputlWrap_ctr).text("显示/隐藏抓取结果");
-		$(outputlWrap_ctr).attr("title", "显示/隐藏抓取结果");
-		setButtonStyle(outputlWrap_ctr, -1, "#179FDD");
-		outputlWrap_ctr.addEventListener("click", function() {
-			$(".outputWrap").toggle();
-		}, false);
-	})();
 
 	// 抓取完毕
 	function allWorkFinished() {
@@ -1262,12 +1340,50 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			}
 			// 显示输出结果完毕
 			$(outputInfo).html($(outputInfo).html() + "抓取完毕!<br><br>");
-			alert("抓取完毕!");
+			if (!quick) {
+				alert("抓取完毕!");
+			}
 			nowhtml = $(outputInfo).html();
-			// 显示输出结果
-			$("#outputlWrap_ctr").show();
-			$(".outputWrap").show();
+			// 重置输出区域
+			downloaded = 0;
+			$(".downloaded").html("0");
+			$(".download_fileName").html("");
+			$(".loaded").html("0/0");
+			$(".progress").css("width", "0%");
+
+			// 显示输出区域
+			if (!quick) {
+				$(".outputWrap").show();
+			}
+			// 重置输出区域
 			$(".imgNum").text(img_info.length);
+			if (img_info.length < 5) { // 检查下载线程数
+				download_thread = img_info.length;
+			} else {
+				download_thread = 5; // 重设为默认值
+			}
+			var outputWrap_down_list = $(".outputWrap_down_list");
+			outputWrap_down_list.show(); // 显示下载队列
+			if ($(".donwloadBar").length < download_thread) { // 如果下载队列的显示数量小于线程数，则增加队列
+				var need_add = download_thread - $(".donwloadBar").length;
+				var donwloadBar = outputWrap_down_list.find(".donwloadBar").eq(0);
+				// 增加下载队列的数量
+				for (var i = 0; i < need_add; i++) {
+					outputWrap_down_list.append(donwloadBar.clone());
+				}
+			} else if ($(".donwloadBar").length > download_thread) { // 如果下载队列的显示数量大于线程数，则减少队列
+				var need_delete = $(".donwloadBar").length - download_thread;
+				// 减少下载队列的数量
+				for (var i = 0; i < need_delete; i++) {
+					outputWrap_down_list.find(".donwloadBar").eq(0).remove();
+				}
+			}
+			// 快速下载时点击下载按钮
+			if (quick) {
+				setTimeout(function() {
+					$(".startDownload").click();
+				}, 200);
+			}
 		} else { //如果没有完成，则延迟一段时间后再执行
 			setTimeout(function() {
 				allWorkFinished();
@@ -1280,7 +1396,6 @@ if (window.location.href.indexOf("whitecube") > -1) {
 		img_info = [];
 		$(".outputWrap").hide();
 		$(".outputUrlContent").text("");
-		$(outputlWrap_ctr).hide();
 		download_started = false;
 		download_pause = false;
 		download_stop = false;
@@ -1291,20 +1406,34 @@ if (window.location.href.indexOf("whitecube") > -1) {
 	if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && loc_url.indexOf("bookmark_detail") == -1 && loc_url.indexOf("bookmark_add") == -1) { //1.on_illust_list，作品页内页
 		page_type = 1;
 
+		addBtnsAreaCtrl();
+		addOutputWarp();
+
 		(function() {
 			var startBotton = document.createElement("div");
-			document.body.appendChild(startBotton);
-			$(startBotton).text("从本页开始下载作品");
+			xianzun_btns_con.appendChild(startBotton);
+			$(startBotton).text("快速下载本页作品");
 			setButtonStyle(startBotton, 0, "#00A514");
+			startBotton.addEventListener("click", function() {
+				quick = true;
+				startGet();
+			}, false);
+		})();
+
+		(function() {
+			var startBotton = document.createElement("div");
+			xianzun_btns_con.appendChild(startBotton);
+			$(startBotton).text("从本页开始下载作品");
+			setButtonStyle(startBotton, 1, "#00A514");
 			startBotton.addEventListener("click", function() {
 				startGet();
 			}, false);
 		})();
 
-		setFilterWH(1);
-		setNotDownType(2);
-		setFilterTag_Need(3);
-		setFilterTag_notNeed(4);
+		setFilterWH(2);
+		setNotDownType(3);
+		setFilterTag_Need(4);
+		setFilterTag_notNeed(5);
 
 	} else if ((loc_url.indexOf("member_illust.php?id=") > -1 || loc_url.indexOf("&id=") > -1) && (loc_url.indexOf("&tag") == -1 && loc_url.indexOf("?tag") == -1)) { //2.on_illust_list
 		page_type = 2;
@@ -1317,9 +1446,12 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			startpage_no = 1;
 		}
 
+		addBtnsAreaCtrl();
+		addOutputWarp();
+
 		(function() {
 			var downloadBotton = document.createElement("div");
-			document.body.appendChild(downloadBotton);
+			xianzun_btns_con.appendChild(downloadBotton);
 			$(downloadBotton).text("下载该画师的作品");
 			$(downloadBotton).attr("title", "下载该画师的作品，如有多页，默认会下载全部。");
 			setButtonStyle(downloadBotton, 0, "#00A514");
@@ -1345,9 +1477,12 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			startpage_no = 1;
 		}
 
+		addBtnsAreaCtrl();
+		addOutputWarp();
+
 		(function() {
 			var downloadBotton = document.createElement("div");
-			document.body.appendChild(downloadBotton);
+			xianzun_btns_con.appendChild(downloadBotton);
 			$(downloadBotton).text("下载该tag中的作品");
 			$(downloadBotton).attr("title", "下载该tag中的作品，如有多页，默认会下载全部。");
 			setButtonStyle(downloadBotton, 0, "#00A514");
@@ -1391,9 +1526,12 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			baseUrl = loc_url + "&p=";
 		}
 
+		addBtnsAreaCtrl();
+		addOutputWarp();
+
 		(function() {
 			var downloadBotton = document.createElement("div");
-			document.body.appendChild(downloadBotton);
+			xianzun_btns_con.appendChild(downloadBotton);
 			$(downloadBotton).text("下载书签中的作品");
 			$(downloadBotton).attr("title", "下载书签中的作品，如有多页，默认会下载全部。");
 			setButtonStyle(downloadBotton, 0, "#00A514");
@@ -1450,27 +1588,20 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			}
 		}
 
-		(function() {
-			var removeVip = document.createElement("div");
-			document.body.appendChild(removeVip);
-			$(removeVip).text("去除点击限制");
-			$(removeVip).attr("title", "去掉中间区域热门作品上的会员限制。");
-			setButtonStyle(removeVip, 0, "#189EDD");
-			removeVip.addEventListener("click", function() {
-				$(".popular-introduction a").eq(0).remove();
-				alert("已经去掉了热门作品上的点击限制!");
-			}, false);
-		})();
+		$(".popular-introduction a").eq(0).remove();	//去除热门作品上的点击限制
+
+		addBtnsAreaCtrl();
+		addOutputWarp();
 
 		(function() {
 			var mbs = $(".breadcrumb a");
 			var nowTag = mbs.eq(mbs.length - 1).text();
 			var fastScreen = document.createElement("div");
-			document.body.appendChild(fastScreen);
+			xianzun_btns_con.appendChild(fastScreen);
 			$(fastScreen).text("进行快速筛选");
 			$(fastScreen).attr("title", "把当前tag加上带数字的\"users入り\"标签进行快速筛选(准确度低)");
 			$(fastScreen).attr("data-enable", "0");
-			setButtonStyle(fastScreen, 1, "#0096DB");
+			setButtonStyle(fastScreen, 0, "#0096DB");
 			fastScreen.addEventListener("click", function() {
 				$("#premium-introduction-modal").remove(); // 去除高级会员提示
 				if ($(fastScreen).attr("data-enable") == "0") { //如果该功能尚未开启，则执行代码
@@ -1494,10 +1625,10 @@ if (window.location.href.indexOf("whitecube") > -1) {
 
 		(function() {
 			var startBotton = document.createElement("div");
-			document.body.appendChild(startBotton);
+			xianzun_btns_con.appendChild(startBotton);
 			$(startBotton).text("按收藏数筛选");
 			$(startBotton).attr("title", "按收藏数筛选当前tag里的作品(精准)");
-			setButtonStyle(startBotton, 2, "#00A514");
+			setButtonStyle(startBotton, 1, "#00A514");
 			startBotton.addEventListener("click", function() {
 				if (interrupt) {
 					interrupt = false;
@@ -1508,10 +1639,10 @@ if (window.location.href.indexOf("whitecube") > -1) {
 
 		(function() {
 			var filterSelf = document.createElement("div");
-			document.body.appendChild(filterSelf);
+			xianzun_btns_con.appendChild(filterSelf);
 			$(filterSelf).text("在结果中筛选");
 			$(filterSelf).attr("title", "如果本页筛选后作品太多，可以提高收藏数的要求，在结果中筛选。达不到要求的会被隐藏而不是删除。所以你可以反复进行筛选。被隐藏的项目不会被下载。");
-			setButtonStyle(filterSelf, 3, "#0096DB");
+			setButtonStyle(filterSelf, 2, "#0096DB");
 			filterSelf.addEventListener("click", function() {
 				var allPicArea = $(".autopagerize_page_element .image-item");
 				var want_favorite_number2 = prompt("将在当前作品列表中再次过滤，请输入要求的最低收藏数: ", "1500");
@@ -1536,23 +1667,23 @@ if (window.location.href.indexOf("whitecube") > -1) {
 
 		(function() {
 			var downloadBotton = document.createElement("div");
-			document.body.appendChild(downloadBotton);
+			xianzun_btns_con.appendChild(downloadBotton);
 			$(downloadBotton).text("下载当前作品");
 			$(downloadBotton).attr("title", "下载现在列表里的所有作品。");
-			setButtonStyle(downloadBotton, 4, "#00A514");
+			setButtonStyle(downloadBotton, 3, "#00A514");
 			downloadBotton.addEventListener("click", function() {
 				getListPage2();
 			}, false);
 		})();
 
-		setFilterWH(5);
+		setFilterWH(4);
 
 		(function() {
 			var stopFilter = document.createElement("div");
-			document.body.appendChild(stopFilter);
+			xianzun_btns_con.appendChild(stopFilter);
 			$(stopFilter).text("中断当前任务");
 			$(stopFilter).attr("title", "筛选时中断之后可以继续执行。下载时中断，下次下载要重新获取图片网址。");
-			setButtonStyle(stopFilter, 6, "#DE0000");
+			setButtonStyle(stopFilter, 5, "#DE0000");
 			stopFilter.addEventListener("click", function() {
 				interrupt = true;
 				if (!allow_work) {
@@ -1562,15 +1693,15 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			}, false);
 		})();
 
-		setFilterTag_notNeed(7);
+		setFilterTag_notNeed(6);
 		$("#nottag").text("下载时排除tag");
 
 		(function() {
 			var clearMultiple = document.createElement("div");
-			document.body.appendChild(clearMultiple);
+			xianzun_btns_con.appendChild(clearMultiple);
 			$(clearMultiple).text("清除多图作品");
 			$(clearMultiple).attr("title", "多图作品的图片质量以及与当前tag的相关度难以保证，并且会严重加大下载图片的数量。如不需要可以清除掉。");
-			setButtonStyle(clearMultiple, 8, "#DE0101");
+			setButtonStyle(clearMultiple, 7, "#DE0101");
 			clearMultiple.addEventListener("click", function() {
 				var allPicArea = $(".autopagerize_page_element .image-item");
 				for (var i = 0; i < allPicArea.length; i++) {
@@ -1584,10 +1715,10 @@ if (window.location.href.indexOf("whitecube") > -1) {
 
 		(function() {
 			var clearUgoku = document.createElement("div");
-			document.body.appendChild(clearUgoku);
+			xianzun_btns_con.appendChild(clearUgoku);
 			$(clearUgoku).text("清除动图作品");
 			$(clearUgoku).attr("title", "如不需要动图可以清除掉。");
-			setButtonStyle(clearUgoku, 9, "#DE0101");
+			setButtonStyle(clearUgoku, 8, "#DE0101");
 			clearUgoku.addEventListener("click", function() {
 				var allPicArea = $(".autopagerize_page_element .image-item");
 				for (var i = 0; i < allPicArea.length; i++) {
@@ -1602,11 +1733,11 @@ if (window.location.href.indexOf("whitecube") > -1) {
 		(function() {
 			var deleteBotton = document.createElement("div");
 			deleteBotton.id = "deleteBotton";
-			document.body.appendChild(deleteBotton);
+			xianzun_btns_con.appendChild(deleteBotton);
 			$(deleteBotton).text("手动删除作品");
 			$(deleteBotton).attr("title", "可以在下载前手动删除不需要的作品。");
 			$(deleteBotton).attr("data_del", "0");
-			setButtonStyle(deleteBotton, 10, "#DE0000");
+			setButtonStyle(deleteBotton, 9, "#DE0000");
 			$("#deleteBotton").bind("click", function() {
 				$(".autopagerize_page_element .image-item").bind("click", function() {
 					if ($("#deleteBotton").attr("data_del") === "1") {
@@ -1629,10 +1760,10 @@ if (window.location.href.indexOf("whitecube") > -1) {
 
 		(function() {
 			var clearBotton = document.createElement("div");
-			document.body.appendChild(clearBotton);
+			xianzun_btns_con.appendChild(clearBotton);
 			$(clearBotton).text("清空作品列表");
 			$(clearBotton).attr("title", "如果网页内容过多，可能导致页面崩溃。如有需要可以清除当前的作品列表。");
-			setButtonStyle(clearBotton, 11, "#DE0000");
+			setButtonStyle(clearBotton, 10, "#DE0000");
 			clearBotton.addEventListener("click", function() {
 				$(".autopagerize_page_element .image-item").remove();
 			}, false);
@@ -1641,9 +1772,12 @@ if (window.location.href.indexOf("whitecube") > -1) {
 	} else if (loc_url.indexOf("ranking_area.php") > -1 && loc_url !== "https://www.pixiv.net/ranking_area.php") { //6.on_ranking_area
 		page_type = 6;
 
+		addBtnsAreaCtrl();
+		addOutputWarp();
+
 		(function() {
 			var downloadBotton = document.createElement("div");
-			document.body.appendChild(downloadBotton);
+			xianzun_btns_con.appendChild(downloadBotton);
 			$(downloadBotton).text("下载本页作品");
 			$(downloadBotton).attr("title", "下载本页列表中的所有作品。");
 			setButtonStyle(downloadBotton, 0, "#00A514");
@@ -1654,7 +1788,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 
 		(function() {
 			var clearMultiple = document.createElement("div");
-			document.body.appendChild(clearMultiple);
+			xianzun_btns_con.appendChild(clearMultiple);
 			$(clearMultiple).text("清除多图作品");
 			$(clearMultiple).attr("title", "如果不想下载多图作品可以清除掉。");
 			setButtonStyle(clearMultiple, 2, "#DA7002");
@@ -1671,7 +1805,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 
 		(function() {
 			var clearGif = document.createElement("div");
-			document.body.appendChild(clearGif);
+			xianzun_btns_con.appendChild(clearGif);
 			$(clearGif).text("排除动图作品");
 			$(clearGif).attr("title", "如果不想下载动图作品可以清除掉。");
 			setButtonStyle(clearGif, 3, "#DA7002");
@@ -1712,9 +1846,12 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			part_number = 6;
 		}
 
+		addBtnsAreaCtrl();
+		addOutputWarp();
+
 		(function() {
 			var downloadBotton = document.createElement("div");
-			document.body.appendChild(downloadBotton);
+			xianzun_btns_con.appendChild(downloadBotton);
 			$(downloadBotton).text("下载本排行榜作品");
 			$(downloadBotton).attr("title", "下载本排行榜的所有作品，包括未加载出来的。");
 			setButtonStyle(downloadBotton, 0, "#00A514");
@@ -1733,10 +1870,14 @@ if (window.location.href.indexOf("whitecube") > -1) {
 
 		var type = $("a[data-gtm-action=ClickCategory]").eq(0).attr("data-gtm-label");
 		if (type == "illustration" || type == "manga" || type == "cosplay") { //在插画、漫画、cosplay类型的页面上创建下载功能
+
+			addBtnsAreaCtrl();
+			addOutputWarp();
+
 			// 创建下载按钮
 			(function() {
 				var downloadBotton = document.createElement("div");
-				document.body.appendChild(downloadBotton);
+				xianzun_btns_con.appendChild(downloadBotton);
 				$(downloadBotton).html("下载该页面的图片");
 				$(downloadBotton).attr("title", "下载该页面的图片");
 				setButtonStyle(downloadBotton, 1, "#00A514");
@@ -1792,9 +1933,12 @@ if (window.location.href.indexOf("whitecube") > -1) {
 
 		maxNum = 300; //设置最大允许获取多少个相似图片。这个数字是可以改的，比如500,1000，这里限制为300。
 
+		addBtnsAreaCtrl();
+		addOutputWarp();
+
 		(function() {
 			var downloadBotton = document.createElement("div");
-			document.body.appendChild(downloadBotton);
+			xianzun_btns_con.appendChild(downloadBotton);
 			$(downloadBotton).text("下载相似图片");
 			$(downloadBotton).attr("title", "下载相似图片,即 把这个作品加入收藏的用户也同时加了以下的作品...");
 			setButtonStyle(downloadBotton, 0, "#00A514");
@@ -1819,6 +1963,9 @@ if (window.location.href.indexOf("whitecube") > -1) {
 	} else if (loc_url.indexOf("bookmark_new_illust.php") > -1 || loc_url.indexOf("new_illust.php") > -1) { //10.bookmark_new_illust and new_illust 关注的人的新作品 以及 大家的新作品
 		page_type = 10;
 
+		addBtnsAreaCtrl();
+		addOutputWarp();
+
 		if (loc_url.indexOf("bookmark_new_illust.php") > -1) {
 			maxNum = 100; //关注的新作品的最大页数是100
 			baseUrl = "https://www.pixiv.net/bookmark_new_illust.php?p="; //列表页url规则
@@ -1835,7 +1982,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 
 		(function() {
 			var downloadBotton = document.createElement("div");
-			document.body.appendChild(downloadBotton);
+			xianzun_btns_con.appendChild(downloadBotton);
 			$(downloadBotton).text("从当前页面开始下载");
 			$(downloadBotton).attr("title", "下载新作品");
 			setButtonStyle(downloadBotton, 0, "#00A514");
