@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		仙尊pixiv图片下载器
 // @namespace	http://saber.love/?p=3102
-// @version		2.9.5
+// @version		2.9.6
 // @description	可在多种情景下批量下载pixiv上的图片
 // @author		雪见仙尊 xuejianxianzun
 // @include		*://www.pixiv.net/*
@@ -20,7 +20,7 @@
 /*
  *@author: 	雪见仙尊 xuejianxianzun
  *@E-mail: 	xuejianxianzun@gmail.com
- *@Blog: 	http://saber.love/
+ *@Blog: 	https://saber.love/
  *@QQ群: 	562729095
  */
 if (window.location.href.indexOf("whitecube") > -1) {
@@ -441,9 +441,14 @@ if (window.location.href.indexOf("whitecube") > -1) {
 	// 获取作品列表页
 	function getListPage() {
 		if (page_type === 9) {
-			var id = loc_url.split("id=")[1], //取出作品id
-				tt = $("input[name=tt]")[0].value, //取出token
-				url = "/rpc/recommender.php?type=illust&sample_illusts=" + id + "&num_recommendations=" + requset_number + "&tt=" + tt; //获取相似的作品的id，加载200个。
+			var id; //取出作品id
+			if (loc_url.indexOf("recommended.php") > -1) { // "为你推荐"里面的示例作品id为"auto"
+				id = "auto";
+			} else {
+				id = loc_url.split("id=")[1];
+			}
+			var tt = $("input[name=tt]")[0].value, //取出token
+				url = "/rpc/recommender.php?type=illust&sample_illusts=" + id + "&num_recommendations=" + requset_number + "&tt=" + tt; //获取相似的作品
 		} else {
 			var url = baseUrl + (startpage_no + listPage_finished);
 		}
@@ -1588,7 +1593,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			}
 		}
 
-		$(".popular-introduction a").eq(0).remove();	//去除热门作品上的点击限制
+		$(".popular-introduction a").eq(0).remove(); //去除热门作品上的点击限制
 
 		addBtnsAreaCtrl();
 		addOutputWarp();
@@ -1928,7 +1933,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			})();
 		}
 
-	} else if (loc_url.indexOf("bookmark_add.php?id=") > -1 || loc_url.indexOf("bookmark_detail.php?illust_id=") > -1) { //9.on_bookmark_add	bookmark_add的页面刷新就变成bookmark_detail了
+	} else if (loc_url.indexOf("bookmark_add.php?id=") > -1 || loc_url.indexOf("bookmark_detail.php?illust_id=") > -1 || loc_url.indexOf("recommended.php") > -1) { //9.on_bookmark_add	bookmark_add的页面刷新就变成bookmark_detail了；recommended.php是首页的“为你推荐”栏目
 		page_type = 9;
 
 		maxNum = 300; //设置最大允许获取多少个相似图片。这个数字是可以改的，比如500,1000，这里限制为300。
@@ -1939,11 +1944,16 @@ if (window.location.href.indexOf("whitecube") > -1) {
 		(function() {
 			var downloadBotton = document.createElement("div");
 			xianzun_btns_con.appendChild(downloadBotton);
-			$(downloadBotton).text("下载相似图片");
-			$(downloadBotton).attr("title", "下载相似图片,即 把这个作品加入收藏的用户也同时加了以下的作品...");
+			if (loc_url.indexOf("recommended.php") > -1) {
+				$(downloadBotton).text("下载推荐图片");
+				$(downloadBotton).attr("title", "下载为你推荐的图片");
+			} else {
+				$(downloadBotton).text("下载相似图片");
+				$(downloadBotton).attr("title", "下载相似图片,即 把这个作品加入收藏的用户也同时加了以下的作品...");
+			}
 			setButtonStyle(downloadBotton, 0, "#00A514");
 			downloadBotton.addEventListener("click", function() {
-				requset_number = parseInt(window.prompt("你想要获取多少张相似图片？请输入数字，最大" + maxNum, "100"));
+				requset_number = parseInt(window.prompt("你想要获取多少个作品？（注意是个数而不是页数）\r\n请输入数字，最大" + maxNum, "50"));
 				if (isNaN(requset_number)) {
 					alert("输入有误!");
 					return false;
@@ -1960,18 +1970,25 @@ if (window.location.href.indexOf("whitecube") > -1) {
 		setFilterTag_Need(3);
 		setFilterTag_notNeed(4);
 
-	} else if (loc_url.indexOf("bookmark_new_illust.php") > -1 || loc_url.indexOf("new_illust.php") > -1) { //10.bookmark_new_illust and new_illust 关注的人的新作品 以及 大家的新作品
+	} else if (loc_url.indexOf("bookmark_new_illust") > -1 || loc_url.indexOf("new_illust.php") > -1 || loc_url.indexOf("new_illust_r18.php") > -1) { //10.bookmark_new_illust and new_illust 关注的人的新作品 以及 大家的新作品
 		page_type = 10;
 
 		addBtnsAreaCtrl();
 		addOutputWarp();
 
-		if (loc_url.indexOf("bookmark_new_illust.php") > -1) {
-			maxNum = 100; //关注的新作品的最大页数是100
-			baseUrl = "https://www.pixiv.net/bookmark_new_illust.php?p="; //列表页url规则
+		if (loc_url.indexOf("bookmark_new_illust") > -1) { // 其实这个条件和条件2在一定程度上是重合的，所以这个必须放在前面。
+			maxNum = 100; //关注的人的新作品（包含普通版和r18版）的最大页数是100
+			if (loc_url.indexOf("r18") > -1) {
+				baseUrl = "https://www.pixiv.net/bookmark_new_illust_r18.php?p="; //列表页url规则
+			} else {
+				baseUrl = "https://www.pixiv.net/bookmark_new_illust.php?p="; //列表页url规则
+			}
 		} else if (loc_url.indexOf("new_illust.php") > -1) {
-			maxNum = 1000; //大家的的新作品的最大页数是1000
+			maxNum = 1000; //大家的新作品（普通版）的最大页数是1000
 			baseUrl = "https://www.pixiv.net/new_illust.php?p="; //列表页url规则
+		} else if (loc_url.indexOf("new_illust_r18.php") > -1) {
+			maxNum = 500; //大家的的新作品（r18版）的最大页数是500
+			baseUrl = "https://www.pixiv.net/new_illust_r18.php?p="; //列表页url规则
 		}
 		if (!!$(".page-list .current")[0]) { //如果显示有页码
 			startpage_no = Number($(".page-list .current").eq(0).text()); //以当前页的页码为起始页码
