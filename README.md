@@ -1,3 +1,5 @@
+![图片1](https://wx3.sinaimg.cn/large/640defebgy1fhnv80522fj20mr0iejvi.jpg)
+
 # 简介：
 
 这是一个使用JavaScript编写的pixiv图片下载器。它是一个用户脚本（UserScript），其下载部分为解决跨域问题，使用了用户脚本管理器的API。
@@ -37,3 +39,5 @@ pixivision上的插画、漫画、cosplay
 大家的新作品
 
 关注的人的新作品
+
+为你推荐的作品
