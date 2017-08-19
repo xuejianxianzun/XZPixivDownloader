@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name		仙尊pixiv图片下载器
 // @namespace	http://saber.love/?p=3102
-// @version		2.9.6
+// @version		3.1.0
 // @description	可在多种情景下批量下载pixiv上的图片
 // @author		雪见仙尊 xuejianxianzun
 // @include		*://www.pixiv.net/*
 // @include		*://www.pixivision.net/*
 // @license 	GNU General Public License version 3 https://www.gnu.org/licenses/gpl-3.0.en.html
-// @icon        http://saber.love/favicon.ico
+// @icon        https://www.pixiv.net/favicon.ico
 // @grant       GM_xmlhttpRequest
 // @connect     i.pximg.net
 // @connect     i1.pixiv.net
@@ -27,6 +27,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 	console.log("sorry, this script can`t run at new version of pixiv.");
 } else {
 	var loc_url = window.location.href, //当前页面的url
+		quiet_download = true, // 静默下载，下载时不弹窗提醒。如果需要弹窗，可改为false
 		page_type, //区分页面类型
 		illust_url_list = [], //储存作品列表url的数组
 		img_info = [], //储存图片信息，其中可能会有空值，如 undefined 和 ""
@@ -43,7 +44,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 		listPage_finished = 0, //记录一共抓取了多少列表页
 		listPage_finished2 = 0, //记录tag搜索页本次任务已经抓取了多少页
 		want_page, //要抓取几页
-		quick = false, // 快速下载当前页面
+		quick = false, // 快速下载当前页面，这个只在作品页内直接下载时使用，和quiet_download有细微区别
 		want_favorite_number = 0, //tag搜索页要求的最低收藏数
 		interrupt = false, //是否中断正在进行的任务，目前仅在tag搜索页使用
 		allow_work = true, //当前是否允许展开工作（如果有未完成的任务则会变为false
@@ -65,7 +66,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 		fileNameRule = "",
 		fileName_length = 200, // 此为预设值，如果保存路径过长就会出问题
 		safe_fileName_rule = new RegExp(/\\|\/|:|\?|"|<|>|\*|\|/g), // 安全的文件名
-		download_thread = 5, // 同时下载的线程数
+		download_thread_deauflt = 5, // 同时下载的线程数
 		donwloadBar_list, // 下载队列的dom元素
 		downloadA, // 下载用的a标签
 		download_started = false, // 下载是否已经开始
@@ -293,6 +294,14 @@ if (window.location.href.indexOf("whitecube") > -1) {
 		}, false);
 	}
 
+	// 检查过滤宽高的设置
+	function checkSetWH() {
+		if (is_set_filterWH) {
+			var and_or = filterWH.and_or;
+			$("#outputInfo").html($("#outputInfo").html() + "<br>本次任务设置了过滤宽高条件:宽度>=" + filterWH.width + and_or.replace("|", " 或者 ").replace("&", " 并且 ") + "高度>=" + filterWH.height);
+		}
+	}
+
 	// tag搜索页的筛选任务执行完毕
 	function tagSearchPageFinished() {
 		allow_work = true;
@@ -412,9 +421,8 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			}
 		}
 		// 检查是否设置了过滤宽高
-		if (is_set_filterWH) {
-			var and_or = filterWH.and_or;
-			$("#outputInfo").html($("#outputInfo").html() + "<br>本次任务设置了过滤宽高条件:宽度>=" + filterWH.width + and_or.replace("|", " 或者 ").replace("&", " 并且 ") + "高度>=" + filterWH.height);
+		if (page_type !== 5) { // 排除tag搜索页，因为tag搜索页的宽高设置在startGet里不生效
+			checkSetWH();
 		}
 		// 获取要排除的tag
 		get_NotNeed_Tag();
@@ -574,6 +582,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			$("._global-header").eq(0).before(outputInfo);
 			// 获取要排除的tag 因为tag搜索页里的下载按钮没有启动startGet，而是在这里
 			get_NotNeed_Tag();
+			checkSetWH(); // 检查宽高设置
 		}
 		allow_work = false;
 		if (page_type === 5) {
@@ -1021,7 +1030,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			'<p>共抓取到<span class="imgNum blue">0</span>个图片，请设置文件命名规则：</p>' +
 			'<p>' +
 			'<input type="text" name="fileNameRule" class="fileNameRule" value="{id}">' +
-			'&nbsp;.{ext}&nbsp;&nbsp;&nbsp;&nbsp;' +
+			'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' +
 			'<span class="blue showFileNameTip">查看可用的标记</span>' +
 			'</p>' +
 			'<p class="fileNameTip tip">' +
@@ -1290,7 +1299,9 @@ if (window.location.href.indexOf("whitecube") > -1) {
 					$(".down_status").html("下载完毕");
 					$(outputInfo).html($(outputInfo).html() + "下载完毕!<br><br>");
 					setTimeout(function() {
-						alert("下载完毕!");
+						if (!quiet_download) {
+							alert("下载完毕!");
+						}
 					}, 200);
 				} else { // 如果没有全部下载完毕
 					//如果需要暂停下载
@@ -1340,12 +1351,14 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			$(outputInfo).html($(outputInfo).html() + "<br>获取完毕，共" + img_info.length + "个图片地址<br>");
 			if (img_info.length === 0) {
 				$(outputInfo).html($(outputInfo).html() + "没有符合条件的作品!<br>任务结束。<br><br>");
-				alert("抓取完毕!没有符合条件的作品!");
+				if (!quiet_download) {
+					alert("抓取完毕!没有符合条件的作品!");
+				}
 				return false;
 			}
 			// 显示输出结果完毕
 			$(outputInfo).html($(outputInfo).html() + "抓取完毕!<br><br>");
-			if (!quick) {
+			if (!quiet_download) {
 				alert("抓取完毕!");
 			}
 			nowhtml = $(outputInfo).html();
@@ -1362,10 +1375,10 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			}
 			// 重置输出区域
 			$(".imgNum").text(img_info.length);
-			if (img_info.length < 5) { // 检查下载线程数
+			if (img_info.length < download_thread_deauflt) { // 检查下载线程数
 				download_thread = img_info.length;
 			} else {
-				download_thread = 5; // 重设为默认值
+				download_thread = download_thread_deauflt; // 重设为默认值
 			}
 			var outputWrap_down_list = $(".outputWrap_down_list");
 			outputWrap_down_list.show(); // 显示下载队列
@@ -1384,7 +1397,7 @@ if (window.location.href.indexOf("whitecube") > -1) {
 				}
 			}
 			// 快速下载时点击下载按钮
-			if (quick) {
+			if (quick || quiet_download) {
 				setTimeout(function() {
 					$(".startDownload").click();
 				}, 200);
@@ -1593,40 +1606,26 @@ if (window.location.href.indexOf("whitecube") > -1) {
 			}
 		}
 
-		$(".popular-introduction a").eq(0).remove(); //去除热门作品上的点击限制
-
 		addBtnsAreaCtrl();
 		addOutputWarp();
 
-		(function() {
-			var mbs = $(".breadcrumb a");
-			var nowTag = mbs.eq(mbs.length - 1).text();
-			var fastScreen = document.createElement("div");
-			xianzun_btns_con.appendChild(fastScreen);
-			$(fastScreen).text("进行快速筛选");
-			$(fastScreen).attr("title", "把当前tag加上带数字的\"users入り\"标签进行快速筛选(准确度低)");
-			$(fastScreen).attr("data-enable", "0");
-			setButtonStyle(fastScreen, 0, "#0096DB");
-			fastScreen.addEventListener("click", function() {
-				$("#premium-introduction-modal").remove(); // 去除高级会员提示
-				if ($(fastScreen).attr("data-enable") == "0") { //如果该功能尚未开启，则执行代码
-					$(fastScreen).attr("data-enable", "1"); //标记为已启用快速筛选功能
-					var favNums = document.querySelectorAll(".bookmark-ranges a");
-					for (var i = 1; i < favNums.length; i++) {
-						favNums[i].style.backgroundColor = "#0096DB";
-						favNums[i].style.color = "#fff";
-						(function(ii) {
-							var fullTag = nowTag + " " + $(favNums[ii]).text() + "users入り";
-							favNums[ii].title = fullTag;
-							favNums[ii].addEventListener("click", function() {
-								window.location.href = "https://www.pixiv.net/search.php?s_mode=s_tag&word=" + fullTag;
-							});
-						})(i);
-					}
-					alert("现在你可以通过点击收藏数按钮进行快速筛选了。");
-				}
-			}, false);
-		})();
+		//去除热门作品上的点击限制
+		$(".popular-introduction a").eq(0).remove();
+
+		// 去除高级会员提示
+		$("#premium-introduction-modal").remove();
+
+		// 添加快速筛选功能
+		var nowTag = $(".column-title a").text().split(" ")[0];
+		var favNums = ["100users入り", "500users入り", "1000users入り", "3000users入り", "5000users入り", "10000users入り"]; //200和2000的因为数量太少，不添加
+		styleE.innerHTML += ".fastScreenArea a{display:inline-block;padding:10px;margin:0 25px;}"
+		var fastScreenArea = document.createElement("div");
+		fastScreenArea.className = "fastScreenArea";
+		var insetParent = document.querySelector("._unit");
+		insetParent.insertBefore(fastScreenArea, insetParent.querySelector("._layout-order-bookmark-wrapper"));
+		for (var i = 0; i < favNums.length; i++) {
+			fastScreenArea.innerHTML += "<a href='" + "https://www.pixiv.net/search.php?s_mode=s_tag&word=" + nowTag + " " + favNums[i] + "'>" + favNums[i] + "</a>";
+		}
 
 		(function() {
 			var startBotton = document.createElement("div");
