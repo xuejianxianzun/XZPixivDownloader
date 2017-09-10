@@ -4,7 +4,7 @@
 
 这是一个使用JavaScript编写的pixiv图片下载器，它实质上是一个用户脚本（UserScript）。
 
-由于其跨域功能依赖于用户脚本管理器，所以它必须使用用户脚本管理器来安装。
+由于其跨域功能依赖于用户脚本管理器，所以它必须使用用户脚本管理器来安装。（推荐使用chrome + tampermonkey）
 
 # 使用：
 
@@ -12,13 +12,11 @@
 
 https://greasyfork.org/zh-CN/scripts/24252
 
-或者，点击安装直链👉👉 [![](https://img.shields.io/badge/%E5%AE%89%E8%A3%85%E7%9B%B4%E9%93%BE-%F0%9F%90%92-blue.svg)](https://raw.githubusercontent.com/xuejiansaber/XianzunPixivDownloader/master/XianzunPixivDownloader.js "请确认已安装并启动脚本管理器") 
+或者，点击安装直链👉👉 [![](https://img.shields.io/badge/%E5%AE%89%E8%A3%85%E7%9B%B4%E9%93%BE-%F0%9F%90%92-blue.svg)](https://raw.githubusercontent.com/xuejiansaber/XZPixivDownloader/master/XZPixivDownloader.js "请确认已安装并启动脚本管理器") 
 
-安装后，在pixiv上可以进行下载的页面上就会显示下载功能按钮，你可以设定抓取条件，然后开始抓取。
+安装后，在可以进行下载的页面上就会显示下载功能按钮。
 
-抓取完毕后可以建立下载，或者复制图片url。下载的文件会保存在浏览器的下载目录里。
-
-ps：在火狐上用油猴安装本脚本后，可能执行有异常。推荐使用tampermonkey作为脚本管理器。
+下载的文件会保存在浏览器的下载目录里。
 
 # 可以使用的场景：
 
@@ -46,4 +44,4 @@ pixivision上的插画、漫画、cosplay
 
 为你推荐的作品
 
-“发现”页面（discover，pixiv推出的实验性功能，现在只有部分用户可以使用）
+“发现”页面（discovery，pixiv推出的实验性功能，现在只有部分用户可以使用）
