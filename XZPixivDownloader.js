@@ -3,7 +3,7 @@
 // @name:ja 	XZ Pixiv Downloader
 // @name:en  	XZ Pixiv Downloader
 // @namespace	http://saber.love/?p=3102
-// @version		4.0.3
+// @version		4.1.0
 // @description	可在多种情景下批量下载pixiv上的图片
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv picture batch downloader
@@ -25,7 +25,7 @@
  *@author: 	雪见仙尊 xuejianxianzun
  *@E-mail: 	xuejianxianzun@gmail.com
  *@Blog: 	https://saber.love/
- *@QQ group: 562729095
+ *@QQ group: 499873152
  */
 
 var loc_url = window.location.href, //当前页面的url
@@ -1167,7 +1167,7 @@ function startGet() {
 		}
 		$("#outputInfo").html($("#outputInfo").html() + xzlt("_tag搜索任务开始", want_favorite_number, want_page));
 		if (!listPage_finished) { //如果是首次抓取 则处理当前页面
-			$(".popular-introduction").remove(); // 移除热门作品
+			$("._popular-introduction").remove(); // 移除热门作品
 			$("._2xrGgcY").remove(); // 移除列表的上级元素
 			$(tag_search_list_selector).remove(); // 移除当前列表内容
 			$("body").append("<div id='tag_search_temp_result' style='display:none'></div>");
@@ -1246,6 +1246,7 @@ function getListPage() {
 		}
 		$("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_列表页获取完成2", illust_url_list.length));
 		getListUrlFinished();
+		return false;	// 不执行下面的代码
 	} else {
 		var url = baseUrl + (startpage_no + listPage_finished);
 	}
@@ -1262,7 +1263,7 @@ function getListPage() {
 			if (page_type === 5) { // tag搜索页
 				listPage_finished2++;
 				if (tag_search_is_new) { // 新版tag搜索页，需要将结果解析出来
-					var this_one_info = listPage_document.find("#js-mount-point-search-result-list").attr("data-items"); // 保存这一次的信息
+					var this_one_info = listPage_document.find(tag_search_lv1_selector).attr("data-items"); // 保存这一次的信息
 					this_one_info = JSON.parse(this_one_info); // 转化为数组
 					for (var j = 0; j < this_one_info.length; j++) { // 拼接每个作品的html
 						var new_html = tag_search_new_html;
@@ -1744,6 +1745,70 @@ function testExtName(url, length, img_info_data) {
 // mode=big的网址如https://www.pixiv.net/member_illust.php?mode=medium&illust_id=56155666，虽然是单图，但是点击后是在新页面打开原图的，新页面要求referer，因此无法直接抓取原图
 // pixivision则是因为跨域问题，无法抓取p站页面
 
+// 抓取完毕
+function allWorkFinished() {
+	if (ajax_for_list_is_end && ajax_for_illust_is_end && test_suffix_finished) { // 检查加载页面的任务 以及 检查网址的任务 是否都全部完成。
+		$(outputInfo).html($(outputInfo).html() + "<br>" + xzlt("_获取图片网址完毕", img_info.length) + "<br>");
+		if (img_info.length === 0) {
+			$(outputInfo).html($(outputInfo).html() + xzlt("_没有符合条件的作品") + "<br><br>");
+			if (!quiet_download) {
+				alert(xzlt("_没有符合条件的作品弹窗"));
+			}
+			return false;
+		}
+		// 显示输出结果完毕
+		$(outputInfo).html($(outputInfo).html() + xzlt("_抓取完毕") + "<br><br>");
+		if (!quiet_download) {
+			alert(xzlt("_抓取完毕"));
+		}
+		nowhtml = $(outputInfo).html();
+		// 重置输出区域
+		downloaded = 0;
+		$(".downloaded").html("0");
+		$(".download_fileName").html("");
+		$(".loaded").html("0/0");
+		$(".progress").css("width", "0%");
+
+		// 显示输出区域
+		if (!quick) {
+			$(".outputWrap").show();
+		}
+		// 重置输出区域
+		$(".imgNum").text(img_info.length);
+		if (img_info.length < download_thread_deauflt) { // 检查下载线程数
+			download_thread = img_info.length;
+		} else {
+			download_thread = download_thread_deauflt; // 重设为默认值
+		}
+		var outputWrap_down_list = $(".outputWrap_down_list");
+		outputWrap_down_list.show(); // 显示下载队列
+		if ($(".donwloadBar").length < download_thread) { // 如果下载队列的显示数量小于线程数，则增加队列
+			var need_add = download_thread - $(".donwloadBar").length;
+			var donwloadBar = outputWrap_down_list.find(".donwloadBar").eq(0);
+			// 增加下载队列的数量
+			for (var i = 0; i < need_add; i++) {
+				outputWrap_down_list.append(donwloadBar.clone());
+			}
+		} else if ($(".donwloadBar").length > download_thread) { // 如果下载队列的显示数量大于线程数，则减少队列
+			var need_delete = $(".donwloadBar").length - download_thread;
+			// 减少下载队列的数量
+			for (var i = 0; i < need_delete; i++) {
+				outputWrap_down_list.find(".donwloadBar").eq(0).remove();
+			}
+		}
+		// 快速下载时点击下载按钮
+		if (quick || quiet_download) {
+			setTimeout(function() {
+				$(".startDownload").click();
+			}, 200);
+		}
+	} else { //如果没有完成，则延迟一段时间后再执行
+		setTimeout(function() {
+			allWorkFinished();
+		}, 1000);
+	}
+}
+
 // 创建输出抓取进度的区域
 var outputInfo = document.createElement("div");
 outputInfo.id = "outputInfo";
@@ -2169,70 +2234,6 @@ function startDownload(downloadNo, donwloadBar_no) {
 	});
 }
 
-// 抓取完毕
-function allWorkFinished() {
-	if (ajax_for_list_is_end && ajax_for_illust_is_end && test_suffix_finished) { // 检查加载页面的任务 以及 检查网址的任务 是否都全部完成。
-		$(outputInfo).html($(outputInfo).html() + "<br>" + xzlt("_获取图片网址完毕", img_info.length) + "<br>");
-		if (img_info.length === 0) {
-			$(outputInfo).html($(outputInfo).html() + xzlt("_没有符合条件的作品") + "<br><br>");
-			if (!quiet_download) {
-				alert(xzlt("_没有符合条件的作品弹窗"));
-			}
-			return false;
-		}
-		// 显示输出结果完毕
-		$(outputInfo).html($(outputInfo).html() + xzlt("_抓取完毕") + "<br><br>");
-		if (!quiet_download) {
-			alert(xzlt("_抓取完毕"));
-		}
-		nowhtml = $(outputInfo).html();
-		// 重置输出区域
-		downloaded = 0;
-		$(".downloaded").html("0");
-		$(".download_fileName").html("");
-		$(".loaded").html("0/0");
-		$(".progress").css("width", "0%");
-
-		// 显示输出区域
-		if (!quick) {
-			$(".outputWrap").show();
-		}
-		// 重置输出区域
-		$(".imgNum").text(img_info.length);
-		if (img_info.length < download_thread_deauflt) { // 检查下载线程数
-			download_thread = img_info.length;
-		} else {
-			download_thread = download_thread_deauflt; // 重设为默认值
-		}
-		var outputWrap_down_list = $(".outputWrap_down_list");
-		outputWrap_down_list.show(); // 显示下载队列
-		if ($(".donwloadBar").length < download_thread) { // 如果下载队列的显示数量小于线程数，则增加队列
-			var need_add = download_thread - $(".donwloadBar").length;
-			var donwloadBar = outputWrap_down_list.find(".donwloadBar").eq(0);
-			// 增加下载队列的数量
-			for (var i = 0; i < need_add; i++) {
-				outputWrap_down_list.append(donwloadBar.clone());
-			}
-		} else if ($(".donwloadBar").length > download_thread) { // 如果下载队列的显示数量大于线程数，则减少队列
-			var need_delete = $(".donwloadBar").length - download_thread;
-			// 减少下载队列的数量
-			for (var i = 0; i < need_delete; i++) {
-				outputWrap_down_list.find(".donwloadBar").eq(0).remove();
-			}
-		}
-		// 快速下载时点击下载按钮
-		if (quick || quiet_download) {
-			setTimeout(function() {
-				$(".startDownload").click();
-			}, 200);
-		}
-	} else { //如果没有完成，则延迟一段时间后再执行
-		setTimeout(function() {
-			allWorkFinished();
-		}, 1000);
-	}
-}
-
 // 清空图片信息并重置输出区域，在重复抓取时使用
 function resetResult() {
 	img_info = [];
@@ -2498,10 +2499,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
 	addOutputWarp();
 
 	//去除热门作品上的点击限制
-	$(".popular-introduction a").eq(0).remove();
-
-	// 去除高级会员提示
-	$("#premium-introduction-modal").remove();
+	$(".popular-introduction-overlay").remove();
 
 	// 添加快速筛选功能
 	var nowTag = $(".column-title a").text().split(" ")[0];
@@ -2894,7 +2892,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
 	// 其实发现页面和9收藏后的推荐页面一样，先获取列表再下载。但是发现页面有个特点是每次获取的数据会变动，这样下载到的图片和用户在左侧看到的图片不同，效果不太好。所以这里改用直接下载左侧已有作品的办法
 	page_type = 11;
 
-	tag_search_list_selector = "._4Z1JJbC"; // 发现作品的已有作品，借用tag搜索页的变量名，直接拿来用
+	tag_search_list_selector = "._131AzaV"; // 发现作品的已有作品，借用tag搜索页的变量名，直接拿来用
 	tag_search_multiple_selector = "._2UNGFcb"; // 多图的选择器，借用tag搜索页的变量名，直接拿来用
 	tag_search_gif_selector = "._3DUGnT4"; // 动图的选择器，借用tag搜索页的变量名，直接拿来用
 
