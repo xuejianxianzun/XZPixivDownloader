@@ -9,10 +9,9 @@
 # 使用：
 
 你可以在greasyfork.org上安装它：
-
 https://greasyfork.org/zh-CN/scripts/24252
 
-或者，点击安装直链👉👉 [![](https://img.shields.io/badge/%E5%AE%89%E8%A3%85%E7%9B%B4%E9%93%BE-%F0%9F%90%92-blue.svg)](https://raw.githubusercontent.com/xuejiansaber/XZPixivDownloader/master/XZPixivDownloader.js "请确认已安装并启动脚本管理器") 
+或者，点击安装直链👉👉 [![](https://img.shields.io/badge/%E5%AE%89%E8%A3%85%E7%9B%B4%E9%93%BE-%F0%9F%90%92-blue.svg)](https://raw.githubusercontent.com/xuejiansaber/XZPixivDownloader/master/XZPixivDownloader.js "请确认已安装并启动脚本管理器")
 
 安装后，在可以进行下载的页面上就会显示下载功能按钮。
 
@@ -20,28 +19,21 @@ https://greasyfork.org/zh-CN/scripts/24252
 
 # 可以使用的场景：
 
-任何人的作品详情页
-
-任何人的作品列表页
-
-任何人的作品tag列表页
-
-任何人的的收藏页面
-
-任何人的收藏页面里的tag页面
-
+作品详情页
+作品列表页
+各种tag列表页
+所有人的收藏页面
 各大排行榜页面
-
 tag搜索页面
-
-收藏作品后的相似作品页面
-
+相似作品页面
+推荐作品页面
+大家的新作品页面
+关注的新作品页面
+“发现”页面
 pixivision上的插画、漫画、cosplay
 
-大家的新作品
+# 支持的语言：
 
-关注的人的新作品
-
-为你推荐的作品
-
-“发现”页面（discovery，pixiv推出的实验性功能，现在只有部分用户可以使用）
+简体中文（繁体设置下也使用简体中文文本）
+English （机翻，韩语设置下也使用英语文本）
+日本語 （机翻）
