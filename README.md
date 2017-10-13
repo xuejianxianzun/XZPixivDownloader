@@ -4,7 +4,7 @@
 
 这是一个使用JavaScript编写的pixiv图片下载器，它实质上是一个用户脚本（UserScript）。
 
-由于其跨域功能依赖于用户脚本管理器，所以它必须使用用户脚本管理器来安装。（推荐使用chrome + tampermonkey）
+由于其跨域功能依赖于用户脚本管理器，所以它必须使用用户脚本管理器来安装（推荐使用chrome + tampermonkey）。
 
 # 使用：
 
