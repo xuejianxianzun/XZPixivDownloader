@@ -3,7 +3,7 @@
 // @name:ja 	XZ Pixiv Downloader
 // @name:en  	XZ Pixiv Downloader
 // @namespace	http://saber.love/?p=3102
-// @version		4.2.3
+// @version		4.2.4
 // @description	可在多种情景下批量下载pixiv上的图片
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv picture batch downloader
@@ -682,9 +682,9 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
         "Filter by Favorites"
     ],
     "_按收藏数筛选_title": [
-        "按收藏数筛选当前tag里的作品(精准)",
-        "現在のタグのエントリ数でフィルタリングします（精度）。",
-        "Filter by the number of entries in the current tag (precision)"
+        "按收藏数筛选当前tag里的作品。如果多次筛选，页码会一直累加。",
+        "現在のタグのエントリ数でフィルタリングします。多次过滤时，页码增加。",
+        "Filter by the number of entries in the current tag. If you filter multiple times, the page number will increase."
     ],
     "_在结果中筛选": [
         "在结果中筛选",
@@ -717,9 +717,9 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
         "Interrupt the current task"
     ],
     "_中断当前任务_title": [
-        "筛选时中断之后可以继续执行。如果在下载时中断，下次下载要重新获取图片网址。",
-        "在筛选作品时中断的话，之后可以继续执行。但如果在下载时中断的话，则需要重新执行。ふるい分け作品で中断され、その後引き続き実行可能です。もしダウンロード時中断して、再実行する必要があります。",
-        "In the screening works when the break, then you can continue to perform. But if it is interrupted at the time of the download, it needs to be re-executed."
+        "筛选时中断之后可以继续执行。",
+        "ふるい分け作品で中断され、その後引き続き実行可能です。",
+        "In the screening works when the break, then you can continue to perform."
     ],
     "_当前任务已中断": [
         "当前任务已中断!",
@@ -1444,7 +1444,6 @@ function getListPage2() {
             interrupt = false;
         }
         resetResult();
-        $("._global-header").eq(0).before(outputInfo);
         // 获取要排除的tag 因为tag搜索页里的下载按钮没有启动startGet，而是在这里
         get_NotNeed_Tag();
         checkSetWH(); // 检查宽高设置
@@ -2621,7 +2620,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
             interrupt = true;
             if (!allow_work) {
                 $("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_当前任务已中断") + "<br><br>");
-                alert("_当前任务已中断!");
+                alert(xzlt("_当前任务已中断"));
             }
         }, false);
     })();
