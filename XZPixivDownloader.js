@@ -1319,14 +1319,14 @@ function getListPage() {
                         // 设置宽高
                         var ture_width = parseInt(this_one_info[j]["width"]);
                         var ture_height = parseInt(this_one_info[j]["height"]);
-                        var max_width = "198";
-                        var max_height = "198";
+                        var max_width = "200";
+                        var max_height = "200";
                         if (ture_width >= ture_height) {
                             new_html = new_html.replace(/xz_width/g, max_width);
                             new_html = new_html.replace(/xz_height/g, "auto");
                         } else {
                             new_html = new_html.replace(/xz_width/g, "auto");
-                            new_html = new_html.replace(/xz_height/g, ture_height);
+                            new_html = new_html.replace(/xz_height/g, max_height);
                         }
                         tag_search_new_html_one_page += new_html;
                     }
@@ -2533,7 +2533,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
         imgList.sort(sortByProperty("num"));
         $(tag_search_list_selector).remove();
         for (var i = imgList.length - 1; i >= 0; i--) {
-            $(tag_search_lv1_selector).after(imgList[i].e);
+            $("#js-react-search-mid").append(imgList[i].e);
         }
     }
 
