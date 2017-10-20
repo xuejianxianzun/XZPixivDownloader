@@ -3,7 +3,7 @@
 // @name:ja 	XZ Pixiv Downloader
 // @name:en  	XZ Pixiv Downloader
 // @namespace	http://saber.love/?p=3102
-// @version		4.2.4
+// @version		4.2.5
 // @description	可在多种情景下批量下载pixiv上的图片
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv picture batch downloader
@@ -2532,7 +2532,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     function listSort() {
         imgList.sort(sortByProperty("num"));
         $(tag_search_list_selector).remove();
-        for (var i = imgList.length - 1; i >= 0; i--) {
+        for (var i = 0; i < imgList.length; i++) {
             $("#js-react-search-mid").append(imgList[i].e);
         }
     }
