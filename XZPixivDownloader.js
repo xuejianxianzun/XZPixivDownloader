@@ -3,7 +3,7 @@
 // @name:ja 	XZ Pixiv Downloader
 // @name:en  	XZ Pixiv Downloader
 // @namespace	http://saber.love/?p=3102
-// @version		4.2.5
+// @version		4.2.6
 // @description	可在多种情景下批量下载pixiv上的图片
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv picture batch downloader
@@ -1319,8 +1319,8 @@ function getListPage() {
                         // 设置宽高
                         var ture_width = parseInt(this_one_info[j]["width"]);
                         var ture_height = parseInt(this_one_info[j]["height"]);
-                        var max_width = "200";
-                        var max_height = "200";
+                        var max_width = "198";
+                        var max_height = "198";
                         if (ture_width >= ture_height) {
                             new_html = new_html.replace(/xz_width/g, max_width);
                             new_html = new_html.replace(/xz_height/g, "auto");
@@ -2448,7 +2448,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
         tag_search_new_html =
             // 因为tag搜索页新版将结果储存在一个div标签的属性里,而不是直接输出到html,但我们需要呈现html,所以需要模拟生成的元素
             '<div class="_7IVJuWZ">' +
-            '<figure class="gmzooM4">' +
+            '<figure class="gmzooM4" style="width: 200px; max-height: 288px;">' +
             '<div class="_1NxDA4N">' +
             '<a href="/member_illust.php?mode=medium&illust_id=xz_illustId" rel="noopener" class="bBzsEVG">' +
             '<!--xz_multiple_html-->' +
@@ -2562,9 +2562,6 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
             if (interrupt) {
                 interrupt = false;
             }
-            $("#js-react-search-mid").css({
-                "minHeight": "auto"
-            });
             startGet();
         }, false);
     })();
