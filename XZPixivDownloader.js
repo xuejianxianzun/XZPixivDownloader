@@ -3,8 +3,8 @@
 // @name:ja 	XZ Pixiv Downloader
 // @name:en  	XZ Pixiv Downloader
 // @namespace	http://saber.love/?p=3102
-// @version		4.2.6
-// @description	可在多种情景下批量下载pixiv上的图片
+// @version		4.2.8
+// @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixivision特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github:https://github.com/xuejiansaber/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv picture batch downloader
 // @author		xuejianxianzun 雪见仙尊
@@ -19,13 +19,14 @@
 // @connect     i3.pixiv.net
 // @connect     i4.pixiv.net
 // @connect     i5.pixiv.net
+// @connect     imgaz.pixiv.net
 // @run-at		document-end
 // ==/UserScript==
 /*
  *@author: 	xuejianxianzun 雪见仙尊
  *@E-mail: 	xuejianxianzun@gmail.com
  *@Blog: 	https://saber.love/
- *@QQ群:		499873152
+ *@QQ群:	499873152
  */
 
 var loc_url = window.location.href, //当前页面的url
@@ -40,8 +41,8 @@ var loc_url = window.location.href, //当前页面的url
     ajax_for_illust_is_end = true, //抓取内容页的任务是否执行完毕
     test_suffix_finished = true, //检查图片后缀名正确性的函数是否执行完毕
     test_suffix_no = 0, //检查图片后缀名函数的计数
-    nowhtml = "", //输出内容时使用
-    baseUrl, //列表页url规则
+    now_tips = "", //输出顶部提示
+    base_url, //列表页url规则
     startpage_no, //列表页开始抓取时的页码
     listPage_finished = 0, //记录一共抓取了多少列表页
     listPage_finished2 = 0, //记录tag搜索页本次任务已经抓取了多少页
@@ -64,7 +65,7 @@ var loc_url = window.location.href, //当前页面的url
     }, //宽高条件
     part_number, //保存不同排行榜的列表数量
     requset_number, //下载添加收藏后的相似作品时的请求数量
-    maxNum = 0, //最多允许获取多少数量
+    max_num = 0, //最多允许获取多少数量
     tag_search_is_new, // tag搜索页是否是新版
     tag_search_lv1_selector, // tag搜索页，作品列表的父元素的选择器
     tag_search_lv2_selector, // tag搜索页，作品列表自身的选择器
@@ -81,7 +82,7 @@ var loc_url = window.location.href, //当前页面的url
     safe_fileName_rule = new RegExp(/\\|\/|:|\?|"|<|>|\*|\|/g), // 安全的文件名
     download_thread_deauflt = 5, // 同时下载的线程数
     donwloadBar_list, // 下载队列的dom元素
-    downloadA, // 下载用的a标签
+    download_a, // 下载用的a标签
     download_started = false, // 下载是否已经开始
     downloaded = 0, // 已下载的文件
     download_stop = false, // 是否停止下载
@@ -865,9 +866,8 @@ function xzlt(name, vals) {
 }
 
 // 去除广告
-$("[name=header]").remove(); // 顶部广告
-$(".ads_anchor").remove(); // PR广告
-$(".ad-bigbanner").remove(); // 相似作品页面的广告
+    var block_ad_css="<style>section.ad,[name=header],.ads_anchor,.ad-bigbanner,.ad-footer,._premium-lead-tag-search-bar,#header-banner.ad,.popular-introduction-overlay,.ad-bigbanner,.adsbygoogle,.ui-fixed-container aside,.ad-multiple_illust_viewer{display: none!important;z-index: -999!important;width: 0!important;height: 0!important;opacity: 0!important;}</style>";
+document.body.insertAdjacentHTML("beforeend", block_ad_css);
 
 // DOMParser，将字符串形式的html代码解析为DOM结构
 ! function(a) {
@@ -978,7 +978,7 @@ function get_NotNeed_Tag() {
             notNeed_tag.pop();
         }
         $("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_设置了排除tag之后的提示") + notNeed_tag.join(","));
-        nowhtml = $("#outputInfo").html();
+        now_tips = $("#outputInfo").html();
     } else { //如果没有设置tag，则重置
         notNeed_tag = [];
     }
@@ -1203,12 +1203,12 @@ function startGet() {
             tag_search_temp_result = $("#tag_search_temp_result");
         }
     } else if (page_type === 10) {
-        want_page = parseInt(window.prompt(xzlt("_want_page_弹出框文字_page_type10") + maxNum, "10"));
+        want_page = parseInt(window.prompt(xzlt("_want_page_弹出框文字_page_type10") + max_num, "10"));
         if (isNaN(want_page)) {
             alert(xzlt("_参数不合法1"));
             return false;
-        } else if (want_page > maxNum) {
-            alert(xzlt("_输入超过了最大值") + maxNum);
+        } else if (want_page > max_num) {
+            alert(xzlt("_输入超过了最大值") + max_num);
             return false;
         } else {
             $("#outputInfo").html($("#outputInfo").html() + xzlt("_任务开始1", want_page));
@@ -1240,7 +1240,7 @@ function startGet() {
     // 获取必须包含的tag
     get_Need_Tag();
 
-    nowhtml = $(outputInfo).html();
+    now_tips = $(outputInfo).html();
     resetResult();
     if (page_type !== 6) {
         allow_work = false; //开始执行时更改许可状态
@@ -1277,7 +1277,7 @@ function getListPage() {
         getListUrlFinished();
         return false; // 不执行下面的代码
     } else {
-        var url = baseUrl + (startpage_no + listPage_finished);
+        var url = base_url + (startpage_no + listPage_finished);
     }
     $.ajax({
         url: url,
@@ -1347,7 +1347,7 @@ function getListPage() {
                     }
                 }
                 tag_search_temp_result.html("");
-                $("#outputInfo").html(nowhtml + "<br>" + xzlt("_tag搜索页已抓取多少页", listPage_finished2, want_page, startpage_no + listPage_finished - 1));
+                $("#outputInfo").html(now_tips + "<br>" + xzlt("_tag搜索页已抓取多少页", listPage_finished2, want_page, startpage_no + listPage_finished - 1));
                 //判断任务状态
                 if (listPage_finished2 == want_page) {
                     allow_work = true;
@@ -1377,7 +1377,7 @@ function getListPage() {
                         nowHref = allPicArea.eq(i).find(".ranking-image-item a").attr("href");
                     checkNotDownType_result(nowClass, nowHref);
                 }
-                $("#outputInfo").html(nowhtml + "<br>" + xzlt("_排行榜进度", listPage_finished));
+                $("#outputInfo").html(now_tips + "<br>" + xzlt("_排行榜进度", listPage_finished));
                 if (listPage_finished == part_number) {
                     $("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_排行榜任务完成", illust_url_list.length));
                     getListUrlFinished();
@@ -1401,7 +1401,7 @@ function getListPage() {
                         nowHref = allPicArea.eq(i).find("a").eq(0).attr("href");
                     checkNotDownType_result(nowClass, nowHref);
                 }
-                $("#outputInfo").html(nowhtml + "<br>" + xzlt("_列表页抓取进度", listPage_finished));
+                $("#outputInfo").html(now_tips + "<br>" + xzlt("_列表页抓取进度", listPage_finished));
                 //判断任务状态
                 if (!listPage_document.find(".next ._button")[0] || listPage_finished == want_page) { //如果没有下一页的按钮或者抓取完指定页面
                     allow_work = true;
@@ -1467,7 +1467,7 @@ function getListPage2() {
 
 // 作品列表获取完毕，开始抓取图片内容页
 function getListUrlFinished() {
-    nowhtml = $("#outputInfo").html();
+    now_tips = $("#outputInfo").html();
     if (page_type !== 9) { //9不需要用到illust_url_list
         if (illust_url_list.length < ajax_for_illust_threads) {
             ajax_for_illust_threads = illust_url_list.length;
@@ -1488,7 +1488,7 @@ function getIllustPage(url) {
     }
     if (quick) { // 在快速获取之外的情况，可能是下载多个图片，所以不输出以避免循环输出多次
         $(outputInfo).html($(outputInfo).html() + "<br>" + xzlt("_开始获取作品页面"));
-        nowhtml = $(outputInfo).html();
+        now_tips = $(outputInfo).html();
     }
     $.ajax({
         url: url,
@@ -1791,7 +1791,7 @@ function allWorkFinished() {
         if (!quiet_download) {
             alert(xzlt("_抓取完毕"));
         }
-        nowhtml = $(outputInfo).html();
+        now_tips = $(outputInfo).html();
         // 重置输出区域
         downloaded = 0;
         $(".downloaded").html("0");
@@ -1846,7 +1846,7 @@ outputInfo.style.cssText = "background: #fff;padding: 10px;font-size: 14px;margi
 
 // 在抓取图片网址时，输出提示
 function outputImgNum() {
-    $(outputInfo).html(nowhtml + "<br>" + xzlt("_抓取图片网址的数量", img_info.length));
+    $(outputInfo).html(now_tips + "<br>" + xzlt("_抓取图片网址的数量", img_info.length));
     if (interrupt) { //如果任务中断
         $("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_抓取图片网址遇到中断") + "<br><br>");
     }
@@ -2023,7 +2023,7 @@ function addOutputWarp() {
         '</li>' +
         '</ul>' +
         '</div>' +
-        '<a class="downloadA" download=""></a>' +
+        '<a class="download_a" download=""></a>' +
         '<p class="blue showDownTip">' + xzlt("_查看下载说明") + '</p>' +
         '<p class="downTip tip">' + xzlt("_下载说明") + '</p>' +
         '</div>' +
@@ -2060,7 +2060,7 @@ function addOutputWarp() {
         '.progressTip2{width: 100%;}' +
         '.download_fileName{max-width: 60%;white-space:nowrap;  text-overflow:ellipsis;overflow: hidden;vertical-align:top;display: inline-block;text-indent: 1em;}' +
         '.showDownTip{padding-top: 10px;cursor: pointer;display: inline-block;}' +
-        '.downloadA{display: none;}' +
+        '.download_a{display: none;}' +
         '.downTip{display: none;}';
     // 绑定下载区域的相关事件
     $(".outputWrap_close").on("click", function() {
@@ -2105,7 +2105,7 @@ function addOutputWarp() {
         }
         $(".down_status").html(xzlt("_正在下载中"));
         donwloadBar_list = $(".donwloadBar");
-        downloadA = document.querySelector(".downloadA");
+        download_a = document.querySelector(".download_a");
     });
     // 暂停下载按钮
     $(".pauseDownload").on("click", function() {
@@ -2215,9 +2215,9 @@ function startDownload(downloadNo, donwloadBar_no) {
                 type: fileType
             });
             var blobURL = window.URL.createObjectURL(blob);
-            downloadA.href = blobURL;
-            downloadA.setAttribute("download", fullFileName);
-            downloadA.click();
+            download_a.href = blobURL;
+            download_a.setAttribute("download", fullFileName);
+            download_a.click();
             window.URL.revokeObjectURL(blobURL);
             // 下载之后
             downloaded++;
@@ -2324,7 +2324,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
 } else if ((loc_url.indexOf("member_illust.php?id=") > -1 || loc_url.indexOf("&id=") > -1) && (loc_url.indexOf("&tag") == -1 && loc_url.indexOf("?tag") == -1)) { //2.on_illust_list
     page_type = 2;
     listPage_finished = 0; //向下第几页
-    baseUrl = loc_url.split("&p=")[0] + "&p=";
+    base_url = loc_url.split("&p=")[0] + "&p=";
 
     if (!!$(".page-list .current")[0]) { //如果显示有页码
         startpage_no = Number($(".page-list .current").eq(0).text()); //最开始时的页码
@@ -2355,7 +2355,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
 
     page_type = 3;
     listPage_finished = 0; //向下第几页
-    baseUrl = loc_url.split("&p=")[0] + "&p=";
+    base_url = loc_url.split("&p=")[0] + "&p=";
 
     if (!!$(".page-list .current")[0]) { //如果显示有页码
         startpage_no = Number($(".page-list .current").eq(0).text()); //最开始时的页码
@@ -2391,25 +2391,25 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     var now_order_element=$(".menu-items").eq(2).find("a.current");
     if (now_order_element.attr("href").indexOf("order=date") === -1) { //如果是按收藏顺序排序
     	if (now_order_element.text().indexOf("↓")>-1) {	//倒序
-    		baseUrl="https://www.pixiv.net/bookmark.php?rest=show&order=desc&p=";
+    		base_url="https://www.pixiv.net/bookmark.php?rest=show&order=desc&p=";
     	}else if (now_order_element.text().indexOf("↑")>-1) {	//正序
-    		baseUrl="https://www.pixiv.net/bookmark.php?rest=show&order=asc&p=";
+    		base_url="https://www.pixiv.net/bookmark.php?rest=show&order=asc&p=";
     	}
     }else{	//如果是按投稿时间顺序排序
     	if (now_order_element.text().indexOf("↓")>-1) {	//倒序
-    		baseUrl="https://www.pixiv.net/bookmark.php?rest=show&order=date_d&p=";
+    		base_url="https://www.pixiv.net/bookmark.php?rest=show&order=date_d&p=";
     	}else if (now_order_element.text().indexOf("↑")>-1) {	//正序
-    		baseUrl="https://www.pixiv.net/bookmark.php?rest=show&order=date&p=";
+    		base_url="https://www.pixiv.net/bookmark.php?rest=show&order=date&p=";
     	}
     }
     */
 
     if (!!$(".page-list .current")[0]) { //如果显示有页码，则是2页及以上
         startpage_no = Number($(".page-list .current").eq(0).text()); //当前所处的页码
-        baseUrl = "https://www.pixiv.net/bookmark.php" + $(".page-list").eq(0).find("a").eq(0).attr("href").split("&p=")[0] + "&p="; //从页码中取值，作为列表页url的规则（等同于上面注释里的代码，但更便捷）
+        base_url = "https://www.pixiv.net/bookmark.php" + $(".page-list").eq(0).find("a").eq(0).attr("href").split("&p=")[0] + "&p="; //从页码中取值，作为列表页url的规则（等同于上面注释里的代码，但更便捷）
     } else { //否则只有1页
         startpage_no = 1;
-        baseUrl = loc_url + "&p=";
+        base_url = loc_url + "&p=";
     }
 
     addBtnsAreaCtrl();
@@ -2433,10 +2433,6 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
 
 } else if (loc_url.indexOf("search.php?") > -1) { //5.on_tagsearch
     page_type = 5;
-
-    //去除会员广告和热门作品上的点击限制
-    $("._premium-lead-tag-search-bar").remove();
-    $(".popular-introduction-overlay").remove();
 
     if ($("#js-mount-point-search-result-list").length > 0) { // tag搜索页新版
         tag_search_is_new = true;
@@ -2506,7 +2502,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
         tag_search_gif_selector = ".ugoku-illust";
     }
 
-    baseUrl = loc_url.split("&p=")[0] + "&p=";
+    base_url = loc_url.split("&p=")[0] + "&p=";
     startpage_no = Number($(".page-list .current").eq(0).text()); //最开始时的页码
     listPage_finished = 0; //向下第几页
     var imgList = []; //储存所有作品
@@ -2748,19 +2744,19 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     page_type = 7;
 
     if (loc_url !== "https://www.pixiv.net/ranking.php") {
-        baseUrl = loc_url + "&p=";
+        base_url = loc_url + "&p=";
     } else {
-        baseUrl = loc_url + "?p=";
+        base_url = loc_url + "?p=";
     }
 
     startpage_no = 1; //从第一页（部分）开始抓取
     listPage_finished = 0; //已经向下抓取了几页（部分）
 
-    if ((baseUrl.indexOf("mode=daily") > -1 || baseUrl.indexOf("mode=weekly") > -1) && baseUrl.indexOf("r18") == -1) {
+    if ((base_url.indexOf("mode=daily") > -1 || base_url.indexOf("mode=weekly") > -1) && base_url.indexOf("r18") == -1) {
         part_number = 10; //排行榜页面一开始有50张作品，如果页面到了底部，会再向下加载，现在已知每日排行榜是10部分，日榜的r18是2部分，其他是6部分。为防止有未考虑到的情况出现，所以在获取列表页时里判断了404状态码。
-    } else if ((baseUrl.indexOf("mode=daily") > -1 || baseUrl.indexOf("mode=weekly") > -1) && baseUrl.indexOf("r18") > -1) {
+    } else if ((base_url.indexOf("mode=daily") > -1 || base_url.indexOf("mode=weekly") > -1) && base_url.indexOf("r18") > -1) {
         part_number = 2;
-    } else if (baseUrl.indexOf("r18g") > -1) {
+    } else if (base_url.indexOf("r18g") > -1) {
         part_number = 1;
     } else {
         part_number = 6;
@@ -2853,7 +2849,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     // 在收藏后的相似图片页面，可以获得收藏数，如 https://www.pixiv.net/bookmark_detail.php?illust_id=63706584
     page_type = 9;
 
-    maxNum = 300; //设置最大允许获取多少个相似图片。这个数字是可以改的，比如500,1000，这里限制为300。
+    max_num = 300; //设置最大允许获取多少个相似图片。这个数字是可以改的，比如500,1000，这里限制为300。
 
     addBtnsAreaCtrl();
     addOutputWarp();
@@ -2869,12 +2865,12 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
         }
         setButtonStyle(downloadBotton, 0, "#00A514");
         downloadBotton.addEventListener("click", function() {
-            requset_number = parseInt(window.prompt(xzlt("_要获取的作品个数") + maxNum, "50"));
+            requset_number = parseInt(window.prompt(xzlt("_要获取的作品个数") + max_num, "50"));
             if (isNaN(requset_number)) {
                 alert(xzlt("_参数不合法1"));
                 return false;
-            } else if (requset_number > maxNum) {
-                alert(xzlt("_超过最大值") + maxNum);
+            } else if (requset_number > max_num) {
+                alert(xzlt("_超过最大值") + max_num);
                 return false;
             }
             startGet();
@@ -2893,18 +2889,18 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     addOutputWarp();
 
     if (loc_url.indexOf("bookmark_new_illust") > -1) { // 其实这个条件和条件2在一定程度上是重合的，所以这个必须放在前面。
-        maxNum = 100; //关注的人的新作品（包含普通版和r18版）的最大页数是100
+        max_num = 100; //关注的人的新作品（包含普通版和r18版）的最大页数是100
         if (loc_url.indexOf("r18") > -1) {
-            baseUrl = "https://www.pixiv.net/bookmark_new_illust_r18.php?p="; //列表页url规则
+            base_url = "https://www.pixiv.net/bookmark_new_illust_r18.php?p="; //列表页url规则
         } else {
-            baseUrl = "https://www.pixiv.net/bookmark_new_illust.php?p="; //列表页url规则
+            base_url = "https://www.pixiv.net/bookmark_new_illust.php?p="; //列表页url规则
         }
     } else if (loc_url.indexOf("new_illust.php") > -1) {
-        maxNum = 1000; //大家的新作品（普通版）的最大页数是1000
-        baseUrl = "https://www.pixiv.net/new_illust.php?p="; //列表页url规则
+        max_num = 1000; //大家的新作品（普通版）的最大页数是1000
+        base_url = "https://www.pixiv.net/new_illust.php?p="; //列表页url规则
     } else if (loc_url.indexOf("new_illust_r18.php") > -1) {
-        maxNum = 500; //大家的的新作品（r18版）的最大页数是500
-        baseUrl = "https://www.pixiv.net/new_illust_r18.php?p="; //列表页url规则
+        max_num = 500; //大家的的新作品（r18版）的最大页数是500
+        base_url = "https://www.pixiv.net/new_illust_r18.php?p="; //列表页url规则
     }
     if (!!$(".page-list .current")[0]) { //如果显示有页码
         startpage_no = Number($(".page-list .current").eq(0).text()); //以当前页的页码为起始页码
