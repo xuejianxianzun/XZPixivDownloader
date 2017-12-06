@@ -1,16 +1,16 @@
 // ==UserScript==
-// @name		仙尊Pixiv图片下载器
-// @name:ja 	XZ Pixiv Downloader
-// @name:en  	XZ Pixiv Downloader
-// @namespace	http://saber.love/?p=3102
-// @version		4.2.8
+// @name        仙尊Pixiv图片下载器
+// @name:ja     XZ Pixiv Downloader
+// @name:en     XZ Pixiv Downloader
+// @namespace   http://saber.love/?p=3102
+// @version     4.3.0
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixivision特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github:https://github.com/xuejiansaber/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv picture batch downloader
-// @author		xuejianxianzun 雪见仙尊
-// @include		*://www.pixiv.net/*
-// @include		*://www.pixivision.net/*
-// @license 	GNU General Public License version 3
+// @author      xuejianxianzun 雪见仙尊
+// @include     *://www.pixiv.net/*
+// @include     *://www.pixivision.net/*
+// @license     GNU General Public License version 3
 // @icon        https://www.pixiv.net/favicon.ico
 // @grant       GM_xmlhttpRequest
 // @connect     i.pximg.net
@@ -20,20 +20,20 @@
 // @connect     i4.pixiv.net
 // @connect     i5.pixiv.net
 // @connect     imgaz.pixiv.net
-// @run-at		document-end
+// @run-at      document-end
 // ==/UserScript==
 /*
- *@author: 	xuejianxianzun 雪见仙尊
- *@E-mail: 	xuejianxianzun@gmail.com
- *@Blog: 	https://saber.love/
- *@QQ群:	499873152
+ *@author:  xuejianxianzun 雪见仙尊
+ *@E-mail:  xuejianxianzun@gmail.com
+ *@Blog:    https://saber.love/
+ *@QQ群: 499873152
  */
 
 var loc_url = window.location.href, //当前页面的url
     quiet_download = false, // 是否静默下载，即下载时不弹窗提醒
     page_type, //区分页面类型
+    img_info = [], //储存图片信息，其中可能会有空值，如 undefined 和 ""。如果改成json格式的话使用就更方便了
     illust_url_list = [], //储存作品列表url的数组
-    img_info = [], //储存图片信息，其中可能会有空值，如 undefined 和 ""
     ajax_for_illust_threads = 5, //抓取页面时的并发连接数
     ajax_for_illust_delay = 100, //抓取页面的并发请求每个间隔多少毫秒
     ajax_threads_finished = 0, //统计有几个并发线程完成所有请求。统计的是并发数（ajax_for_illust_threads）而非请求数
@@ -129,7 +129,7 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
     ],
     "_过滤作品类型的弹出框文字": [
         "请输入数字来设置下载时要排除的作品类型。\n如需多选，将多个数字连写即可\n如果什么都不输入并按确定，那么将不排除任何作品\n1: 排除单图\n2: 排除多图\n3: 排除动图",
-        "ダウンロード時に除外するタイプを設定する番号を入力してください。\nさまざまなオプションが必要な場合は、それを連続して入力することができます。\n1.単一の画像の作品を除外する\n2.複数の画像の作品を除外する\n3.動くの画像の作品を除外する",
+        "ダウンロード時に除外するタイプを設定する番号を入力してください。\nさまざまなオプションが必要な場合は、それを連続して入力することができます。\n1.単一の画像の作品を除外する\n2.複数の画像の作品を除外する\n3.うごイラの作品を除外する",
         "Please enter a number to set the type of you want to excluded when downloading.\nIf you need multiple choice, you can enter continuously.\n1: one-images works\n2.multiple-images works\n3.animat works"
     ],
     "_排除tag的按钮文字": [
@@ -324,7 +324,7 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
     ],
     "_动图": [
         "动图 ",
-        "うごくイラスト",
+        "うごイラ",
         "GIF works "
     ],
     "_tag搜索页已抓取多少页": [
@@ -521,6 +521,11 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
         "宽度和高度",
         "幅と高さ",
         "width and height"
+    ],
+    "_可用标记8": [
+        "bookmark-count，作品的收藏数，仅在tag搜索页使用。把它放在最前面就可以让下载后的文件按收藏数排序。",
+        "bookmark-count，作品のコレクション数（tag検索ページ使用）のコレクション数は",
+        "bookmark-count, can only be used on tag search page"
     ],
     "_可用标记5": [
         "你可以使用多个标记；并可以在不同标记之间添加分割用的字符。示例：{id}_{userid}_{px}<br>* 在pixivision上，只有id标记会生效",
@@ -744,12 +749,12 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
     ],
     "_清除动图作品": [
         "清除动图作品",
-        "ダイナミック作品を削除する",
+        "うごイラ作品を削除する",
         "Remove animat work"
     ],
     "_清除动图作品_title": [
         "如果不需要可以清除动图作品",
-        "必要がない場合は、動的作業を削除することができます",
+        "必要がない場合は、うごイラを削除することができます",
         "If you do not need it, you can delete the animat work"
     ],
     "_手动删除作品": [
@@ -794,7 +799,7 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
     ],
     "_已清除动图作品": [
         "已清除动图作品",
-        "動的作業が削除されました",
+        "うごイラが削除されました",
         "Dynamic work has been removed"
     ],
     "_下载本排行榜作品": [
@@ -866,7 +871,7 @@ function xzlt(name, vals) {
 }
 
 // 去除广告
-    var block_ad_css="<style>section.ad,[name=header],.ads_anchor,.ad-bigbanner,.ad-footer,._premium-lead-tag-search-bar,#header-banner.ad,.popular-introduction-overlay,.ad-bigbanner,.adsbygoogle,.ui-fixed-container aside,.ad-multiple_illust_viewer{display: none!important;z-index: -999!important;width: 0!important;height: 0!important;opacity: 0!important;}</style>";
+var block_ad_css = "<style>section.ad,[name=header],.ads_anchor,.ad-bigbanner,.ad-footer,._premium-lead-tag-search-bar,#header-banner.ad,.popular-introduction-overlay,.ad-bigbanner,.adsbygoogle,.ui-fixed-container aside,.ad-multiple_illust_viewer{display: none!important;z-index: -999!important;width: 0!important;height: 0!important;opacity: 0!important;}</style>";
 document.body.insertAdjacentHTML("beforeend", block_ad_css);
 
 // DOMParser，将字符串形式的html代码解析为DOM结构
@@ -1077,7 +1082,7 @@ function checkSetWH() {
 // 给tag搜索页的作品绑定删除属性
 function tagSearchDel() {
     var all_works = $(tag_search_list_selector);
-    if (all_works.length === 0) {   // 有时执行时列表还没加载出来，需要延时。目前tag搜索页是这样
+    if (all_works.length === 0) { // 有时执行时列表还没加载出来，需要延时。目前tag搜索页是这样
         setTimeout(tagSearchDel, 1000);
         return false;
     } else {
@@ -1186,7 +1191,6 @@ function startGet() {
             return false;
         }
     } else if (page_type === 5) {
-        $(".user-ad-container.out").remove();
         var userset = prompt(xzlt("_请输入最低收藏数和要抓取的页数"), "1000,100");
         want_favorite_number = Number(userset.split(",")[0]);
         want_page = Number(userset.split(",")[1]);
@@ -1294,7 +1298,8 @@ function getListPage() {
                 if (tag_search_is_new) { // 新版tag搜索页，需要将结果解析出来
                     var this_one_info = listPage_document.find(tag_search_lv1_selector).attr("data-items"); // 保存这一次的信息
                     this_one_info = JSON.parse(this_one_info); // 转化为数组
-                    for (var j = 0; j < this_one_info.length; j++) { // 拼接每个作品的html
+                    for (var j = 0; j < this_one_info.length; j++) {
+                        // 拼接每个作品的html
                         var new_html = tag_search_new_html;
                         var pageCount = parseInt(this_one_info[j]["pageCount"]); // 包含的图片数量
                         if (pageCount > 1) { // 多图
@@ -1337,9 +1342,11 @@ function getListPage() {
                     allPicArea = listPage_document.find(tag_search_list_selector);
                 }
                 for (var i = 0; i < allPicArea.length; i++) {
-                    var shoucang = parseInt(allPicArea.eq(i).find("._ui-tooltip").eq(0).text());
+                    var now_id = this_one_info[i]["illustId"];
+                    var shoucang = this_one_info[i]["bookmarkCount"];
                     if (shoucang >= want_favorite_number) {
                         imgList.push({
+                            "id": now_id,
                             "e": allPicArea[i],
                             "num": Number(shoucang)
                         });
@@ -1579,13 +1586,13 @@ function getIllustPage(url) {
             if (notNeed_tag.length > 0) { //如果设置了过滤tag
                 outerloop: //命名外圈语句
                     for (var i = nowAllTag.length - 1; i >= 0; i--) {
-                        for (var ii = notNeed_tag.length - 1; ii >= 0; ii--) {
-                            if (nowAllTag[i] === notNeed_tag[ii]) {
-                                tag_noeNeed_isFound = true;
-                                break outerloop;
-                            }
+                    for (var ii = notNeed_tag.length - 1; ii >= 0; ii--) {
+                        if (nowAllTag[i] === notNeed_tag[ii]) {
+                            tag_noeNeed_isFound = true;
+                            break outerloop;
                         }
                     }
+                }
             }
 
             // 检查必须包含的tag
@@ -1983,11 +1990,14 @@ function addOutputWarp() {
         '<span class="blue">{px}</span>' +
         xzlt("_可用标记7") +
         '<br>' +
+        '<span class="blue">{bmk}</span>' +
+        xzlt("_可用标记8") +
+        '<br>' +
         xzlt("_可用标记5") +
         '<br></p>' +
         '<div class="outputWrap_btns">' +
         '<div class="startDownload" style="background:#00A514;">' + xzlt("_下载按钮1") + '</div>' +
-        '<div class="pauseDownload" style="background:#dc9d11;">' + xzlt("_下载按钮2") + '</div>' +
+        '<div class="pauseDownload" style="background:#e49d00;">' + xzlt("_下载按钮2") + '</div>' +
         '<div class="stopDownload" style="background:#e42a2a;">' + xzlt("_下载按钮3") + '</div>' +
         '<div class="copyUrl" style="background:#179FDD;">' + xzlt("_下载按钮4") + '</div>' +
         '</div>' +
@@ -2169,15 +2179,25 @@ function addOutputWarp() {
 // 开始下载 下载序号，要使用的显示队列的序号
 function startDownload(downloadNo, donwloadBar_no) {
     quick = false;
-    // 拼接宽高字符串
+    // 处理宽高
     var px = "";
-    if (fileNameRule.indexOf("{px}") > -1) { // 如果设置了宽高并且有值
+    if (fileNameRule.indexOf("{px}") > -1) {
         if (!!img_info[downloadNo].fullWidth) {
             px = img_info[downloadNo].fullWidth + "x" + img_info[downloadNo].fullHeight;
         }
     }
+    // 处理收藏数
+    var bmk = "";
+    if (page_type === 5 && fileNameRule.indexOf("{bmk}") > -1) {
+        var now_id = img_info[downloadNo].id.split("_")[0];
+        for (var i = imgList.length - 1; i >= 0; i--) {
+            if (imgList[i].id == now_id) {
+                bmk = "bmk" + imgList[i].num + "-";
+            }
+        }
+    }
     // 拼接文件名
-    var fullFileName = fileNameRule.replace("{id}", img_info[downloadNo].id).replace("{title}", img_info[downloadNo].title).replace("{user}", img_info[downloadNo].user).replace("{px}", px).replace("{userid}", img_info[downloadNo].userid).replace("{tags}", img_info[downloadNo].tags.join(",")).replace(safe_fileName_rule, "_").replace(/undefined/g, "");
+    var fullFileName = fileNameRule.replace("{id}", img_info[downloadNo].id).replace("{title}", img_info[downloadNo].title).replace("{user}", img_info[downloadNo].user).replace("{px}", px).replace("{userid}", img_info[downloadNo].userid).replace("{tags}", img_info[downloadNo].tags.join(",")).replace("{bmk}", bmk).replace(safe_fileName_rule, "_").replace(/undefined/g, "");
     // 处理文件名长度 这里有个问题，因为无法预知浏览器下载文件夹的长度，所以只能预先设置一个预设值
     fullFileName = fullFileName.substr(0, fileName_length) + "." + img_info[downloadNo].ext;
     donwloadBar_list.eq(donwloadBar_no).find('.download_fileName').html(fullFileName);
@@ -2390,17 +2410,17 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     //根据排序方式选择对应的url 该方法较为繁琐，但作为备用方法保留
     var now_order_element=$(".menu-items").eq(2).find("a.current");
     if (now_order_element.attr("href").indexOf("order=date") === -1) { //如果是按收藏顺序排序
-    	if (now_order_element.text().indexOf("↓")>-1) {	//倒序
-    		base_url="https://www.pixiv.net/bookmark.php?rest=show&order=desc&p=";
-    	}else if (now_order_element.text().indexOf("↑")>-1) {	//正序
-    		base_url="https://www.pixiv.net/bookmark.php?rest=show&order=asc&p=";
-    	}
-    }else{	//如果是按投稿时间顺序排序
-    	if (now_order_element.text().indexOf("↓")>-1) {	//倒序
-    		base_url="https://www.pixiv.net/bookmark.php?rest=show&order=date_d&p=";
-    	}else if (now_order_element.text().indexOf("↑")>-1) {	//正序
-    		base_url="https://www.pixiv.net/bookmark.php?rest=show&order=date&p=";
-    	}
+        if (now_order_element.text().indexOf("↓")>-1) { //倒序
+            base_url="https://www.pixiv.net/bookmark.php?rest=show&order=desc&p=";
+        }else if (now_order_element.text().indexOf("↑")>-1) {   //正序
+            base_url="https://www.pixiv.net/bookmark.php?rest=show&order=asc&p=";
+        }
+    }else{  //如果是按投稿时间顺序排序
+        if (now_order_element.text().indexOf("↓")>-1) { //倒序
+            base_url="https://www.pixiv.net/bookmark.php?rest=show&order=date_d&p=";
+        }else if (now_order_element.text().indexOf("↑")>-1) {   //正序
+            base_url="https://www.pixiv.net/bookmark.php?rest=show&order=date&p=";
+        }
     }
     */
 
