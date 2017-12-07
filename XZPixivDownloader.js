@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     4.3.0
+// @version     4.4.0
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixivision特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github:https://github.com/xuejiansaber/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv picture batch downloader
@@ -292,6 +292,11 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
         "タスクが開始されます。\nこのタスク条件：このページから{}ページをダウンロードする",
         "Task starts. \nThis task condition: download {} pages from this page"
     ],
+    "_任务开始0": [
+        "任务开始",
+        "タスクが開始されます。",
+        "Task starts."
+    ],
     "_check_notdown_type_result1_弹窗": [
         "由于您排除了所有作品类型，本次任务已取消。",
         "すべての種類の作業を除外したため、タスクはキャンセルされました。",
@@ -393,9 +398,9 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
         "Now has {} works. Start getting the works for more information."
     ],
     "_开始获取作品页面": [
-        "开始获取作品页面",
-        "作品ページの取得を開始する",
-        "Start getting the works page"
+        "<br>开始获取作品页面",
+        "<br>作品ページの取得を開始する",
+        "<br>Start getting the works page"
     ],
     "_无权访问1": [
         "无权访问{}，抓取中断。",
@@ -856,6 +861,26 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
         "举报",
         "報告",
         "Report"
+    ],
+    "_输入id进行下载": [
+        "输入id进行下载",
+        "IDでダウンロード",
+        "Download by ID"
+    ],
+    "_输入id进行下载的提示文字": [
+        "请输入作品id。如果有多个id，则以换行分割（即每行一个id）",
+        "イラストレーターIDを入力してください。 複数のidがある場合は、1行に1つのidを付けます。",
+        "Please enter the illustration id. If there is more than one id, one id per line."
+    ],
+    "_开始下载": [
+        "开始下载",
+        "ダウンロードを開始する",
+        "Start download"
+    ],
+    "_id不合法": [
+        "id不合法，操作取消。",
+        "idが不正な、操作はキャンセルされます。",
+        "id is illegal, the operation is canceled."
     ]
 };
 
@@ -966,11 +991,7 @@ function setFilterTag_notNeed(no) {
         $("#nottaginput").toggle();
         if ($("#nottaginput").is(":visible")) {
             $("#nottaginput").css("display", "block");
-            if (navigator.userAgent.indexOf('AppleWebKit') > -1) { //如果是chrome内核，则
-                document.body.scrollTop = 0;
-            } else { //否则
-                document.documentElement.scrollTop = 0; //IE和火狐需要这一句
-            }
+            document.documentElement.scrollTop = 0;
         }
     }, false);
 }
@@ -1010,11 +1031,7 @@ function setFilterTag_Need(no) {
         $("#needtaginput").toggle();
         if ($("#needtaginput").is(":visible")) {
             $("#needtaginput").css("display", "block");
-            if (navigator.userAgent.indexOf('AppleWebKit') > -1) { //如果是chrome内核，则
-                document.body.scrollTop = 0;
-            } else { //否则
-                document.documentElement.scrollTop = 0; //IE和火狐需要这一句
-            }
+            document.documentElement.scrollTop = 0;
         }
     }, false);
 }
@@ -1200,7 +1217,6 @@ function startGet() {
         }
         $("#outputInfo").html($("#outputInfo").html() + xzlt("_tag搜索任务开始", want_favorite_number, want_page));
         if (!listPage_finished) { //如果是首次抓取 则处理当前页面
-            $("._popular-introduction").remove(); // 移除热门作品
             $("._2xrGgcY").remove(); // 移除列表的上级元素
             $(tag_search_list_selector).remove(); // 移除当前列表内容
             $("body").append("<div id='tag_search_temp_result' style='display:none'></div>");
@@ -1250,14 +1266,15 @@ function startGet() {
         allow_work = false; //开始执行时更改许可状态
     }
 
-    if (page_type === 1) {
+    if (page_type === 0) {
+        $(outputInfo).html($(outputInfo).html() + xzlt("_开始获取作品页面"));
+        getListUrlFinished(); //通过id抓取时不需要获取列表页
+    } else if (page_type === 1) {
         getIllustPage(loc_url); //开始获取图片
+    } else if (page_type === 6) {
+        getListPage2();
     } else {
-        if (page_type === 6) {
-            getListPage2();
-        } else {
-            getListPage(); //开始获取列表页
-        }
+        getListPage(); //开始获取列表页
     }
 }
 
@@ -1493,8 +1510,8 @@ function getIllustPage(url) {
         allow_work = true;
         return false;
     }
-    if (quick) { // 在快速获取之外的情况，可能是下载多个图片，所以不输出以避免循环输出多次
-        $(outputInfo).html($(outputInfo).html() + "<br>" + xzlt("_开始获取作品页面"));
+    if (quick) { // 快速下载时在这里提示一次
+        $(outputInfo).html($(outputInfo).html() + xzlt("_开始获取作品页面"));
         now_tips = $(outputInfo).html();
     }
     $.ajax({
@@ -1780,6 +1797,7 @@ function testExtName(url, length, img_info_data) {
 
 }
 // mode=big的网址如https://www.pixiv.net/member_illust.php?mode=medium&illust_id=56155666，虽然是单图，但是点击后是在新页面打开原图的，新页面要求referer，因此无法直接抓取原图
+// mode=big类型现在可能已经消失了---2017/12/07
 // pixivision则是因为跨域问题，无法抓取p站页面
 
 // 抓取完毕
@@ -2308,7 +2326,76 @@ function resetResult() {
 }
 
 // --------------------------------------------------------------------------
+if (location.hostname === "www.pixiv.net" && location.pathname === "/") { //0.首页
+    page_type = 0;
 
+    addBtnsAreaCtrl();
+    addOutputWarp();
+
+    var down_id_button,
+        down_id_input,
+        down_id_tip = "",
+        id_value = [];
+
+    // 添加输入id的按钮
+    down_id_button = document.createElement("div");
+    xz_btns_con.appendChild(down_id_button);
+    down_id_button.id = "down_id_button";
+    down_id_button.dataset.ready = "false"; //是否准备好了
+    $(down_id_button).text(xzlt("_输入id进行下载"));
+    setButtonStyle(down_id_button, 0, "#00A514");
+    down_id_button.addEventListener("click", function() {
+        illust_url_list = []; //每次开始下载前重置作品的url列表
+        if (down_id_button.dataset.ready === "false") { //还没准备好
+            down_id_input.toggle(); //切换显示id输入框
+            if (down_id_input.is(":visible")) {
+                down_id_input.css("display", "block");
+                document.documentElement.scrollTop = 0;
+            }
+        } else {
+            //检查id
+            id_value = down_id_input.val().split("\n");
+            for (var i = id_value.length - 1; i >= 0; i--) {
+                var now_id = parseInt(id_value[i]);
+                if (isNaN(now_id) || now_id < 22 || now_id > 99999999) { //如果id不是数字，或者处于非法区间
+                    illust_url_list = []; //清空结果
+                    alert(xzlt("_id不合法"));
+                    return false;
+                } else {
+                    //拼接作品的url
+                    illust_url_list.push("https://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + id_value[i]);
+                }
+            }
+            $(outputInfo).html($(outputInfo).html() + xzlt("_任务开始0"));
+            startGet(); //进入下载流程
+        }
+    }, false);
+
+    //用于输入id的输入框
+    down_id_input = document.createElement("textarea");
+    down_id_input.id = "down_id_input";
+    down_id_input.style.cssText = "width: 600px;height: 80px;font-size: 12px;margin:6px auto;background:#fff;colir:#bbb;padding:7px;display:none;border:1px solid #179FDD;";
+    $("._global-header").eq(0).before(down_id_input);
+    down_id_input = $(down_id_input);
+    down_id_tip = xzlt("_输入id进行下载的提示文字");
+    down_id_input.val(down_id_tip);
+    $.focusblur(down_id_input, "#bbb", "#333");
+    down_id_input.on("input", function() {
+        // 当输入框内容改变时检测
+        if (!!down_id_input.val() && down_id_input.val() !== down_id_tip) { //非空值且不等于默认值
+            down_id_button.dataset.ready = "true";
+            $(down_id_button).text(xzlt("_开始下载"));
+        } else {
+            down_id_button.dataset.ready = "false";
+            $(down_id_button).text(xzlt("_输入id进行下载"));
+        }
+    });
+
+    setFilterWH(1);
+    setNotDownType(2);
+    setFilterTag_Need(3);
+    setFilterTag_notNeed(4);
+}
 if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && loc_url.indexOf("bookmark_detail") == -1 && loc_url.indexOf("bookmark_add") == -1) { //1.on_illust_list，作品页内页
     page_type = 1;
 
@@ -2623,12 +2710,15 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
 
     setFilterWH(4);
 
+    setFilterTag_notNeed(5);
+    $("#nottag").text(xzlt("_下载时排除tag"));
+
     (function() {
         var stopFilter = document.createElement("div");
         xz_btns_con.appendChild(stopFilter);
         $(stopFilter).text(xzlt("_中断当前任务"));
         $(stopFilter).attr("title", xzlt("_中断当前任务_title"));
-        setButtonStyle(stopFilter, 5, "#e42a2a");
+        setButtonStyle(stopFilter, 6, "#e42a2a");
         stopFilter.addEventListener("click", function() {
             interrupt = true;
             if (!allow_work) {
@@ -2637,9 +2727,6 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
             }
         }, false);
     })();
-
-    setFilterTag_notNeed(6);
-    $("#nottag").text(xzlt("_下载时排除tag"));
 
     (function() {
         var clearMultiple = document.createElement("div");
