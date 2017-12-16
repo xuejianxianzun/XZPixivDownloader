@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     4.4.0
+// @version     4.5.0
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixivision特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github:https://github.com/xuejiansaber/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv picture batch downloader
@@ -56,7 +56,6 @@ var loc_url = window.location.href, //当前页面的url
     need_tag = [], //必须包含的tag的列表
     need_tag_tip, //输入tag的文本框的默认提示
     notdown_type = "", //设置不要下载的作品类型
-    notdown_type_checked = false, //是否已经检查了不要下载的作品类型。大部分时候在获取列表页时处理，但有时需要在获取内容页时处理
     is_set_filterWH = false, //是否设置了筛选宽高
     filterWH = {
         and_or: "&",
@@ -128,9 +127,9 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
         "Before downloading, you can set the type you want to exclude."
     ],
     "_过滤作品类型的弹出框文字": [
-        "请输入数字来设置下载时要排除的作品类型。\n如需多选，将多个数字连写即可\n如果什么都不输入并按确定，那么将不排除任何作品\n1: 排除单图\n2: 排除多图\n3: 排除动图",
-        "ダウンロード時に除外するタイプを設定する番号を入力してください。\nさまざまなオプションが必要な場合は、それを連続して入力することができます。\n1.単一の画像の作品を除外する\n2.複数の画像の作品を除外する\n3.うごイラの作品を除外する",
-        "Please enter a number to set the type of you want to excluded when downloading.\nIf you need multiple choice, you can enter continuously.\n1: one-images works\n2.multiple-images works\n3.animat works"
+        "请输入数字来设置下载时要排除的作品类型。\n如需多选，将多个数字连写即可\n如果什么都不输入，那么将不排除任何作品\n1: 排除单图\n2: 排除多图\n3: 排除动图\n4: 排除已经收藏的作品",
+        "ダウンロード時に除外するタイプを設定する番号を入力してください。\nさまざまなオプションが必要な場合は、それを連続して入力することができます。\n1.単一の画像の作品を除外する\n2.複数の画像の作品を除外する\n3.うごイラの作品を除外する\n4: ブックマーク",
+        "Please enter a number to set the type of you want to excluded when downloading.\nIf you need multiple choice, you can enter continuously.\n1: one-images works\n2.multiple-images works\n3.animat works\n4.bookmarked works"
     ],
     "_排除tag的按钮文字": [
         "设置作品不能包含的tag",
@@ -331,6 +330,11 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
         "动图 ",
         "うごイラ",
         "GIF works "
+    ],
+    "_已收藏的作品": [
+        "已收藏的作品 ",
+        "ブックマーク",
+        "bookmarked works"
     ],
     "_tag搜索页已抓取多少页": [
         "已抓取本次任务第{}/{}页，当前加载到第{}页",
@@ -952,8 +956,28 @@ function setNotDownType(no) {
     }, false);
 }
 
-// 检查作品是否符合过滤类型
-function checkNotDownType_result(string, url) {
+// 检查排除作品类型的参数是否合法
+function checkNotDownType_tips() {
+    if (notdown_type !== "") {
+        if (notdown_type.indexOf("1") > -1 && notdown_type.indexOf("2") > -1 && notdown_type.indexOf("3") > -1 && notdown_type.indexOf("4") > -1) {
+            alert(xzlt("_check_notdown_type_result1_弹窗"));
+            $("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_check_notdown_type_result1_html") + "<br><br>");
+            return false;
+        } else if (notdown_type.indexOf("1") === -1 && notdown_type.indexOf("2") === -1 && notdown_type.indexOf("3") === -1 && notdown_type.indexOf("4") === -1) {
+            alert(xzlt("_check_notdown_type_result2_弹窗"));
+            $("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_check_notdown_type_result1_html") + "<br><br>");
+            return false;
+        } else {
+            $("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_check_notdown_type_result3_html") + notdown_type.replace("1", xzlt("_单图")).replace("2", xzlt("_多图")).replace("3", xzlt("_动图")).replace("4", xzlt("_已收藏的作品")));
+        }
+    }
+}
+
+// 检查作品是否符合过滤类型。所有添加了setNotDownType按钮的都要到这里检查一遍
+function checkNotDownType_result(string, url, bookmarked) {
+    if (bookmarked === true && notdown_type.indexOf("4") > -1) { //如果已经收藏并且设置了排除收藏的作品
+        return false;
+    }
     if (string.indexOf("multiple") > -1) { //如果是多图并且没有排除多图
         if (notdown_type.indexOf("2") === -1) {
             illust_url_list.push(url);
@@ -967,7 +991,6 @@ function checkNotDownType_result(string, url) {
             illust_url_list.push(url);
         }
     }
-    notdown_type_checked = true;
 }
 
 //添加过滤tag的按钮
@@ -1090,7 +1113,7 @@ function setFilterWH(no) {
 
 // 检查过滤宽高的设置
 function checkSetWH() {
-    if (is_set_filterWH) {
+    if (page_type !== 5 && is_set_filterWH) { // 排除tag搜索页，因为tag搜索页的宽高设置在startGet里不生效
         var and_or = filterWH.and_or;
         $("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_设置了筛选宽高之后的提示文字p1") + filterWH.width + and_or.replace("|", xzlt("_或者")).replace("&", xzlt("_并且")) + xzlt("_高度设置") + filterWH.height);
     }
@@ -1237,24 +1260,8 @@ function startGet() {
     if (page_type === 7) {
         listPage_finished = 0;
     }
-    // 检查排除作品类型的参数是否合法
-    if (notdown_type !== "") {
-        if (notdown_type.indexOf("1") > -1 && notdown_type.indexOf("2") > -1 && notdown_type.indexOf("3") > -1) {
-            alert(xzlt("_check_notdown_type_result1_弹窗"));
-            $("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_check_notdown_type_result1_html") + "<br><br>");
-            return false;
-        } else if (notdown_type.indexOf("1") === -1 && notdown_type.indexOf("2") === -1 && notdown_type.indexOf("3") === -1) {
-            alert(xzlt("_check_notdown_type_result2_弹窗"));
-            $("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_check_notdown_type_result1_html") + "<br><br>");
-            return false;
-        } else {
-            $("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_check_notdown_type_result3_html") + notdown_type.replace("1", xzlt("_单图")).replace("2", xzlt("_多图")).replace("3", xzlt("_动图")));
-        }
-    }
-    // 检查是否设置了过滤宽高
-    if (page_type !== 5) { // 排除tag搜索页，因为tag搜索页的宽高设置在startGet里不生效
-        checkSetWH();
-    }
+    checkNotDownType_tips();
+    checkSetWH();
     // 获取要排除的tag
     get_NotNeed_Tag();
     // 获取必须包含的tag
@@ -1391,15 +1398,16 @@ function getListPage() {
                 } else {
                     getListPage();
                 }
-            } else if (page_type === 7) { // 除地区排行榜以外的其他类型排行榜
+            } else if (page_type === 7) { // 其他排行榜。地区排行榜不经过这个函数处理
                 var allPicArea = listPage_document.find(".ranking-item");
                 for (var i = 0; i < allPicArea.length; i++) {
                     if (!allPicArea.eq(i).find("a")[0]) { //如果列表中的这个作品没有a标签，则是被删除、或非公开等错误项
                         continue;
                     }
-                    var nowClass = allPicArea.eq(i).find(".ranking-image-item a").attr("class"),
-                        nowHref = allPicArea.eq(i).find(".ranking-image-item a").attr("href");
-                    checkNotDownType_result(nowClass, nowHref);
+                    var nowClass = allPicArea.eq(i).find(".ranking-image-item a").attr("class");
+                    var nowHref = allPicArea.eq(i).find(".ranking-image-item a").attr("href");
+                    var bookmarked = allPicArea.eq(i).find("._one-click-bookmark")[0].classList.contains("on");
+                    checkNotDownType_result(nowClass, nowHref, bookmarked);
                 }
                 $("#outputInfo").html(now_tips + "<br>" + xzlt("_排行榜进度", listPage_finished));
                 if (listPage_finished == part_number) {
@@ -1421,9 +1429,10 @@ function getListPage() {
                     if (!allPicArea.eq(i).find("a")[0]) { //如果列表中的这个作品没有a标签，则是被删除、或非公开等错误项
                         continue;
                     }
-                    var nowClass = allPicArea.eq(i).find("a").eq(0).attr("class"),
-                        nowHref = allPicArea.eq(i).find("a").eq(0).attr("href");
-                    checkNotDownType_result(nowClass, nowHref);
+                    var nowClass = allPicArea.eq(i).find("a").eq(0).attr("class");
+                    var nowHref = allPicArea.eq(i).find("a").eq(0).attr("href");
+                    var bookmarked = allPicArea.eq(i).find("._one-click-bookmark")[0].classList.contains("on");
+                    checkNotDownType_result(nowClass, nowHref, bookmarked);
                 }
                 $("#outputInfo").html(now_tips + "<br>" + xzlt("_列表页抓取进度", listPage_finished));
                 //判断任务状态
@@ -1473,19 +1482,32 @@ function getListPage2() {
         checkSetWH(); // 检查宽高设置
     }
     allow_work = false;
-    if (page_type === 5) {
-        var allList = $(tag_search_list_selector + ":visible");
-        for (var i = allList.length - 1; i >= 0; i--) {
-            illust_url_list[i] = $(allList[i]).find("a").eq(0).attr("href");
+    if (page_type === 5) { // tag搜索页
+        checkNotDownType_tips();
+        var allPicArea = $(tag_search_list_selector + ":visible");
+        for (var i = allPicArea.length - 1; i >= 0; i--) {
+            // 因为tag搜索页判断作品类型的class与其他页面不同，所以在这里转换成能被接下来的函数识别的字符
+            var nowClass = "";
+            if (!!allPicArea.eq(i).find(tag_search_multiple_selector)[0]) {
+                nowClass = "multiple";
+            } else if (!!allPicArea.eq(i).find(tag_search_gif_selector)[0]) {
+                nowClass = "ugoku-illust";
+            }
+            var nowHref = allPicArea.eq(i).find("a").eq(0).attr("href");
+            var bookmarked = allPicArea.eq(i).find("._one-click-bookmark")[0].classList.contains("on");
+            checkNotDownType_result(nowClass, nowHref, bookmarked);
         }
-    } else {
-        var allList = $(".ranking-item");
-        for (var i = allList.length - 1; i >= 0; i--) {
-            illust_url_list[i] = $(".ranking-item").eq(i).find("a").eq(1).attr("href");
+    } else { // 地区排行榜
+        var allPicArea = $(".ranking-item");
+        for (var i = allPicArea.length - 1; i >= 0; i--) {
+            var nowClass = allPicArea.eq(i).find("a").eq(1).attr("class");
+            var nowHref = allPicArea.eq(i).find("a").eq(1).attr("href");
+            var bookmarked = allPicArea.eq(i).find("._one-click-bookmark")[0].classList.contains("on");
+            checkNotDownType_result(nowClass, nowHref, bookmarked);
         }
     }
     $("._global-header").eq(0).before(outputInfo);
-    $("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_列表抓取完成开始获取作品页", allList.length));
+    $("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_列表抓取完成开始获取作品页", illust_url_list.length));
     getListUrlFinished();
 }
 
@@ -1598,6 +1620,12 @@ function getIllustPage(url) {
             // 检查要排除的tag 其实page_type==9的时候在获取作品列表时就能获得tag列表，但为了统一，也在这里检查
             var tag_check_result; // 储存tag检查结果
 
+            // 检查排除收藏
+            var check_bookmark_pass = true;
+            if (notdown_type.indexOf("4") > -1 && !!illust_document.find(".edit-bookmark")[0]) {
+                check_bookmark_pass = false;
+            }
+
             // 检查要排除的tag
             var tag_noeNeed_isFound = false;
             if (notNeed_tag.length > 0) { //如果设置了过滤tag
@@ -1634,8 +1662,8 @@ function getIllustPage(url) {
             }
 
             // 结合作品类型处理作品
-            if (!!illust_document.find(".original-image")[0] && tag_check_result && WH_check_result) { //如果是单图，并且通过了tag检查和宽高检查
-                if (notdown_type_checked === true || notdown_type.indexOf("1") === -1) { //如果已经筛选过作品类型，或者没有排除单图
+            if (!!illust_document.find(".original-image")[0] && tag_check_result && check_bookmark_pass && WH_check_result) { //如果是单图，并且通过了tag检查和宽高检查和收藏检查
+                if (notdown_type.indexOf("1") === -1) { //如果没有排除单图
                     imgUrl = illust_document.find(".original-image").attr("data-src"); //作品url
                     id = imgUrl.split("/");
                     id = id[id.length - 1].split(".")[0]; //作品id
@@ -1644,9 +1672,9 @@ function getIllustPage(url) {
                     addImgInfo(id, imgUrl, title, nowAllTag, user, userid, fullWidth, fullHeight, ext);
                     outputImgNum();
                 }
-            } else if (!!illust_document.find(".works_display")[0] && tag_check_result && WH_check_result) { //单图以外的情况,并且通过了tag检查和宽高检查
+            } else if (!!illust_document.find(".works_display")[0] && tag_check_result && check_bookmark_pass && WH_check_result) { //单图以外的情况,并且通过了tag检查和宽高检查和收藏检查
                 if (!!illust_document.find(".full-screen._ui-tooltip")[0]) { //如果是动图
-                    if (notdown_type_checked === true || notdown_type.indexOf("3") === -1) { //如果已经筛选过作品类型，或者没有排除动图
+                    if (notdown_type.indexOf("3") === -1) { //如果没有排除动图
                         var reg1 = /ugokuIllustFullscreenData.*zip/,
                             reg2 = /https.*zip/;
                         imgUrl = reg2.exec(reg1.exec(jsInfo)[0])[0].replace(/\\/g, ""); //取出动图压缩包的url
@@ -1658,7 +1686,7 @@ function getIllustPage(url) {
                         outputImgNum();
                     }
                 } else if (illust_document.find(".works_display a").eq(0).attr("href").indexOf("mode=big") > -1) { //对于mode=big
-                    if (notdown_type_checked === true || notdown_type.indexOf("1") === -1) { //如果已经筛选过作品类型，或者没有排除单图
+                    if (notdown_type.indexOf("1") === -1) { //如果没有排除单图
                         imgUrl = illust_document.find(".bookmark_modal_thumbnail").attr("data-src").replace("c/150x150/img-master", "img-original").replace("_master1200", ""); //此时拼接的url的后缀名是不准确的
                         id = imgUrl.split("/");
                         id = id[id.length - 1].split(".")[0]; //作品id
@@ -1672,7 +1700,7 @@ function getIllustPage(url) {
                         }); //先把能确定的参数传过去，ext和url需要在下一步确定
                     }
                 } else { //多图作品
-                    if (notdown_type_checked === true || notdown_type.indexOf("2") === -1) { //如果已经筛选过作品类型，或者没有排除多图
+                    if (notdown_type.indexOf("2") === -1) { //如果没有排除多图
                         var pNo = parseInt(illust_document.find("ul.meta li").eq(1).text().split(" ")[1].split("P")[0]); //P数
                         var orgPageUrl = illust_document.find(".works_display a").eq(0).attr("href");
                         getMangaOriginalPage(orgPageUrl, pNo, interrupt, { // 多p作品的id需要根据p数循环加上序号，所以放在后面加了
@@ -1692,7 +1720,7 @@ function getIllustPage(url) {
                     want_page--;
                 }
                 if (!!illust_document.find(".after a")[0] && (want_page === -1 || want_page > 0)) { //如果存在下一个作品，则
-                    getIllustPage("https://www.pixiv.net/" + illust_document.find(".after a").eq(0).attr("href"));
+                    getIllustPage("https://www.pixiv.net" + illust_document.find(".after a").eq(0).attr("href"));
                 } else { //没有剩余作品
                     allow_work = true;
                     allWorkFinished();
@@ -2350,6 +2378,7 @@ if (location.hostname === "www.pixiv.net" && location.pathname === "/") { //0.�
             down_id_input.toggle(); //切换显示id输入框
             if (down_id_input.is(":visible")) {
                 down_id_input.css("display", "block");
+                // down_id_input.focus();
                 document.documentElement.scrollTop = 0;
             }
         } else {
@@ -2709,8 +2738,8 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     })();
 
     setFilterWH(4);
-
-    setFilterTag_notNeed(5);
+    setNotDownType(5);
+    setFilterTag_notNeed(6);
     $("#nottag").text(xzlt("_下载时排除tag"));
 
     (function() {
@@ -2718,7 +2747,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
         xz_btns_con.appendChild(stopFilter);
         $(stopFilter).text(xzlt("_中断当前任务"));
         $(stopFilter).attr("title", xzlt("_中断当前任务_title"));
-        setButtonStyle(stopFilter, 6, "#e42a2a");
+        setButtonStyle(stopFilter, 7, "#e42a2a");
         stopFilter.addEventListener("click", function() {
             interrupt = true;
             if (!allow_work) {
@@ -2727,41 +2756,41 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
             }
         }, false);
     })();
-
-    (function() {
-        var clearMultiple = document.createElement("div");
-        xz_btns_con.appendChild(clearMultiple);
-        $(clearMultiple).text(xzlt("_清除多图作品"));
-        $(clearMultiple).attr("title", xzlt("_清除多图作品_title"));
-        setButtonStyle(clearMultiple, 7, "#E42A2A");
-        clearMultiple.addEventListener("click", function() {
-            var allPicArea = $(tag_search_list_selector);
-            for (var i = 0; i < allPicArea.length; i++) {
-                if (!!allPicArea.eq(i).find(tag_search_multiple_selector)[0]) {
-                    allPicArea.eq(i).remove();
+    /*
+        (function() {
+            var clearMultiple = document.createElement("div");
+            xz_btns_con.appendChild(clearMultiple);
+            $(clearMultiple).text(xzlt("_清除多图作品"));
+            $(clearMultiple).attr("title", xzlt("_清除多图作品_title"));
+            setButtonStyle(clearMultiple, 7, "#E42A2A");
+            clearMultiple.addEventListener("click", function() {
+                var allPicArea = $(tag_search_list_selector);
+                for (var i = 0; i < allPicArea.length; i++) {
+                    if (!!allPicArea.eq(i).find(tag_search_multiple_selector)[0]) {
+                        allPicArea.eq(i).remove();
+                    }
                 }
-            }
-            outputNowResult();
-        }, false);
-    })();
+                outputNowResult();
+            }, false);
+        })();
 
-    (function() {
-        var clearUgoku = document.createElement("div");
-        xz_btns_con.appendChild(clearUgoku);
-        $(clearUgoku).text(xzlt("_清除动图作品"));
-        $(clearUgoku).attr("title", xzlt("_清除动图作品_title"));
-        setButtonStyle(clearUgoku, 8, "#E42A2A");
-        clearUgoku.addEventListener("click", function() {
-            var allPicArea = $(tag_search_list_selector);
-            for (var i = 0; i < allPicArea.length; i++) {
-                if (!!allPicArea.eq(i).find(tag_search_gif_selector)[0]) {
-                    allPicArea.eq(i).remove();
+        (function() {
+            var clearUgoku = document.createElement("div");
+            xz_btns_con.appendChild(clearUgoku);
+            $(clearUgoku).text(xzlt("_清除动图作品"));
+            $(clearUgoku).attr("title", xzlt("_清除动图作品_title"));
+            setButtonStyle(clearUgoku, 8, "#E42A2A");
+            clearUgoku.addEventListener("click", function() {
+                var allPicArea = $(tag_search_list_selector);
+                for (var i = 0; i < allPicArea.length; i++) {
+                    if (!!allPicArea.eq(i).find(tag_search_gif_selector)[0]) {
+                        allPicArea.eq(i).remove();
+                    }
                 }
-            }
-            outputNowResult();
-        }, false);
-    })();
-
+                outputNowResult();
+            }, false);
+        })();
+    */
     (function() {
         var deleteBotton = document.createElement("div");
         deleteBotton.id = "deleteBotton";
@@ -2769,7 +2798,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
         $(deleteBotton).text(xzlt("_手动删除作品"));
         $(deleteBotton).attr("title", xzlt("_手动删除作品_title"));
         $(deleteBotton).attr("data_del", "0");
-        setButtonStyle(deleteBotton, 9, "#e42a2a");
+        setButtonStyle(deleteBotton, 8, "#e42a2a");
         $("#deleteBotton").bind("click", function() {
             if ($("#deleteBotton").attr("data_del") === "0") {
                 $("#deleteBotton").attr("data_del", "1");
@@ -2780,18 +2809,18 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
             }
         });
     })();
-
-    (function() {
-        var clearBotton = document.createElement("div");
-        xz_btns_con.appendChild(clearBotton);
-        $(clearBotton).text(xzlt("_清空作品列表"));
-        $(clearBotton).attr("title", xzlt("_清空作品列表_title"));
-        setButtonStyle(clearBotton, 10, "#e42a2a");
-        clearBotton.addEventListener("click", function() {
-            $(tag_search_list_selector).remove();
-        }, false);
-    })();
-
+    /*
+        (function() {
+            var clearBotton = document.createElement("div");
+            xz_btns_con.appendChild(clearBotton);
+            $(clearBotton).text(xzlt("_清空作品列表"));
+            $(clearBotton).attr("title", xzlt("_清空作品列表_title"));
+            setButtonStyle(clearBotton, 8, "#e42a2a");
+            clearBotton.addEventListener("click", function() {
+                $(tag_search_list_selector).remove();
+            }, false);
+        })();
+    */
 } else if (loc_url.indexOf("ranking_area.php") > -1 && loc_url !== "https://www.pixiv.net/ranking_area.php") { //6.on_ranking_area
     page_type = 6;
 
@@ -2809,43 +2838,10 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
         }, false);
     })();
 
-    (function() {
-        var clearMultiple = document.createElement("div");
-        xz_btns_con.appendChild(clearMultiple);
-        $(clearMultiple).text(xzlt("_清除多图作品"));
-        $(clearMultiple).attr("title", xzlt("_清除多图作品_title"));
-        setButtonStyle(clearMultiple, 2, "#DA7002");
-        clearMultiple.addEventListener("click", function() {
-            var allPicArea = $(".ranking-item");
-            for (var i = 0; i < allPicArea.length; i++) {
-                if (allPicArea.eq(i).find("a").eq(1).attr("class").indexOf("multiple") > -1 || allPicArea.eq(i).find("a").eq(1).attr("class").indexOf("manga") > -1) {
-                    allPicArea.eq(i).remove();
-                }
-            }
-            alert(xzlt("_已清除多图作品"));
-        }, false);
-    })();
-
-    (function() {
-        var clearGif = document.createElement("div");
-        xz_btns_con.appendChild(clearGif);
-        $(clearGif).text(xzlt("清除动图作品"));
-        $(clearGif).attr("title", xzlt("_清除动图作品_title"));
-        setButtonStyle(clearGif, 3, "#DA7002");
-        clearGif.addEventListener("click", function() {
-            var allPicArea = $(".ranking-item");
-            for (var i = 0; i < allPicArea.length; i++) {
-                if (allPicArea.eq(i).find("a").eq(1).attr("class").indexOf("ugoku") > -1) {
-                    allPicArea.eq(i).remove();
-                }
-            }
-            alert(xzlt("_已清除动图作品"));
-        }, false);
-    })();
-
     setFilterWH(1);
-    setFilterTag_notNeed(4);
-    setFilterTag_Need(5);
+    setNotDownType(2);
+    setFilterTag_notNeed(3);
+    setFilterTag_Need(4);
 
 } else if (loc_url.indexOf("ranking.php") > -1) { //7.on_ranking_else
     page_type = 7;
