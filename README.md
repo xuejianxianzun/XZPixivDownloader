@@ -19,6 +19,12 @@ https://greasyfork.org/zh-CN/scripts/24252
 
 下载的文件会保存在浏览器的下载目录里。
 
+- 如果您使用 Firefox 浏览器，Firefox 在下载时会先弹窗询问是否直接打开。如果您希望跳过这个窗口静默下载，请遵循以下步骤：
+
+    1. 在地址栏输入并访问 `about:config`，点击警告确认按钮
+    2. 搜索找到 `browser.download.forbid_open_with` 并双击
+    3. 重启
+
 # 可以使用的场景：
 
 作品详情页
