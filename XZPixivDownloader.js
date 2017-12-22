@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     4.5.0
+// @version     4.5.1
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixivision特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github:https://github.com/xuejiansaber/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv picture batch downloader
@@ -76,6 +76,7 @@ var loc_url = window.location.href, //当前页面的url
     xz_gif_html, // tag搜索页作品的html中的动图标识
     tag_search_new_html_one_page = "", // 拼接每一页里所有列表的html
     tag_search_temp_result, // 临时储存tag搜索每一页的结果
+    tag_search_show_img = true, //tag搜索页有时候筛选出的结果非常多，几百个都很常见。这时需要加载的预览图就会占用很多网络带宽和浏览器的并发请求数，可能导致抓取页面的请求得不到处理，抓取异常中止。如有需要，将此参数设置为false可以不加载预览图。
     fileNameRule = "",
     fileName_length = 200, // 此为预设值，如果保存路径过长就会出问题
     safe_fileName_rule = new RegExp(/\\|\/|:|\?|"|<|>|\*|\|/g), // 安全的文件名
@@ -1339,7 +1340,9 @@ function getListPage() {
                         // 填充内容
                         new_html = new_html.replace(/xz_illustId/g, this_one_info[j]["illustId"]);
                         new_html = new_html.replace(/xz_pageCount/g, this_one_info[j]["pageCount"]);
-                        new_html = new_html.replace(/xz_url/g, this_one_info[j]["url"]);
+                        if (tag_search_show_img) {
+                            new_html = new_html.replace(/xz_url/g, this_one_info[j]["url"]);
+                        }
                         new_html = new_html.replace(/xz_illustTitle/g, this_one_info[j]["illustTitle"]);
                         new_html = new_html.replace(/xz_userId/g, this_one_info[j]["userId"]);
                         new_html = new_html.replace(/xz_userName/g, this_one_info[j]["userName"]);
@@ -1401,7 +1404,7 @@ function getListPage() {
             } else if (page_type === 7) { // 其他排行榜。地区排行榜不经过这个函数处理
                 var allPicArea = listPage_document.find(".ranking-item");
                 for (var i = 0; i < allPicArea.length; i++) {
-                    if (!allPicArea.eq(i).find("a")[0]) { //如果列表中的这个作品没有a标签，则是被删除、或非公开等错误项
+                    if (allPicArea.eq(i).find(".title").attr("title") === "-----") { //如果这个作品被删除、或非公开
                         continue;
                     }
                     var nowClass = allPicArea.eq(i).find(".ranking-image-item a").attr("class");
@@ -1426,7 +1429,7 @@ function getListPage() {
             } else {
                 var allPicArea = listPage_document.find("._image-items .image-item");
                 for (var i = 0; i < allPicArea.length; i++) {
-                    if (!allPicArea.eq(i).find("a")[0]) { //如果列表中的这个作品没有a标签，则是被删除、或非公开等错误项
+                    if (allPicArea.eq(i).find(".title").attr("title") === "-----") { //如果这个作品被删除、或非公开
                         continue;
                     }
                     var nowClass = allPicArea.eq(i).find("a").eq(0).attr("class");
@@ -1631,13 +1634,13 @@ function getIllustPage(url) {
             if (notNeed_tag.length > 0) { //如果设置了过滤tag
                 outerloop: //命名外圈语句
                     for (var i = nowAllTag.length - 1; i >= 0; i--) {
-                    for (var ii = notNeed_tag.length - 1; ii >= 0; ii--) {
-                        if (nowAllTag[i] === notNeed_tag[ii]) {
-                            tag_noeNeed_isFound = true;
-                            break outerloop;
+                        for (var ii = notNeed_tag.length - 1; ii >= 0; ii--) {
+                            if (nowAllTag[i] === notNeed_tag[ii]) {
+                                tag_noeNeed_isFound = true;
+                                break outerloop;
+                            }
                         }
                     }
-                }
             }
 
             // 检查必须包含的tag
