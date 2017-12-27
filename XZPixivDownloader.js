@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     4.5.1
+// @version     4.5.3
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixivision特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github:https://github.com/xuejiansaber/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv picture batch downloader
@@ -1427,16 +1427,39 @@ function getListPage() {
                 $("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_列表页获取完成2", illust_url_list.length));
                 getListUrlFinished();
             } else {
-                var allPicArea = listPage_document.find("._image-items .image-item");
-                for (var i = 0; i < allPicArea.length; i++) {
-                    if (allPicArea.eq(i).find(".title").attr("title") === "-----") { //如果这个作品被删除、或非公开
-                        continue;
+                if (page_type === 10 && tag_search_is_new === true) { //关注的新作品 列表改成和tag搜索页一样的了
+                    var this_one_info = listPage_document.find(tag_search_lv1_selector).attr("data-items"); // 保存这一次的信息
+                    var this_one_info = JSON.parse(this_one_info); // 转化为数组
+                    for (var j = 0; j < this_one_info.length; j++) {
+                        var nowClass = "";
+                        var bookmarked;
+                        var nowHref = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + this_one_info[j]["illustId"];
+                        var pageCount = parseInt(this_one_info[j]["pageCount"]); // 包含的图片数量
+                        if (pageCount > 1) { // 多图
+                            nowClass = "multiple";
+                        }
+                        var illustType = this_one_info[j]["illustType"]; // 作品类型 0 单图 1 多图 2 动图
+                        if (illustType === "2") { // 动图
+                            nowClass = "ugoku-illust";
+                        }
+                        if (this_one_info[j]["isBookmarked"]) { // 是否已收藏
+                            bookmarked = true;
+                        }
+                        checkNotDownType_result(nowClass, nowHref, bookmarked);
                     }
-                    var nowClass = allPicArea.eq(i).find("a").eq(0).attr("class");
-                    var nowHref = allPicArea.eq(i).find("a").eq(0).attr("href");
-                    var bookmarked = allPicArea.eq(i).find("._one-click-bookmark")[0].classList.contains("on");
-                    checkNotDownType_result(nowClass, nowHref, bookmarked);
+                } else {
+                    var allPicArea = listPage_document.find("._image-items .image-item");
+                    for (var i = 0; i < allPicArea.length; i++) {
+                        if (allPicArea.eq(i).find(".title").attr("title") === "-----") { //如果这个作品被删除、或非公开
+                            continue;
+                        }
+                        var nowClass = allPicArea.eq(i).find("a").eq(0).attr("class");
+                        var nowHref = allPicArea.eq(i).find("a").eq(0).attr("href");
+                        var bookmarked = allPicArea.eq(i).find("._one-click-bookmark")[0].classList.contains("on");
+                        checkNotDownType_result(nowClass, nowHref, bookmarked);
+                    }
                 }
+
                 $("#outputInfo").html(now_tips + "<br>" + xzlt("_列表页抓取进度", listPage_finished));
                 //判断任务状态
                 if (!listPage_document.find(".next ._button")[0] || listPage_finished == want_page) { //如果没有下一页的按钮或者抓取完指定页面
@@ -1489,7 +1512,7 @@ function getListPage2() {
         checkNotDownType_tips();
         var allPicArea = $(tag_search_list_selector + ":visible");
         for (var i = allPicArea.length - 1; i >= 0; i--) {
-            // 因为tag搜索页判断作品类型的class与其他页面不同，所以在这里转换成能被接下来的函数识别的字符
+            // 因为此页面类型里，判断作品类型的class与其他页面不同，所以在这里转换成能被接下来的函数识别的字符
             var nowClass = "";
             if (!!allPicArea.eq(i).find(tag_search_multiple_selector)[0]) {
                 nowClass = "multiple";
@@ -2993,6 +3016,14 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
 
     addBtnsAreaCtrl();
     addOutputWarp();
+    if (loc_url.indexOf("/bookmark_new_illust.php") > -1) {
+        tag_search_is_new = true;
+        tag_search_lv1_selector = "#js-mount-point-latest-following";
+        tag_search_lv2_selector = "._7IVJuWZ";
+        tag_search_list_selector = "._7IVJuWZ";
+        tag_search_multiple_selector = "._2UNGFcb";
+        tag_search_gif_selector = "._3DUGnT4";
+    }
 
     if (loc_url.indexOf("bookmark_new_illust") > -1) { // 其实这个条件和条件2在一定程度上是重合的，所以这个必须放在前面。
         max_num = 100; //关注的人的新作品（包含普通版和r18版）的最大页数是100
