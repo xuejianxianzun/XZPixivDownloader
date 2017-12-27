@@ -3062,7 +3062,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     setFilterTag_Need(3);
     setFilterTag_notNeed(4);
 } else if (window.location.pathname === "/discovery") { //11.discover 发现
-    // 其实发现页面和9收藏后的推荐页面一样，先获取列表再下载。但是发现页面有个特点是每次获取的数据会变动，这样下载到的图片和用户在左侧看到的图片不同，效果不太好。所以这里改用直接下载左侧已有作品的办法
+    // 其实发现页面和9收藏后的推荐页面一样，先获取列表再下载。但是发现页面有个特点是每次获取的数据是不同的，如果再请求一次列表数据，那么下载到的图片和本次加载的图片就不一样了。所以这里改用直接下载左侧已有作品
     page_type = 11;
 
     tag_search_list_selector = "._131AzaV"; // 发现作品的已有作品，借用tag搜索页的变量名，直接拿来用
