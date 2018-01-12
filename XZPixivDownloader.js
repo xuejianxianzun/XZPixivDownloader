@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     4.5.4
+// @version     4.5.5
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixivision特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github:https://github.com/xuejiansaber/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv picture batch downloader
@@ -22,11 +22,12 @@
 // @connect     imgaz.pixiv.net
 // @run-at      document-end
 // ==/UserScript==
-/*
- *@author:  xuejianxianzun 雪见仙尊
- *@E-mail:  xuejianxianzun@gmail.com
- *@Blog:    https://saber.love/
- *@QQ群: 499873152
+
+/* author:  xuejianxianzun 雪见仙尊
+ * E-mail:  xuejianxianzun@gmail.com
+ * Blog:    https://saber.love/
+ * QQ群:    499873152
+ * update:  2018/01/12
  */
 
 var loc_url = window.location.href, //当前页面的url
@@ -76,7 +77,7 @@ var loc_url = window.location.href, //当前页面的url
     xz_gif_html, // tag搜索页作品的html中的动图标识
     tag_search_new_html_one_page = "", // 拼接每一页里所有列表的html
     tag_search_temp_result, // 临时储存tag搜索每一页的结果
-    tag_search_show_img = true, //tag搜索页有时候筛选出的结果非常多，几百个都很常见。这时需要加载的预览图就会占用很多网络带宽和浏览器的并发请求数，可能导致抓取页面的请求得不到处理，抓取异常中止。如有需要，将此参数设置为false可以不加载预览图。
+    tag_search_show_img = true, //是否显示tag搜索页里面的封面图片
     fileNameRule = "",
     fileName_length = 200, // 此为预设值，如果保存路径过长就会出问题
     safe_fileName_rule = new RegExp(/\\|\/|:|\?|"|<|>|\*|\|/g), // 安全的文件名
@@ -905,13 +906,13 @@ var block_ad_css = "<style>section.ad,[name=header],.ads_anchor,.ad-bigbanner,.a
 document.body.insertAdjacentHTML("beforeend", block_ad_css);
 
 // DOMParser，将字符串形式的html代码解析为DOM结构
-! function(a) {
+! function (a) {
     var b = a.prototype,
         c = b.parseFromString;
     try {
         if ((new a).parseFromString("", "text/html")) return;
     } catch (d) {}
-    b.parseFromString = function(a, b) {
+    b.parseFromString = function (a, b) {
         if (/^\s*text\/html\s*(?:;|$)/i.test(b)) {
             var d = document.implementation.createHTMLDocument("");
             return a.toLowerCase().indexOf("<!doctype") > -1 ? d.documentElement.innerHTML = a : d.body.innerHTML = a, d;
@@ -922,17 +923,17 @@ document.body.insertAdjacentHTML("beforeend", block_ad_css);
 var parser = new DOMParser();
 
 // 设置输入框获得焦点和失去焦点时的样式
-jQuery.focusblur = function(element, defcolor, truecolor) {
+jQuery.focusblur = function (element, defcolor, truecolor) {
     var focusblurid = element;
     var defval = focusblurid.val();
-    focusblurid.focus(function() {
+    focusblurid.focus(function () {
         var thisval = $(this).val();
         if (thisval == defval) {
             $(this).val("");
             $(this).css("color", truecolor);
         }
     });
-    focusblurid.blur(function() {
+    focusblurid.blur(function () {
         var thisval = $(this).val();
         if (thisval === "") {
             $(this).val(defval);
@@ -949,7 +950,7 @@ function setNotDownType(no) {
     $(notDownType).text(xzlt("_过滤作品类型的按钮"));
     $(notDownType).attr("title", xzlt("_过滤作品类型的按钮_title"));
     setButtonStyle(notDownType, no, "#DA7002");
-    notDownType.addEventListener("click", function() {
+    notDownType.addEventListener("click", function () {
         notdown_type = prompt(xzlt("_过滤作品类型的弹出框文字"), "");
         if (notdown_type === null) { //如果取消设置，则将返回值null改为字符串，不然无法使用indexOf
             notdown_type = "";
@@ -1011,7 +1012,7 @@ function setFilterTag_notNeed(no) {
     $("#nottaginput").val(notNeed_tag_tip);
     $.focusblur($("#nottaginput"), "#bbb", "#333");
 
-    nottag.addEventListener("click", function() {
+    nottag.addEventListener("click", function () {
         $("#nottaginput").toggle();
         if ($("#nottaginput").is(":visible")) {
             $("#nottaginput").css("display", "block");
@@ -1051,7 +1052,7 @@ function setFilterTag_Need(no) {
     $("#needtaginput").val(need_tag_tip);
     $.focusblur($("#needtaginput"), "#bbb", "#333");
 
-    needtag.addEventListener("click", function() {
+    needtag.addEventListener("click", function () {
         $("#needtaginput").toggle();
         if ($("#needtaginput").is(":visible")) {
             $("#needtaginput").css("display", "block");
@@ -1082,7 +1083,7 @@ function setFilterWH(no) {
     $(filterWHBotton).attr("title", xzlt("_筛选宽高的按钮_title"));
     setButtonStyle(filterWHBotton, no, "#179FDD");
 
-    filterWHBotton.addEventListener("click", function() {
+    filterWHBotton.addEventListener("click", function () {
         var inputWH = prompt(xzlt("_筛选宽高的提示文字"), filterWH.width + filterWH.and_or + filterWH.height);
         if (inputWH === "" || inputWH === null || (inputWH.indexOf("|") === -1 && inputWH.indexOf("&") === -1) || (inputWH.indexOf("|") > -1 && inputWH.indexOf("&") > -1)) { //如果为空值，或取消了输入，或没有输入任意一个分隔符号，或者同时输入了两个分隔符
             alert(xzlt("_本次输入的数值无效"));
@@ -1131,7 +1132,7 @@ function tagSearchDel() {
             var now_works = all_works.eq(i);
             if (!now_works.attr("data-del")) {
                 now_works.attr("data-del", "");
-                now_works.bind("click", function() {
+                now_works.bind("click", function () {
                     if ($("#deleteBotton").attr("data_del") === "1") {
                         this.remove();
                         if (allow_work) {
@@ -1314,7 +1315,7 @@ function getListPage() {
         async: true,
         cache: false,
         dataType: "text",
-        success: function(data) {
+        success: function (data) {
             listPage_finished++;
             var listPage_document = $(parser.parseFromString(data, "text/html"));
             var allPicArea;
@@ -1477,7 +1478,7 @@ function getListPage() {
             }
         },
         statusCode: {
-            404: function() {
+            404: function () {
                 if (page_type === 7) { //其他排行榜
                     //如果发生了404错误，则中断抓取，直接下载已有部分。（因为可能确实没有下一部分了，只是这种情况我们没见到。这样的话之前预设的最大页数可能就不对
                     console.log("404错误，直接下载已有部分");
@@ -1568,7 +1569,7 @@ function getIllustPage(url) {
         async: true,
         cache: false,
         dataType: "text",
-        success: function(data) {
+        success: function (data) {
             if (interrupt) { //这里需要再判断一次，因为ajax执行完毕是需要时间的
                 allow_work = true;
                 return false;
@@ -1765,22 +1766,22 @@ function getIllustPage(url) {
             }
         },
         statusCode: { //如果发生了错误则跳过该url
-            0: function() {
+            0: function () {
                 //ERR_CONNECTION_RESET
                 getIllustPage(illust_url_list[0]);
                 console.log(xzlt("_作品页状态码0"));
             },
-            400: function() {
+            400: function () {
                 //400错误
                 getIllustPage(illust_url_list[0]);
                 console.log(xzlt("_作品页状态码400")); //在收藏的作品列表中，有些作品被作者删除了，却还显示有“编辑”按钮（但也有些没有这个按钮）。点击这个按钮会跳转到错误的“编辑收藏”页面，导致400错误。这个情况仅在下载书签作品时会发生。
             },
-            403: function() {
+            403: function () {
                 //403错误
                 getIllustPage(illust_url_list[0]);
                 console.log(xzlt("_作品页状态码403"));
             },
-            404: function() {
+            404: function () {
                 //404错误
                 getIllustPage(illust_url_list[0]);
                 console.log(xzlt("_作品页状态码404"));
@@ -1799,7 +1800,7 @@ function getMangaOriginalPage(url, pNo, interrupt, img_info_data) {
         async: true,
         cache: false,
         dataType: "text",
-        success: function(data) {
+        success: function (data) {
             if (interrupt) { //这里判断的是tag搜索页的中断状态。如果已经中断，则清空数据并返回
                 resetResult();
                 return false;
@@ -1827,11 +1828,11 @@ function testExtName(url, length, img_info_data) {
     var ext = "";
     var testImg = new Image();
     testImg.src = url;
-    testImg.onload = function() {
+    testImg.onload = function () {
         ext = "jpg";
         nextStep();
     };
-    testImg.onerror = function() {
+    testImg.onerror = function () {
         url = url.replace(".jpg", ".png");
         ext = "png";
         nextStep();
@@ -1907,12 +1908,12 @@ function allWorkFinished() {
         }
         // 快速下载时点击下载按钮
         if (quick || quiet_download) {
-            setTimeout(function() {
+            setTimeout(function () {
                 $(".startDownload").click();
             }, 200);
         }
     } else { //如果没有完成，则延迟一段时间后再执行
-        setTimeout(function() {
+        setTimeout(function () {
             allWorkFinished();
         }, 1000);
     }
@@ -1971,7 +1972,7 @@ function addBtnsAreaCtrl() {
     xianzun_btns_wrap = document.querySelector(".xianzun_btns_wrap");
     xz_btns_ctr = document.querySelector(".xz_btns_ctr");
     xz_btns_con = document.querySelector(".xz_btns_con");
-    xz_btns_ctr.addEventListener("click", function() {
+    xz_btns_ctr.addEventListener("click", function () {
         if (this.getAttribute("data-show") === "0") {
             xianzun_btns_wrap.style.right = "0px";
             this.querySelector("span").className = "xianzun_arrow_right";
@@ -2009,11 +2010,11 @@ function addOutputWarp() {
         '.outputUrlClose:hover{color:#179FDD;}' +
         '.outputUrlCopy{height: 34px;line-height: 34px;min-width:100px;padding: 2px 25px;margin-top: 15px;background:#179FDD;display:inline-block;color:#fff;font-size:14px;border-radius:6px;cursor:pointer;}';
     // 绑定关闭输出url区域的事件
-    $(".outputUrlClose").on("click", function() {
+    $(".outputUrlClose").on("click", function () {
         $(".outputUrlWrap").hide();
     });
     // 绑定复制url的事件
-    $(".outputUrlCopy").on("click", function() {
+    $(".outputUrlCopy").on("click", function () {
         var range = document.createRange();
         range.selectNodeContents($(".outputUrlContent")[0]);
         window.getSelection().removeAllRanges();
@@ -2021,7 +2022,7 @@ function addOutputWarp() {
         document.execCommand('copy');
         // 改变提示文字
         $(".outputUrlCopy").text(xzlt("_已复制到剪贴板"));
-        setTimeout(function() {
+        setTimeout(function () {
             window.getSelection().removeAllRanges();
             $(".outputUrlCopy").text(xzlt("_复制图片url"));
         }, 2000);
@@ -2145,17 +2146,17 @@ function addOutputWarp() {
         '.download_a{display: none;}' +
         '.downTip{display: none;}';
     // 绑定下载区域的相关事件
-    $(".outputWrap_close").on("click", function() {
+    $(".outputWrap_close").on("click", function () {
         $(".outputWrap").hide();
     });
-    $(".showFileNameTip").on("click", function() {
+    $(".showFileNameTip").on("click", function () {
         $(".fileNameTip").toggle();
     });
-    $(".showDownTip").on("click", function() {
+    $(".showDownTip").on("click", function () {
         $(".downTip").toggle();
     });
     // 开始下载按钮
-    $(".startDownload").on("click", function() { // 准备下载
+    $(".startDownload").on("click", function () { // 准备下载
         if (download_started || download_pause === "ready_pause" || download_stop === "ready_stop" || img_info.length === 0) { // 如果正在下载中，或正在进行暂停任务，或正在进行停止任务，则不予处理
             return false;
         }
@@ -2178,8 +2179,8 @@ function addOutputWarp() {
         $(outputInfo).html($(outputInfo).html() + xzlt("_正在下载中") + "<br>");
         for (var i = 0; i < download_thread; i++) {
             if (i + downloaded < img_info.length) {
-                (function(ii) {
-                    setTimeout(function() {
+                (function (ii) {
+                    setTimeout(function () {
                         startDownload(ii + downloaded, ii);
                     }, 100);
                 })(i);
@@ -2190,7 +2191,7 @@ function addOutputWarp() {
         download_a = document.querySelector(".download_a");
     });
     // 暂停下载按钮
-    $(".pauseDownload").on("click", function() {
+    $(".pauseDownload").on("click", function () {
         if (img_info.length === 0) {
             return false;
         }
@@ -2207,7 +2208,7 @@ function addOutputWarp() {
         }
     });
     // 停止下载按钮
-    $(".stopDownload").on("click", function() {
+    $(".stopDownload").on("click", function () {
         if (img_info.length === 0) {
             return false;
         }
@@ -2224,7 +2225,7 @@ function addOutputWarp() {
         }
     });
     // 复制url按钮
-    $(".copyUrl").on("click", function() { // 显示图片url列表
+    $(".copyUrl").on("click", function () { // 显示图片url列表
         if (img_info.length === 0) {
             return false;
         }
@@ -2243,7 +2244,7 @@ function addOutputWarp() {
     $(outputlWrap_ctr).text(xzlt("_显示隐藏下载面板"));
     $(outputlWrap_ctr).attr("title", xzlt("_显示隐藏下载面板"));
     setButtonStyle(outputlWrap_ctr, -1, "#179FDD");
-    outputlWrap_ctr.addEventListener("click", function() {
+    outputlWrap_ctr.addEventListener("click", function () {
         $(".outputWrap").toggle();
     }, false);
 }
@@ -2280,14 +2281,14 @@ function startDownload(downloadNo, donwloadBar_no) {
             referer: "https://www.pixiv.net/"
         },
         overrideMimeType: "text/plain; charset=x-user-defined",
-        onprogress: function(xhr) {
+        onprogress: function (xhr) {
             // 显示下载进度
             var loaded = parseInt(xhr.loaded / 1000);
             var total = parseInt(xhr.total / 1000);
             donwloadBar_list.eq(donwloadBar_no).find('.loaded').html(loaded + "/" + total);
             donwloadBar_list.eq(donwloadBar_no).find('.progress').css("width", loaded / total * 100 + "%");
         },
-        onload: function(xhr) {
+        onload: function (xhr) {
             var r = xhr.responseText,
                 data = new Uint8Array(r.length),
                 i = 0;
@@ -2322,7 +2323,7 @@ function startDownload(downloadNo, donwloadBar_no) {
                 downloaded = 0;
                 $(".down_status").html(xzlt("_下载完毕"));
                 $(outputInfo).html($(outputInfo).html() + xzlt("_下载完毕") + "<br><br>");
-                setTimeout(function() {
+                setTimeout(function () {
                     if (!quiet_download) {
                         alert(xzlt("_下载完毕"));
                     }
@@ -2398,7 +2399,7 @@ if (location.hostname === "www.pixiv.net" && location.pathname === "/") { //0.�
     down_id_button.dataset.ready = "false"; //是否准备好了
     $(down_id_button).text(xzlt("_输入id进行下载"));
     setButtonStyle(down_id_button, 0, "#00A514");
-    down_id_button.addEventListener("click", function() {
+    down_id_button.addEventListener("click", function () {
         illust_url_list = []; //每次开始下载前重置作品的url列表
         if (down_id_button.dataset.ready === "false") { //还没准备好
             down_id_input.toggle(); //切换显示id输入框
@@ -2435,7 +2436,7 @@ if (location.hostname === "www.pixiv.net" && location.pathname === "/") { //0.�
     down_id_tip = xzlt("_输入id进行下载的提示文字");
     down_id_input.val(down_id_tip);
     $.focusblur(down_id_input, "#bbb", "#333");
-    down_id_input.on("input", function() {
+    down_id_input.on("input", function () {
         // 当输入框内容改变时检测
         if (!!down_id_input.val() && down_id_input.val() !== down_id_tip) { //非空值且不等于默认值
             down_id_button.dataset.ready = "true";
@@ -2457,23 +2458,23 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     addBtnsAreaCtrl();
     addOutputWarp();
 
-    (function() {
+    (function () {
         var startBotton = document.createElement("div");
         xz_btns_con.appendChild(startBotton);
         $(startBotton).text(xzlt("_快速下载本页"));
         setButtonStyle(startBotton, 0, "#00A514");
-        startBotton.addEventListener("click", function() {
+        startBotton.addEventListener("click", function () {
             quick = true;
             startGet();
         }, false);
     })();
 
-    (function() {
+    (function () {
         var startBotton = document.createElement("div");
         xz_btns_con.appendChild(startBotton);
         $(startBotton).text(xzlt("_从本页开始下载"));
         setButtonStyle(startBotton, 1, "#00A514");
-        startBotton.addEventListener("click", function() {
+        startBotton.addEventListener("click", function () {
             startGet();
         }, false);
     })();
@@ -2497,13 +2498,13 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     addBtnsAreaCtrl();
     addOutputWarp();
 
-    (function() {
+    (function () {
         var downloadBotton = document.createElement("div");
         xz_btns_con.appendChild(downloadBotton);
         $(downloadBotton).text(xzlt("_下载该画师的作品"));
         $(downloadBotton).attr("title", xzlt("_下载该画师的作品") + xzlt("_默认下载多页"));
         setButtonStyle(downloadBotton, 0, "#00A514");
-        downloadBotton.addEventListener("click", function() {
+        downloadBotton.addEventListener("click", function () {
             startGet();
         }, false);
     })();
@@ -2528,13 +2529,13 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     addBtnsAreaCtrl();
     addOutputWarp();
 
-    (function() {
+    (function () {
         var downloadBotton = document.createElement("div");
         xz_btns_con.appendChild(downloadBotton);
         $(downloadBotton).text(xzlt("_下载该tag中的作品"));
         $(downloadBotton).attr("title", xzlt("_下载该tag中的作品") + xzlt("_默认下载多页"));
         setButtonStyle(downloadBotton, 0, "#00A514");
-        downloadBotton.addEventListener("click", function() {
+        downloadBotton.addEventListener("click", function () {
             startGet();
         }, false);
     })();
@@ -2577,13 +2578,13 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     addBtnsAreaCtrl();
     addOutputWarp();
 
-    (function() {
+    (function () {
         var downloadBotton = document.createElement("div");
         xz_btns_con.appendChild(downloadBotton);
         $(downloadBotton).text(xzlt("_下载书签"));
         $(downloadBotton).attr("title", xzlt("_下载书签") + xzlt("_默认下载多页"));
         setButtonStyle(downloadBotton, 0, "#00A514");
-        downloadBotton.addEventListener("click", function() {
+        downloadBotton.addEventListener("click", function () {
             startGet();
         }, false);
     })();
@@ -2673,7 +2674,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
 
     // 根据对象的属性排序
     function sortByProperty(propertyName) {
-        return function(object1, object2) {
+        return function (object1, object2) {
             var value1 = object1[propertyName];
             var value2 = object2[propertyName];
             if (value2 < value1) { //倒序排列
@@ -2710,13 +2711,13 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
         fastScreenArea.innerHTML += "<a href='" + "https://www.pixiv.net/search.php?s_mode=s_tag&word=" + nowTag + " " + favNums[i] + "'>" + favNums[i] + "</a>";
     }
 
-    (function() {
+    (function () {
         var startBotton = document.createElement("div");
         xz_btns_con.appendChild(startBotton);
         $(startBotton).text(xzlt("_按收藏数筛选"));
         $(startBotton).attr("title", xzlt("_按收藏数筛选_title"));
         setButtonStyle(startBotton, 1, "#00A514");
-        startBotton.addEventListener("click", function() {
+        startBotton.addEventListener("click", function () {
             if (interrupt) {
                 interrupt = false;
             }
@@ -2724,13 +2725,13 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
         }, false);
     })();
 
-    (function() {
+    (function () {
         var filterSelf = document.createElement("div");
         xz_btns_con.appendChild(filterSelf);
         $(filterSelf).text(xzlt("_在结果中筛选"));
         $(filterSelf).attr("title", xzlt("_在结果中筛选_title"));
         setButtonStyle(filterSelf, 2, "#0096DB");
-        filterSelf.addEventListener("click", function() {
+        filterSelf.addEventListener("click", function () {
             var allPicArea = $(tag_search_list_selector);
             var want_favorite_number2 = prompt(xzlt("_在结果中筛选弹窗"), "1500");
             if (!want_favorite_number2) {
@@ -2752,13 +2753,13 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
         }, false);
     })();
 
-    (function() {
+    (function () {
         var downloadBotton = document.createElement("div");
         xz_btns_con.appendChild(downloadBotton);
         $(downloadBotton).text(xzlt("_下载当前作品"));
         $(downloadBotton).attr("title", xzlt("_下载当前作品_title"));
         setButtonStyle(downloadBotton, 3, "#00A514");
-        downloadBotton.addEventListener("click", function() {
+        downloadBotton.addEventListener("click", function () {
             getListPage2();
         }, false);
     })();
@@ -2768,64 +2769,65 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     setFilterTag_notNeed(6);
     $("#nottag").text(xzlt("_下载时排除tag"));
 
-    (function() {
+    (function () {
         var stopFilter = document.createElement("div");
         xz_btns_con.appendChild(stopFilter);
         $(stopFilter).text(xzlt("_中断当前任务"));
         $(stopFilter).attr("title", xzlt("_中断当前任务_title"));
         setButtonStyle(stopFilter, 7, "#e42a2a");
-        stopFilter.addEventListener("click", function() {
+        stopFilter.addEventListener("click", function () {
             interrupt = true;
             if (!allow_work) {
                 $("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_当前任务已中断") + "<br><br>");
                 alert(xzlt("_当前任务已中断"));
+                allow_work = true;
             }
         }, false);
     })();
-    /*
-        (function() {
-            var clearMultiple = document.createElement("div");
-            xz_btns_con.appendChild(clearMultiple);
-            $(clearMultiple).text(xzlt("_清除多图作品"));
-            $(clearMultiple).attr("title", xzlt("_清除多图作品_title"));
-            setButtonStyle(clearMultiple, 7, "#E42A2A");
-            clearMultiple.addEventListener("click", function() {
-                var allPicArea = $(tag_search_list_selector);
-                for (var i = 0; i < allPicArea.length; i++) {
-                    if (!!allPicArea.eq(i).find(tag_search_multiple_selector)[0]) {
-                        allPicArea.eq(i).remove();
-                    }
-                }
-                outputNowResult();
-            }, false);
-        })();
 
-        (function() {
-            var clearUgoku = document.createElement("div");
-            xz_btns_con.appendChild(clearUgoku);
-            $(clearUgoku).text(xzlt("_清除动图作品"));
-            $(clearUgoku).attr("title", xzlt("_清除动图作品_title"));
-            setButtonStyle(clearUgoku, 8, "#E42A2A");
-            clearUgoku.addEventListener("click", function() {
-                var allPicArea = $(tag_search_list_selector);
-                for (var i = 0; i < allPicArea.length; i++) {
-                    if (!!allPicArea.eq(i).find(tag_search_gif_selector)[0]) {
-                        allPicArea.eq(i).remove();
-                    }
+    (function () {
+        var clearMultiple = document.createElement("div");
+        xz_btns_con.appendChild(clearMultiple);
+        $(clearMultiple).text(xzlt("_清除多图作品"));
+        $(clearMultiple).attr("title", xzlt("_清除多图作品_title"));
+        setButtonStyle(clearMultiple, 8, "#E42A2A");
+        clearMultiple.addEventListener("click", function () {
+            var allPicArea = $(tag_search_list_selector);
+            for (var i = 0; i < allPicArea.length; i++) {
+                if (!!allPicArea.eq(i).find(tag_search_multiple_selector)[0]) {
+                    allPicArea.eq(i).remove();
                 }
-                outputNowResult();
-            }, false);
-        })();
-    */
-    (function() {
+            }
+            outputNowResult();
+        }, false);
+    })();
+
+    (function () {
+        var clearUgoku = document.createElement("div");
+        xz_btns_con.appendChild(clearUgoku);
+        $(clearUgoku).text(xzlt("_清除动图作品"));
+        $(clearUgoku).attr("title", xzlt("_清除动图作品_title"));
+        setButtonStyle(clearUgoku, 9, "#E42A2A");
+        clearUgoku.addEventListener("click", function () {
+            var allPicArea = $(tag_search_list_selector);
+            for (var i = 0; i < allPicArea.length; i++) {
+                if (!!allPicArea.eq(i).find(tag_search_gif_selector)[0]) {
+                    allPicArea.eq(i).remove();
+                }
+            }
+            outputNowResult();
+        }, false);
+    })();
+
+    (function () {
         var deleteBotton = document.createElement("div");
         deleteBotton.id = "deleteBotton";
         xz_btns_con.appendChild(deleteBotton);
         $(deleteBotton).text(xzlt("_手动删除作品"));
         $(deleteBotton).attr("title", xzlt("_手动删除作品_title"));
         $(deleteBotton).attr("data_del", "0");
-        setButtonStyle(deleteBotton, 8, "#e42a2a");
-        $("#deleteBotton").bind("click", function() {
+        setButtonStyle(deleteBotton, 10, "#e42a2a");
+        $("#deleteBotton").bind("click", function () {
             if ($("#deleteBotton").attr("data_del") === "0") {
                 $("#deleteBotton").attr("data_del", "1");
                 $("#deleteBotton").text(xzlt("_退出手动删除"));
@@ -2841,7 +2843,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
             xz_btns_con.appendChild(clearBotton);
             $(clearBotton).text(xzlt("_清空作品列表"));
             $(clearBotton).attr("title", xzlt("_清空作品列表_title"));
-            setButtonStyle(clearBotton, 8, "#e42a2a");
+            setButtonStyle(clearBotton, 11, "#e42a2a");
             clearBotton.addEventListener("click", function() {
                 $(tag_search_list_selector).remove();
             }, false);
@@ -2853,13 +2855,13 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     addBtnsAreaCtrl();
     addOutputWarp();
 
-    (function() {
+    (function () {
         var downloadBotton = document.createElement("div");
         xz_btns_con.appendChild(downloadBotton);
         $(downloadBotton).text(xzlt("_下载本页作品"));
         $(downloadBotton).attr("title", xzlt("_下载本页作品_title"));
         setButtonStyle(downloadBotton, 0, "#00A514");
-        downloadBotton.addEventListener("click", function() {
+        downloadBotton.addEventListener("click", function () {
             startGet();
         }, false);
     })();
@@ -2894,13 +2896,13 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     addBtnsAreaCtrl();
     addOutputWarp();
 
-    (function() {
+    (function () {
         var downloadBotton = document.createElement("div");
         xz_btns_con.appendChild(downloadBotton);
         $(downloadBotton).text(xzlt("_下载本排行榜作品"));
         $(downloadBotton).attr("title", xzlt("_下载本排行榜作品_title"));
         setButtonStyle(downloadBotton, 0, "#00A514");
-        downloadBotton.addEventListener("click", function() {
+        downloadBotton.addEventListener("click", function () {
             startGet();
         }, false);
     })();
@@ -2920,12 +2922,12 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
         addOutputWarp();
 
         // 创建下载按钮
-        (function() {
+        (function () {
             var downloadBotton = document.createElement("div");
             xz_btns_con.appendChild(downloadBotton);
             $(downloadBotton).html(xzlt("_下载该页面的图片"));
             setButtonStyle(downloadBotton, 1, "#00A514");
-            downloadBotton.addEventListener("click", function() {
+            downloadBotton.addEventListener("click", function () {
                 $(".logo-area h1").hide();
                 document.body.insertBefore(outputInfo, $(".body-container")[0]);
                 resetResult();
@@ -2983,7 +2985,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     addBtnsAreaCtrl();
     addOutputWarp();
 
-    (function() {
+    (function () {
         var downloadBotton = document.createElement("div");
         xz_btns_con.appendChild(downloadBotton);
         if (loc_url.indexOf("recommended.php") > -1) {
@@ -2993,7 +2995,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
             $(downloadBotton).text(xzlt("_下载相似图片"));
         }
         setButtonStyle(downloadBotton, 0, "#00A514");
-        downloadBotton.addEventListener("click", function() {
+        downloadBotton.addEventListener("click", function () {
             requset_number = parseInt(window.prompt(xzlt("_要获取的作品个数") + max_num, "50"));
             if (isNaN(requset_number)) {
                 alert(xzlt("_参数不合法1"));
@@ -3046,13 +3048,13 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     }
     listPage_finished = 0;
 
-    (function() {
+    (function () {
         var downloadBotton = document.createElement("div");
         xz_btns_con.appendChild(downloadBotton);
         $(downloadBotton).text(xzlt("_从本页开始下载"));
         $(downloadBotton).attr("title", xzlt("_下载大家的新作品"));
         setButtonStyle(downloadBotton, 0, "#00A514");
-        downloadBotton.addEventListener("click", function() {
+        downloadBotton.addEventListener("click", function () {
             startGet();
         }, false);
     })();
@@ -3072,13 +3074,13 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     addBtnsAreaCtrl();
     addOutputWarp();
 
-    (function() {
+    (function () {
         var downloadBotton = document.createElement("div");
         xz_btns_con.appendChild(downloadBotton);
         $(downloadBotton).text(xzlt("_下载当前作品"));
         $(downloadBotton).attr("title", xzlt("_下载当前作品_title"));
         setButtonStyle(downloadBotton, 0, "#00A514");
-        downloadBotton.addEventListener("click", function() {
+        downloadBotton.addEventListener("click", function () {
             startGet();
         }, false);
     })();
@@ -3087,13 +3089,13 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     setFilterTag_Need(2);
     setFilterTag_notNeed(3);
 
-    (function() {
+    (function () {
         var clearMultiple = document.createElement("div");
         xz_btns_con.appendChild(clearMultiple);
         $(clearMultiple).text(xzlt("_清除多图作品"));
         $(clearMultiple).attr("title", xzlt("_清除多图作品_title"));
         setButtonStyle(clearMultiple, 4, "#E42A2A");
-        clearMultiple.addEventListener("click", function() {
+        clearMultiple.addEventListener("click", function () {
             var allPicArea = $(tag_search_list_selector);
             for (var i = 0; i < allPicArea.length; i++) {
                 if (!!allPicArea.eq(i).find(tag_search_multiple_selector)[0]) {
@@ -3104,13 +3106,13 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
         }, false);
     })();
 
-    (function() {
+    (function () {
         var clearUgoku = document.createElement("div");
         xz_btns_con.appendChild(clearUgoku);
         $(clearUgoku).text(xzlt("_清除动图作品"));
         $(clearUgoku).attr("title", xzlt("_清除动图作品_title"));
         setButtonStyle(clearUgoku, 5, "#E42A2A");
-        clearUgoku.addEventListener("click", function() {
+        clearUgoku.addEventListener("click", function () {
             var allPicArea = $(tag_search_list_selector);
             for (var i = 0; i < allPicArea.length; i++) {
                 if (!!allPicArea.eq(i).find(tag_search_gif_selector)[0]) {
@@ -3121,7 +3123,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
         }, false);
     })();
 
-    (function() {
+    (function () {
         var deleteBotton = document.createElement("div");
         deleteBotton.id = "deleteBotton";
         xz_btns_con.appendChild(deleteBotton);
@@ -3129,8 +3131,8 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
         $(deleteBotton).attr("title", xzlt("_手动删除作品_title"));
         $(deleteBotton).attr("data_del", "0");
         setButtonStyle(deleteBotton, 6, "#e42a2a");
-        $("#deleteBotton").bind("click", function() {
-            $(tag_search_list_selector).bind("click", function() {
+        $("#deleteBotton").bind("click", function () {
+            $(tag_search_list_selector).bind("click", function () {
                 if ($("#deleteBotton").attr("data_del") === "1") {
                     this.remove();
                     if (allow_work) {
@@ -3149,13 +3151,13 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
         });
     })();
 
-    (function() {
+    (function () {
         var clearBotton = document.createElement("div");
         xz_btns_con.appendChild(clearBotton);
         $(clearBotton).text(xzlt("_清空作品列表"));
         $(clearBotton).attr("title", xzlt("_清空作品列表_title"));
         setButtonStyle(clearBotton, 7, "#e42a2a");
-        clearBotton.addEventListener("click", function() {
+        clearBotton.addEventListener("click", function () {
             $(tag_search_list_selector).remove();
         }, false);
     })();
