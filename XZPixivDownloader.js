@@ -2105,7 +2105,7 @@ function addOutputWarp() {
         '</li>' +
         '</ul>' +
         '</div>' +
-        '<a class="download_a" download=""></a>' +
+        '<a class="download_a" download="" target="_blank"></a>' +
         '<p class="blue showDownTip">' + xzlt("_查看下载说明") + '</p>' +
         '<p class="downTip tip">' + xzlt("_下载说明") + '</p>' +
         '</div>' +
