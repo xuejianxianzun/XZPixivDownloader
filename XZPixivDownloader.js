@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     4.5.5
+// @version     4.6.0
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixivision特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github:https://github.com/xuejiansaber/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv picture batch downloader
@@ -38,7 +38,6 @@ var loc_url = window.location.href, //当前页面的url
     ajax_for_illust_threads = 5, //抓取页面时的并发连接数
     ajax_for_illust_delay = 100, //抓取页面的并发请求每个间隔多少毫秒
     ajax_threads_finished = 0, //统计有几个并发线程完成所有请求。统计的是并发数（ajax_for_illust_threads）而非请求数
-    ajax_for_list_is_end = true, //抓取列表页的任务是否执行完毕
     ajax_for_illust_is_end = true, //抓取内容页的任务是否执行完毕
     test_suffix_finished = true, //检查图片后缀名正确性的函数是否执行完毕
     test_suffix_no = 0, //检查图片后缀名函数的计数
@@ -66,6 +65,7 @@ var loc_url = window.location.href, //当前页面的url
     part_number, //保存不同排行榜的列表数量
     requset_number, //下载添加收藏后的相似作品时的请求数量
     max_num = 0, //最多允许获取多少数量
+    multiple_down_number = 0, // 设置多p作品下载前几张图片。0为不限制，全部下载。
     tag_search_is_new, // tag搜索页是否是新版
     tag_search_lv1_selector, // tag搜索页，作品列表的父元素的选择器
     tag_search_lv2_selector, // tag搜索页，作品列表自身的选择器
@@ -240,13 +240,13 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
     ],
     "_check_want_page_rule1_arg3": [
         "任务开始<br>本次任务条件: 从本页开始下载-num-个作品",
-        "タスクが開始されます。このタスク条件：このページから-num-枚の作品をダウンロード。",
-        "Task starts. This task condition: Download -num- works from this page."
+        "タスクが開始されます。<br>このタスク条件：このページから-num-枚の作品をダウンロード。",
+        "Task starts. <br>This task condition: Download -num- works from this page."
     ],
     "_check_want_page_rule1_arg4": [
         "任务开始<br>本次任务条件: 向下获取所有作品",
-        "タスクが開始されます。このタスク条件：このページからすべての作品をダウンロードする。",
-        "Task starts. This task condition: download all the work from this page."
+        "タスクが開始されます。<br>このタスク条件：このページからすべての作品をダウンロードする。",
+        "Task starts. <br>This task condition: download all the work from this page."
     ],
     "_check_want_page_rule1_arg5": [
         "如果不限制下载的页数，请不要修改此默认值。\n如果要限制下载的页数，请输入从1开始的数字，1为仅下载本页。",
@@ -255,13 +255,13 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
     ],
     "_check_want_page_rule1_arg6": [
         "任务开始<br>本次任务条件: 从本页开始下载-num-页",
-        "タスクが開始されます。このタスク条件：現在のページから-num-ページ",
-        "Task starts. This task condition: download -num- pages from the current page"
+        "タスクが開始されます。<br>このタスク条件：現在のページから-num-ページ",
+        "Task starts. <br>This task condition: download -num- pages from the current page"
     ],
     "_check_want_page_rule1_arg7": [
         "任务开始<br>本次任务条件: 下载所有页面",
-        "タスクが開始されます。このタスク条件：すべてのページをダウンロード",
-        "Task starts. This task condition: download all pages"
+        "タスクが開始されます。<br>このタスク条件：すべてのページをダウンロード",
+        "Task starts. <br>This task condition: download all pages"
     ],
     "_请输入最低收藏数和要抓取的页数": [
         "请输入最低收藏数和要抓取的页数，用英文逗号分开。\n类似于下面的形式: \n1000,100",
@@ -274,9 +274,9 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
         "Parameter is not legal, please try again later."
     ],
     "_tag搜索任务开始": [
-        "任务开始\n本次任务条件: 收藏数不低于{}，向下抓取{}页",
-        "タスクが開始されます。\nこのタスク条件：ブックマークの数は{}ページ以上で、{}ページがクロールされます。",
-        "Task starts. \nThis task condition: the number of bookmarks is not less than {}, {} pages down to crawl."
+        "任务开始<br>本次任务条件: 收藏数不低于{}，向下抓取{}页",
+        "タスクが開始されます。<br>このタスク条件：ブックマークの数は{}ページ以上で、{}ページがクロールされます。",
+        "Task starts. <br>This task condition: the number of bookmarks is not less than {}, {} pages down to crawl."
     ],
     "_want_page_弹出框文字_page_type10": [
         "你想要下载多少页？请输入数字。\r\n当前模式下，列表页的页数最多只有",
@@ -288,10 +288,15 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
         "入力した番号が最大値を超えています",
         "The number you entered exceeds the maximum"
     ],
+    "_多图作品下载张数": [
+        "多图作品将下载前{}张图片",
+        "2枚以上の作品，最初の{}枚の写真をダウンロードする",
+        "Multi-artwork will download the first {} pictures"
+    ],
     "_任务开始1": [
-        "任务开始\n本次任务条件: 从本页开始下载{}页",
-        "タスクが開始されます。\nこのタスク条件：このページから{}ページをダウンロードする",
-        "Task starts. \nThis task condition: download {} pages from this page"
+        "任务开始<br>本次任务条件: 从本页开始下载{}页",
+        "タスクが開始されます。<br>このタスク条件：このページから{}ページをダウンロードする",
+        "Task starts. <br>This task condition: download {} pages from this page"
     ],
     "_任务开始0": [
         "任务开始",
@@ -994,7 +999,12 @@ function checkNotDownType_result(string, url, bookmarked) {
         }
     }
 }
-
+// 检查是否设置了多图作品的张数限制
+function check_multiple_down_number_tips() {
+    if (multiple_down_number > 0) {
+        $("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_多图作品下载张数", multiple_down_number));
+    }
+}
 //添加过滤tag的按钮
 function setFilterTag_notNeed(no) {
     var nottag = document.createElement("div");
@@ -1176,9 +1186,7 @@ function check_want_page_rule1(input_tip, error_tip, start1_tip, start2_tip) {
 
 // 显示调整后的列表数量，仅在某些页面中使用
 function outputNowResult() {
-    if ($("#outputInfo").length === 0) { // 如果还未添加输出区域则添加
-        $("._global-header").eq(0).before(outputInfo);
-    }
+    $("._global-header").eq(0).before(outputInfo);
     var now_output_info = $("#outputInfo").html();
     $("#outputInfo").html(now_output_info + xzlt("_调整完毕", $(tag_search_list_selector + ":visible").length) + "<br>");
 }
@@ -1262,7 +1270,11 @@ function startGet() {
     if (page_type === 7) {
         listPage_finished = 0;
     }
+    // 检查是否设置了不下载的作品类型
     checkNotDownType_tips();
+    // 检查是否设置了多图作品的张数限制
+    check_multiple_down_number_tips();
+    // 检查是否设置了宽高条件
     checkSetWH();
     // 获取要排除的tag
     get_NotNeed_Tag();
@@ -1492,6 +1504,7 @@ function getListPage() {
 
 // 第二个获取列表的函数，仅在tag搜索页和地区排行榜使用（从当前列表页直接获取所有内容页的列表）
 function getListPage2() {
+    $("._global-header").eq(0).before(outputInfo);
     if (!allow_work) {
         alert(xzlt("_当前任务尚未完成2"));
         return false;
@@ -1506,11 +1519,12 @@ function getListPage2() {
         resetResult();
         // 获取要排除的tag 因为tag搜索页里的下载按钮没有启动startGet，而是在这里
         get_NotNeed_Tag();
-        checkSetWH(); // 检查宽高设置
+        checkSetWH();
     }
     allow_work = false;
     if (page_type === 5) { // tag搜索页
         checkNotDownType_tips();
+        check_multiple_down_number_tips();
         var allPicArea = $(tag_search_list_selector + ":visible");
         for (var i = allPicArea.length - 1; i >= 0; i--) {
             // 因为此页面类型里，判断作品类型的class与其他页面不同，所以在这里转换成能被接下来的函数识别的字符
@@ -1553,7 +1567,6 @@ function getListUrlFinished() {
 
 // 获取作品内容页面的函数（区别于获取列表页面的函数）
 function getIllustPage(url) {
-    ajax_for_list_is_end = false;
     illust_url_list.shift(); //有时并未使用illust_url_list，但对空数组进行shift()是合法的
     if (interrupt) { //判断任务是否已中断，目前只在tag搜索页有用到
         allow_work = true;
@@ -1580,7 +1593,6 @@ function getIllustPage(url) {
             var test_title = illust_document.find(".work-info .title");
             if (test_title.length === 0) {
                 console.log("访问不到 " + url);
-                ajax_for_list_is_end = true;
                 if (page_type === 1) { // 在作品页内下载时，设置的want_page其实是作品数
                     if (want_page > 0) {
                         want_page--;
@@ -1729,6 +1741,10 @@ function getIllustPage(url) {
                 } else { //多图作品
                     if (notdown_type.indexOf("2") === -1) { //如果没有排除多图
                         var pNo = parseInt(illust_document.find("ul.meta li").eq(1).text().split(" ")[1].split("P")[0]); //P数
+                        // 检查是否需要修改下载的张数。有效值为大于0并不大于总p数
+                        if (multiple_down_number > 0 && multiple_down_number <= pNo) {
+                            pNo = multiple_down_number;
+                        }
                         var orgPageUrl = illust_document.find(".works_display a").eq(0).attr("href");
                         getMangaOriginalPage(orgPageUrl, pNo, interrupt, { // 多p作品的id需要根据p数循环加上序号，所以放在后面加了
                             title: title,
@@ -1741,7 +1757,6 @@ function getIllustPage(url) {
                     }
                 }
             }
-            ajax_for_list_is_end = true;
             if (page_type === 1) { // 在作品页内下载时，设置的want_page其实是作品数
                 if (want_page > 0) {
                     want_page--;
@@ -1815,8 +1830,8 @@ function getMangaOriginalPage(url, pNo, interrupt, img_info_data) {
                 addImgInfo(id, url, img_info_data.title, img_info_data.tags, img_info_data.user, img_info_data.userid, img_info_data.fullWidth, img_info_data.fullHeight, ext);
             }
             // 检查网址并添加到数组的动作执行完毕
-            ajax_for_illust_is_end = true;
             outputImgNum();
+            ajax_for_illust_is_end = true;
         }
     });
 }
@@ -1851,13 +1866,12 @@ function testExtName(url, length, img_info_data) {
     }
 
 }
-// mode=big的网址如https://www.pixiv.net/member_illust.php?mode=medium&illust_id=56155666，虽然是单图，但是点击后是在新页面打开原图的，新页面要求referer，因此无法直接抓取原图
-// mode=big类型现在可能已经消失了---2017/12/07
+// mode=big类型在pc端可能已经消失了，但是移动端查看大图还是big https://www.pixiv.net/member_illust.php?mode=big&illust_id=66745241
 // pixivision则是因为跨域问题，无法抓取p站页面
 
 // 抓取完毕
 function allWorkFinished() {
-    if (ajax_for_list_is_end && ajax_for_illust_is_end && test_suffix_finished) { // 检查加载页面的任务 以及 检查网址的任务 是否都全部完成。
+    if (ajax_for_illust_is_end && test_suffix_finished) { // 检查加载页面的任务 以及 检查网址的任务 是否都全部完成。
         $(outputInfo).html($(outputInfo).html() + "<br>" + xzlt("_获取图片网址完毕", img_info.length) + "<br>");
         if (img_info.length === 0) {
             $(outputInfo).html($(outputInfo).html() + xzlt("_没有符合条件的作品") + "<br><br>");
@@ -2176,7 +2190,7 @@ function addOutputWarp() {
         fileNameRule = $(".fileNameRule").val();
 
         // 启动或继续 建立并发下载线程
-        $(outputInfo).html($(outputInfo).html() + xzlt("_正在下载中") + "<br>");
+        $(outputInfo).html($(outputInfo).html() + "<br>" + xzlt("_正在下载中") + "<br>");
         for (var i = 0; i < download_thread; i++) {
             if (i + downloaded < img_info.length) {
                 (function (ii) {
@@ -2669,6 +2683,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
     startpage_no = Number($(".page-list .current").eq(0).text()); //最开始时的页码
     listPage_finished = 0; //向下第几页
     var imgList = []; //储存所有作品
+    $("#js-react-search-mid").css("minHeight", "auto"); //原来的最小高度是500，改成auto以免搜索时这部分空白
 
     tagSearchDel();
 
@@ -2929,7 +2944,6 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
             setButtonStyle(downloadBotton, 1, "#00A514");
             downloadBotton.addEventListener("click", function () {
                 $(".logo-area h1").hide();
-                document.body.insertBefore(outputInfo, $(".body-container")[0]);
                 resetResult();
                 var imageList = []; //图片元素的列表
                 if (type == "illustration") { // 针对不同的类型，选择器不同
