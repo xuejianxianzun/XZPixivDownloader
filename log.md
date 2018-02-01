@@ -55,4 +55,19 @@ chrome浏览器进行下载时，会把图片的blob对象在当前标签页打�
 另外，最近我发现地区排行榜（/ranking_area.php）已经不在首页出现了。
 
 一个已知的问题：
+
 在每日排行榜（https://www.pixiv.net/ranking.php?mode=daily_r18），有可能出现最后一张图没抓取完的时候，就提示抓取。这个问题不会影响实际下载的文件数量。
+
+### 4.7.0
+
+增加对pixiv特辑（showcase）的适配；
+
+bug修复。
+
+其他情况:
+
+pixivision在首页原来有4个插画特辑，现在被pixiv自己的特辑（showcase）取代了。在首页只剩下两个推荐特辑的位置，这种类型（推荐）没有做适配。
+
+pixiv特辑（showcase）有[插画](https://www.pixiv.net/showcase/c/illustration/)和[漫画](https://www.pixiv.net/showcase/c/manga/)等分类，本工具只下载插画。漫画的话可以点击进入插画页自行下载。
+
+此外，pixiv特辑滚动到底部时，会加载相似的其他特辑，页面url也会发生改变。本工具下载时会下载当前查看的特辑。

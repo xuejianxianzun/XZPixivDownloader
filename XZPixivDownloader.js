@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     4.6.0
+// @version     4.7.0
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixivision特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github:https://github.com/xuejiansaber/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv picture batch downloader
@@ -544,9 +544,9 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
         "bookmark-count, can only be used on tag search page"
     ],
     "_可用标记5": [
-        "你可以使用多个标记；并可以在不同标记之间添加分割用的字符。示例：{id}_{userid}_{px}<br>* 在pixivision上，只有id标记会生效",
-        "複数のタグを使用することができ；異なるタグ間に別の文字を追加することができます。例：{id}_{userid}_{px}<br>* pixivisionでは、idのみが利用可能です",
-        "You can use multiple tags, and you can add a separate character between different tags. Example: {id}_{userid}_{px}<br>* On pixivision, only id is available"
+        "你可以使用多个标记；并可以在不同标记之间添加分割用的字符。示例：{id}_{userid}_{px}<br>* 在pixivision和特辑里，只有id标记会生效",
+        "複数のタグを使用することができ；異なるタグ間に別の文字を追加することができます。例：{id}_{userid}_{px}<br>* pixivisionでは and ショーケース、idのみが利用可能です",
+        "You can use multiple tags, and you can add a separate character between different tags. Example: {id}_{userid}_{px}<br>* On pixivision and showcase, only id is available"
     ],
     "_下载按钮1": [
         "开始下载",
@@ -832,6 +832,11 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
         "下载该页面的图片",
         "ページの写真をダウンロードする",
         "Download the picture of the page"
+    ],
+    "_下载该专辑的图片": [
+        "下载该专辑的图片",
+        "アルバムの画像をダウンロードする",
+        "Download the album's picture"
     ],
     "_下载推荐图片": [
         "下载推荐图片",
@@ -1186,7 +1191,7 @@ function check_want_page_rule1(input_tip, error_tip, start1_tip, start2_tip) {
 
 // 显示调整后的列表数量，仅在某些页面中使用
 function outputNowResult() {
-    $("._global-header").eq(0).before(outputInfo);
+    addOutputInfo();
     var now_output_info = $("#outputInfo").html();
     $("#outputInfo").html(now_output_info + xzlt("_调整完毕", $(tag_search_list_selector + ":visible").length) + "<br>");
 }
@@ -1213,7 +1218,7 @@ function startGet() {
         return false;
     }
 
-    $("._global-header").eq(0).before(outputInfo);
+    addOutputInfo();
 
     // 设置要获取的作品数或页数
     if (page_type === 1) {
@@ -1504,7 +1509,7 @@ function getListPage() {
 
 // 第二个获取列表的函数，仅在tag搜索页和地区排行榜使用（从当前列表页直接获取所有内容页的列表）
 function getListPage2() {
-    $("._global-header").eq(0).before(outputInfo);
+    addOutputInfo();
     if (!allow_work) {
         alert(xzlt("_当前任务尚未完成2"));
         return false;
@@ -1547,7 +1552,7 @@ function getListPage2() {
             checkNotDownType_result(nowClass, nowHref, bookmarked);
         }
     }
-    $("._global-header").eq(0).before(outputInfo);
+    addOutputInfo();
     $("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_列表抓取完成开始获取作品页", illust_url_list.length));
     getListUrlFinished();
 }
@@ -1836,7 +1841,7 @@ function getMangaOriginalPage(url, pNo, interrupt, img_info_data) {
     });
 }
 
-// 测试图片url是否正确的函数。对于mode=big的作品和pixivision的插画作品，虽然无法获取包含图片真实地址的页面，但是可以拼接出图片url，只是后缀都是jpg的，所以要测试下到底是jpg还是png
+// 测试图片url是否正确的函数。对于mode=big的作品和pixivision、pixiv特辑，可以拼接出图片url，只是后缀都是jpg的，所以要测试下到底是jpg还是png
 function testExtName(url, length, img_info_data) {
     test_suffix_finished = false;
     // 初步获取到的后缀名都是jpg的
@@ -1844,19 +1849,22 @@ function testExtName(url, length, img_info_data) {
     var testImg = new Image();
     testImg.src = url;
     testImg.onload = function () {
-        ext = "jpg";
-        nextStep();
+        nextStep(true);
     };
     testImg.onerror = function () {
-        url = url.replace(".jpg", ".png");
-        ext = "png";
-        nextStep();
+        nextStep(false);
     };
 
-    function nextStep() {
+    function nextStep(bool) {
+        if (bool) {
+            ext = "jpg";
+        } else {
+            url = url.replace(".jpg", ".png");
+            ext = "png";
+        }
         addImgInfo(img_info_data.id, url, img_info_data.title, img_info_data.tags, img_info_data.user, img_info_data.userid, img_info_data.fullWidth, img_info_data.fullHeight, ext);
         outputImgNum();
-        if (!!length) { //length参数只有在获取pixivision插画时才会传入
+        if (!!length) { //length参数只有在获取pixivision插画和pixiv特辑时才会传入
             test_suffix_no++;
             if (test_suffix_no === length) { //如果所有请求都执行完毕
                 allWorkFinished();
@@ -1937,6 +1945,16 @@ function allWorkFinished() {
 var outputInfo = document.createElement("div");
 outputInfo.id = "outputInfo";
 outputInfo.style.cssText = "background: #fff;padding: 10px;font-size: 14px;margin:6px auto;width:950px;";
+
+function addOutputInfo() {
+    if (document.querySelector("#outputInfo") === null) {
+        if (location.hostname === "www.pixivision.net") {
+            $("._header-container").eq(0).before(outputInfo);
+        } else {
+            $("._global-header").eq(0).before(outputInfo);
+        }
+    }
+}
 
 // 在抓取图片网址时，输出提示
 function outputImgNum() {
@@ -2945,6 +2963,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
             downloadBotton.addEventListener("click", function () {
                 $(".logo-area h1").hide();
                 resetResult();
+                addOutputInfo();
                 var imageList = []; //图片元素的列表
                 if (type == "illustration") { // 针对不同的类型，选择器不同
                     imageList = $(".am__work__main img");
@@ -3175,4 +3194,109 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
             $(tag_search_list_selector).remove();
         }, false);
     })();
+} else if (loc_url.indexOf("/showcase/") > 0) { //12.showcase 特辑
+    // 这个类型的页面，不仅url是动态变化的，而且一个专辑页面里还会动态加载其他专辑，做的心好累啊
+    page_type = 12;
+
+    // 首先正常加载下载面板
+    addBtnsAreaCtrl();
+    addOutputWarp();
+    var urls = [];
+
+    // 创建下载按钮
+    (function () {
+        var downloadBotton = document.createElement("div");
+        xz_btns_con.appendChild(downloadBotton);
+        $(downloadBotton).html(xzlt("_下载该专辑的图片"));
+        setButtonStyle(downloadBotton, 1, "#00A514");
+        downloadBotton.addEventListener("click", function () {
+            resetResult();
+            addOutputInfo();
+            test_suffix_no = 0;
+
+            for (var j = 0; j < urls.length; j++) {
+                var id = urls[j].split("/");
+                id = id[id.length - 1].split(".")[0]; //作品id
+                setTimeout(testExtName(urls[j], urls.length, {
+                    id: id,
+                    title: "",
+                    tags: [],
+                    user: "",
+                    userid: "",
+                    fullWidth: "",
+                    fullHeight: ""
+                }), j * ajax_for_illust_delay);
+            }
+        }, false);
+    })();
+
+    // 根据url判断显示还是隐藏下载面板
+    var xianzun_btns_wrap = document.querySelector(".xianzun_btns_wrap");
+    // 进行过专辑类型检查之后会传参。初步检查url的时候没有参数
+    function is_show_downloader(bool) {
+        if (bool === true) {
+            xianzun_btns_wrap.style.display = "block";
+        } else if (bool === false) {
+            xianzun_btns_wrap.style.display = "none";
+        } else {
+            // 在子页面正常执行代码
+            if (window.location.href.indexOf("/a/") > -1) {
+                xianzun_btns_wrap.style.display = "block";
+                check_showcase_type();
+            } else { // 如果不在子页面，则隐藏下载面板
+                xianzun_btns_wrap.style.display = "none";
+            }
+        }
+    }
+
+    is_show_downloader();
+
+    //专辑里面的页面大量使用无刷新加载技术，所以专辑里的所有页面都需要监听url的改变。
+    var _wr = function (type) {
+        var orig = history[type];
+        return function () {
+            var rv = orig.apply(this, arguments);
+            var e = new Event(type);
+            e.arguments = arguments;
+            window.dispatchEvent(e);
+            return rv;
+        };
+    };
+    history.pushState = _wr('pushState');
+    history.replaceState = _wr('replaceState');
+
+    // 监听url变化
+    window.addEventListener("pushState", function () {
+        is_show_downloader();
+    });
+    window.addEventListener("popstate", function () {
+        is_show_downloader();
+    });
+    window.addEventListener("replaceState", function () { // 动态加载新专辑时用的replaceState事件
+        is_show_downloader();
+    });
+
+    // 判断专辑类型，如果是插画就下载，其他类型则隐藏下载面板。因为内容是异步加载，需要模拟请求
+    function check_showcase_type() {
+        var showcase_id = /\d.*\d/.exec(window.location.pathname)[0];
+        var tt = $("input[name=tt]")[0].value; //取出token
+        $.ajax({
+            url: "https://www.pixiv.net/ajax/showcase/article?article_id=" + showcase_id + "&tt=" + tt,
+            type: "get",
+            dataType: 'json',
+            success: function (data) {
+                if (data.body[0].subCategory === "illustration") {
+                    is_show_downloader(true);
+                    // 当前专辑发生变化时，重设图片url
+                    urls = [];
+                    var illusts_list = data.body[0].illusts;
+                    for (let i = 0; i < illusts_list.length; i++) {
+                        urls.push(illusts_list[i].url["1200x1200"].replace("img-master", "img-original").replace("_master1200", ""));
+                    }
+                } else {
+                    is_show_downloader(false);
+                }
+            }
+        });
+    }
 }
