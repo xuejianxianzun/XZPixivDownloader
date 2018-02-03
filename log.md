@@ -56,7 +56,7 @@ chrome浏览器进行下载时，会把图片的blob对象在当前标签页打�
 
 一个已知的问题：
 
-在每日排行榜（https://www.pixiv.net/ranking.php?mode=daily_r18），有可能出现最后一张图没抓取完的时候，就提示抓取。这个问题不会影响实际下载的文件数量。
+在[每日排行榜](https://www.pixiv.net/ranking.php?mode=daily_r18)，有可能出现最后一张图没抓取完的时候，就提示抓取。这个问题不会影响实际下载的文件数量。
 
 ### 4.7.0
 
