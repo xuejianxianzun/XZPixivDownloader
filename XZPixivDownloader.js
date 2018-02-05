@@ -3,10 +3,10 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     4.7.0
+// @version     4.7.1
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixivision特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github:https://github.com/xuejiansaber/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
-// @description:en Pixiv picture batch downloader
+// @description:en Pixiv image downloader
 // @author      xuejianxianzun 雪见仙尊
 // @include     *://www.pixiv.net/*
 // @include     *://www.pixivision.net/*
@@ -27,7 +27,6 @@
  * E-mail:  xuejianxianzun@gmail.com
  * Blog:    https://saber.love/
  * QQ群:    499873152
- * update:  2018/01/12
  */
 
 var loc_url = window.location.href, //当前页面的url
@@ -3051,7 +3050,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
 
     addBtnsAreaCtrl();
     addOutputWarp();
-    if (loc_url.indexOf("/bookmark_new_illust.php") > -1) {
+    if (loc_url.indexOf("/bookmark_new_illust") > -1) {
         tag_search_is_new = true;
         tag_search_lv1_selector = "#js-mount-point-latest-following";
         tag_search_lv2_selector = "._7IVJuWZ";
@@ -3060,19 +3059,19 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
         tag_search_gif_selector = "._3DUGnT4";
     }
 
+    //列表页url规则
+    if (loc_url.indexOf("type=") === -1) { //如果没有type标志，说明是在“综合”分类的第一页，手动加上分类
+        base_url = loc_url + "?type=all".split("&p=")[0] + "&p=";
+    } else {
+        base_url = loc_url.split("&p=")[0] + "&p=";
+    }
+
     if (loc_url.indexOf("bookmark_new_illust") > -1) { // 其实这个条件和条件2在一定程度上是重合的，所以这个必须放在前面。
-        max_num = 100; //关注的人的新作品（包含普通版和r18版）的最大页数是100
-        if (loc_url.indexOf("r18") > -1) {
-            base_url = "https://www.pixiv.net/bookmark_new_illust_r18.php?p="; //列表页url规则
-        } else {
-            base_url = "https://www.pixiv.net/bookmark_new_illust.php?p="; //列表页url规则
-        }
+        max_num = 100; //关注的人的新作品（包含普通版和r18版）的最大页数都是100
     } else if (loc_url.indexOf("new_illust.php") > -1) {
         max_num = 1000; //大家的新作品（普通版）的最大页数是1000
-        base_url = "https://www.pixiv.net/new_illust.php?p="; //列表页url规则
     } else if (loc_url.indexOf("new_illust_r18.php") > -1) {
         max_num = 500; //大家的的新作品（r18版）的最大页数是500
-        base_url = "https://www.pixiv.net/new_illust_r18.php?p="; //列表页url规则
     }
     if (!!$(".page-list .current")[0]) { //如果显示有页码
         startpage_no = Number($(".page-list .current").eq(0).text()); //以当前页的页码为起始页码
