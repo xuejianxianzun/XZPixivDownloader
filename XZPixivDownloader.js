@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     4.7.1
+// @version     4.7.2
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixivision特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github:https://github.com/xuejiansaber/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv image downloader
@@ -263,9 +263,9 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		"Task starts. <br>This task condition: download all pages"
 	],
 	"_请输入最低收藏数和要抓取的页数": [
-		"请输入最低收藏数和要抓取的页数，用英文逗号分开。\n类似于下面的形式: \n1000,100",
-		"お気に入りの最小数とクロールするページ数を，\",\"で区切って入力してください。\n例えば：\n1000,100",
-		"Please enter the minimum number of favorites, and the number of pages to be crawled, separated by \",\".\nE.g:\n1000,100"
+		"请输入最低收藏数和要抓取的页数，用英文逗号分开。\n类似于下面的形式: \n1000,1000",
+		"お気に入りの最小数とクロールするページ数を，\",\"で区切って入力してください。\n例えば：\n1000,1000",
+		"Please enter the minimum number of favorites, and the number of pages to be crawled, separated by \",\".\nE.g:\n1000,1000"
 	],
 	"_参数不合法1": [
 		"参数不合法，请稍后重试。",
@@ -358,9 +358,9 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		"This task is completed. There are now {} works."
 	],
 	"_tag搜索页中断": [
-		"当前任务已中断!当前有{}张作品。",
-		"現在のタスクが中断されました。今は{}枚の作品があります。",
-		"The current task has been interrupted. There are now {} works."
+		"当前任务已中断!<br>当前有{}张作品。",
+		"現在のタスクが中断されました。<br>今は{}枚の作品があります。",
+		"The current task has been interrupted.<br> There are now {} works."
 	],
 	"_排行榜进度": [
 		"已抓取本页面第{}部分",
@@ -1245,7 +1245,7 @@ function startGet() {
 			return false;
 		}
 	} else if (page_type === 5) {
-		var userset = prompt(xzlt("_请输入最低收藏数和要抓取的页数"), "1000,100");
+		var userset = prompt(xzlt("_请输入最低收藏数和要抓取的页数"), "1000,1000");
 		want_favorite_number = Number(userset.split(",")[0]);
 		want_page = Number(userset.split(",")[1]);
 		if (isNaN(want_favorite_number) || want_favorite_number <= 0 || isNaN(want_page) || want_favorite_number <= 0) {
@@ -1520,6 +1520,7 @@ function getListPage2() {
 		if (interrupt) {
 			interrupt = false;
 		}
+		illust_url_list = [];
 		resetResult();
 		// 获取要排除的tag 因为tag搜索页里的下载按钮没有启动startGet，而是在这里
 		get_NotNeed_Tag();
