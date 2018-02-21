@@ -1177,7 +1177,14 @@ function tagSearchPageFinished() {
 
 // 检查用户输入的要获取的页数的参数
 function check_want_page_rule1(input_tip, error_tip, start1_tip, start2_tip) {
-	want_page = prompt(input_tip, "-1");
+	if (page_type === 2 || page_type === 3 || page_type === 4) {
+		if (document.querySelector(".next ._button") === null) { // 如果没有下一页按钮，则自动设置为1
+			want_page = 1;
+		}
+	}
+	if (want_page !== 1) {
+		want_page = prompt(input_tip, "-1");
+	}
 	if (~~Number(want_page) < 1 && want_page !== "-1") { //比1小的数里，只允许-1, 0也不行
 		$("#outputInfo").html($("#outputInfo").html() + error_tip);
 		return false;
