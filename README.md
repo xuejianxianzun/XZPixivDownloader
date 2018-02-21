@@ -38,7 +38,9 @@
 
 - [tag搜索页](https://www.pixiv.net/search.php?s_mode=s_tag&word=saber)
 
-- [所有排行榜](https://www.pixiv.net/ranking.php)
+- [排行榜](https://www.pixiv.net/ranking.php)
+
+- [地区排行榜](https://www.pixiv.net/ranking_area.php?type=state&no=0)
 
 - [相似作品](https://www.pixiv.net/bookmark_add.php?id=63148723)
 
@@ -53,6 +55,8 @@
 - [pixiv特辑上的插画](https://www.pixiv.net/showcase/a/3190/)
 
 - [pixivision上的插画、漫画、cosplay页面](https://www.pixivision.net/zh/a/3190)
+
+- [响应关联作品](https://www.pixiv.net/response.php?mode=all&id=194231)
 
 # 支持的语言：
 

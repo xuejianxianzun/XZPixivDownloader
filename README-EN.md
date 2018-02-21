@@ -36,7 +36,9 @@ The downloaded file will be saved in your browser's download directory.
 
 - [ALL tag search page](https://www.pixiv.net/search.php?s_mode=s_tag&word=saber)
 
-- [ALL ranking page](https://www.pixiv.net/ranking.php)
+- [Ranking page](https://www.pixiv.net/ranking.php)
+
+- [Area ranking page](https://www.pixiv.net/ranking_area.php?type=state&no=0)
 
 - [Similar works page](https://www.pixiv.net/bookmark_add.php?id=63148723)
 
@@ -51,6 +53,8 @@ The downloaded file will be saved in your browser's download directory.
 - [Illustration on Showcase](https://www.pixiv.net/showcase/a/3190/)
 
 - [Illustration, comics, cosplay page on pixivision](https://www.pixivision.net/zh/a/3190)
+
+- [Image response](https://www.pixiv.net/response.php?mode=all&id=194231)
 
 # Supported languages:
 

@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     4.7.2
+// @version     4.8.0
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixivision特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github:https://github.com/xuejiansaber/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv image downloader
@@ -677,6 +677,11 @@ var xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		"アーティストの作品をダウンロードする",
 		"Download the artist's work"
 	],
+	"_下载响应作品": [
+		"下载响应作品",
+		"イメージレスポンスの作品をダウンロードする",
+		"Download the responses illustration"
+	],
 	"_下载该tag中的作品": [
 		"下载该tag中的作品",
 		"タグで作品をダウンロードする",
@@ -1321,7 +1326,7 @@ function getListPage() {
 		}
 		$("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_列表页获取完成2", illust_url_list.length));
 		getListUrlFinished();
-		return false; // 不执行下面的代码
+		return false;
 	} else {
 		var url = base_url + (startpage_no + listPage_finished);
 	}
@@ -1333,7 +1338,10 @@ function getListPage() {
 		dataType: "text",
 		success: function (data) {
 			listPage_finished++;
-			var listPage_document = $(parser.parseFromString(data, "text/html"));
+			var listPage_document;
+			if (page_type !== 7 && page_type !== 9) { // 排行榜和相似作品直接获取json数据，不需要解析为DOM
+				listPage_document = $(parser.parseFromString(data, "text/html"));
+			}
 			var allPicArea;
 			if (page_type === 5) { // tag搜索页
 				listPage_finished2++;
@@ -1347,7 +1355,7 @@ function getListPage() {
 						if (pageCount > 1) { // 多图
 							new_html = new_html.replace("<!--xz_multiple_html-->", xz_multiple_html);
 						}
-						var illustType = this_one_info[j]["illustType"]; // 作品类型 0 单图 1 多图 2 动图
+						var illustType = this_one_info[j]["illustType"]; // 作品类型 0 插画 1 漫画 2 动图
 						if (illustType === "2") { // 动图
 							new_html = new_html.replace("<!--xz_gif_html-->", xz_gif_html);
 						}
@@ -1418,17 +1426,22 @@ function getListPage() {
 				} else {
 					getListPage();
 				}
-			} else if (page_type === 7) { // 其他排行榜。地区排行榜不经过这个函数处理
-				var allPicArea = listPage_document.find(".ranking-item");
-				for (var i = 0; i < allPicArea.length; i++) {
-					if (allPicArea.eq(i).find(".title").attr("title") === "-----") { //如果这个作品被删除、或非公开
-						continue;
+			} else if (page_type === 7) { // 其他排行榜。地区排行榜不经过这个步骤
+				var contents = JSON.parse(data).contents; //取出作品信息列表
+				for (var i = 0; i < contents.length; i++) {
+					var nowClass = "";
+					var pageCount = parseInt(contents[i].illust_page_count); // 包含的图片数量
+					if (pageCount > 1) { // 多图
+						nowClass = "multiple";
 					}
-					var nowClass = allPicArea.eq(i).find(".ranking-image-item a").attr("class");
-					var nowHref = allPicArea.eq(i).find(".ranking-image-item a").attr("href");
-					var bookmarked = allPicArea.eq(i).find("._one-click-bookmark")[0].classList.contains("on");
+					if (contents[i].illust_type === "2") { // 作品类型 0 插画 1 漫画 2 动图
+						nowClass = "ugoku-illust";
+					}
+					var nowHref = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + contents[i].illust_id;
+					var bookmarked = contents[i].is_bookmarked;
 					checkNotDownType_result(nowClass, nowHref, bookmarked);
 				}
+
 				$("#outputInfo").html(now_tips + "<br>" + xzlt("_排行榜进度", listPage_finished));
 				if (listPage_finished == part_number) {
 					$("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_排行榜任务完成", illust_url_list.length));
@@ -1443,7 +1456,7 @@ function getListPage() {
 				}
 				$("#outputInfo").html($("#outputInfo").html() + "<br>" + xzlt("_列表页获取完成2", illust_url_list.length));
 				getListUrlFinished();
-			} else {
+			} else { // 不要把下面的if和这个else合并
 				if (page_type === 10 && tag_search_is_new === true) { //关注的新作品 列表改成和tag搜索页一样的了
 					var this_one_info = listPage_document.find(tag_search_lv1_selector).attr("data-items"); // 保存这一次的信息
 					var this_one_info = JSON.parse(this_one_info); // 转化为数组
@@ -1455,7 +1468,7 @@ function getListPage() {
 						if (pageCount > 1) { // 多图
 							nowClass = "multiple";
 						}
-						var illustType = this_one_info[j]["illustType"]; // 作品类型 0 单图 1 多图 2 动图
+						var illustType = this_one_info[j]["illustType"]; // 作品类型 0 插画 1 漫画 2 动图
 						if (illustType === "2") { // 动图
 							nowClass = "ugoku-illust";
 						}
@@ -1463,6 +1476,11 @@ function getListPage() {
 							bookmarked = true;
 						}
 						checkNotDownType_result(nowClass, nowHref, bookmarked);
+					}
+				} else if (page_type === 13) { // 响应关联作品
+					var allPicArea = listPage_document.find(".linkStyleWorks>ul>li");
+					for (var i = 0; i < allPicArea.length; i++) {
+						illust_url_list.push(allPicArea[i].querySelector("a").href);
 					}
 				} else {
 					var allPicArea = listPage_document.find("._image-items .image-item");
@@ -2516,7 +2534,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
 	setFilterTag_Need(4);
 	setFilterTag_notNeed(5);
 
-} else if ((loc_url.indexOf("member_illust.php?id=") > -1 || loc_url.indexOf("&id=") > -1) && (loc_url.indexOf("&tag") == -1 && loc_url.indexOf("?tag") == -1)) { //2.on_illust_list
+} else if ((loc_url.indexOf("member_illust.php?id=") > -1 || loc_url.indexOf("&id=") > -1) && (loc_url.indexOf("&tag") == -1 && loc_url.indexOf("?tag") == -1) && loc_url.indexOf("response.php") == -1) { //2.on_illust_list
 	page_type = 2;
 	listPage_finished = 0; //向下第几页
 	base_url = loc_url.split("&p=")[0] + "&p=";
@@ -2740,8 +2758,20 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
 	fastScreenArea.className = "fastScreenArea";
 	var insetParent = document.querySelector("._unit");
 	insetParent.insertBefore(fastScreenArea, insetParent.querySelector("#js-react-search-top"));
+	let search_mode = ''; // 判断当前搜索模式，默认的“全部”模式不需要做处理
+	if (loc_url.indexOf('&mode=r18') > -1) {
+		search_mode = '&mode=r18';
+	} else if (loc_url.indexOf('&mode=safe') > -1) {
+		search_mode = '&mode=safe';
+	}
+	let order_mode = ''; // 判断当前排序方式
+	if (loc_url.indexOf('&order=date_d') > -1) { // 按最新排序
+		order_mode = '&order=date_d';
+	} else if (loc_url.indexOf('&order=date') > -1) { // 按旧排序
+		order_mode = '&order=date';
+	}
 	for (var i = 0; i < favNums.length; i++) {
-		fastScreenArea.innerHTML += "<a href='" + "https://www.pixiv.net/search.php?s_mode=s_tag&word=" + nowTag + " " + favNums[i] + "'>" + favNums[i] + "</a>";
+		fastScreenArea.innerHTML += "<a href='" + "https://www.pixiv.net/search.php?s_mode=s_tag" + search_mode + order_mode + "&word=" + nowTag + " " + favNums[i] + "'>" + favNums[i] + "</a>";
 	}
 
 	(function () {
@@ -2870,18 +2900,6 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
 			}
 		});
 	})();
-	/*
-		(function() {
-			var clearBotton = document.createElement("div");
-			xz_btns_con.appendChild(clearBotton);
-			$(clearBotton).text(xzlt("_清空作品列表"));
-			$(clearBotton).attr("title", xzlt("_清空作品列表_title"));
-			setButtonStyle(clearBotton, 11, "#e42a2a");
-			clearBotton.addEventListener("click", function() {
-				$(tag_search_list_selector).remove();
-			}, false);
-		})();
-	*/
 } else if (loc_url.indexOf("ranking_area.php") > -1 && loc_url !== "https://www.pixiv.net/ranking_area.php") { //6.on_ranking_area
 	page_type = 6;
 
@@ -2904,26 +2922,25 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
 	setFilterTag_notNeed(3);
 	setFilterTag_Need(4);
 
-} else if (loc_url.indexOf("ranking.php") > -1) { //7.on_ranking_else
+} else if (location.pathname === "/ranking.php") { //7.on_ranking_else
 	page_type = 7;
 
-	if (loc_url !== "https://www.pixiv.net/ranking.php") {
-		base_url = loc_url + "&p=";
+	if (location.search === "") { // 直接获取json数据
+		base_url = loc_url + "?format=json&p=";
 	} else {
-		base_url = loc_url + "?p=";
+		base_url = loc_url + "&format=json&p=";
 	}
 
 	startpage_no = 1; //从第一页（部分）开始抓取
 	listPage_finished = 0; //已经向下抓取了几页（部分）
 
-	if ((base_url.indexOf("mode=daily") > -1 || base_url.indexOf("mode=weekly") > -1) && base_url.indexOf("r18") == -1) {
-		part_number = 10; //排行榜页面一开始有50张作品，如果页面到了底部，会再向下加载，现在已知每日排行榜是10部分，日榜的r18是2部分，其他是6部分。为防止有未考虑到的情况出现，所以在获取列表页时里判断了404状态码。
-	} else if ((base_url.indexOf("mode=daily") > -1 || base_url.indexOf("mode=weekly") > -1) && base_url.indexOf("r18") > -1) {
-		part_number = 2;
-	} else if (base_url.indexOf("r18g") > -1) {
+	// 设置页数。排行榜页面一页有50张作品，当页面到达底部时会加载下一页
+	if (base_url.indexOf("r18g") > -1) { // r18g只有1个榜单，固定1页
 		part_number = 1;
-	} else {
+	} else if (base_url.indexOf("_r18") > -1) { // r18模式，这里的6是最大值，有的排行榜并没有6页
 		part_number = 6;
+	} else { //普通模式，这里的10也是最大值。如果实际没有10页，则在检测到404页面的时候停止抓取下一页
+		part_number = 10;
 	}
 
 	addBtnsAreaCtrl();
@@ -2968,9 +2985,6 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
 				if (type == "illustration") { // 针对不同的类型，选择器不同
 					imageList = $(".am__work__main img");
 					var urls = [];
-					// 插画有首图，并且网页里的图片是小图，所以要特殊处理
-					var topImgSrc = $("._article-illust-eyecatch").css("backgroundImage").split("\"")[1];
-					urls.push(topImgSrc.replace("c/768x1200_80/img-master", "img-original").replace("_master1200", "")); //添加首图的url 此时是不确定后缀名是否正确的url
 					for (var i = 0; i < imageList.length; i++) { // 把图片url添加进数组
 						urls.push(imageList[i].src.replace("c/768x1200_80/img-master", "img-original").replace("_master1200", ""));
 					}
@@ -2990,7 +3004,7 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
 						}), j * ajax_for_illust_delay);
 					}
 				} else {
-					imageList = $(".fab__image-block__image img");
+					imageList = $(".am__work__illust");
 					for (var i = 0; i < imageList.length; i++) { // 把图片url添加进数组
 						var imgUrl = imageList[i].src;
 						if (imgUrl === "https://i.pximg.net/imgaz/upload/20170407/256097898.jpg") { // 跳过Cure的logo图片
@@ -3299,4 +3313,29 @@ if (loc_url.indexOf("illust_id") > -1 && loc_url.indexOf("mode=manga") == -1 && 
 			}
 		});
 	}
+} else if (loc_url.indexOf("response.php") > -1) { // 13.响应关联作品
+	page_type = 13;
+
+	listPage_finished = 0; //向下第几页
+	base_url = loc_url.split("&p=")[0] + "&p=";
+
+	if (!!$(".page-list .current")[0]) { //如果显示有页码
+		startpage_no = Number($(".page-list .current").eq(0).text()); //最开始时的页码
+	} else { //否则认为只有1页
+		startpage_no = 1;
+	}
+
+	addBtnsAreaCtrl();
+	addOutputWarp();
+
+	(function () {
+		var downloadBotton = document.createElement("div");
+		xz_btns_con.appendChild(downloadBotton);
+		$(downloadBotton).text(xzlt("_下载响应作品"));
+		$(downloadBotton).attr("title", xzlt("_下载响应作品"));
+		setButtonStyle(downloadBotton, 0, "#00A514");
+		downloadBotton.addEventListener("click", function () {
+			startGet();
+		}, false);
+	})();
 }

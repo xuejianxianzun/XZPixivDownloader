@@ -80,10 +80,58 @@ pixiv特辑（showcase）有[插画](https://www.pixiv.net/showcase/c/illustrati
 
 2.之前无法正常下载关注的新作品的r18分类，现在已经修复。
 
-现在关注的r18作品只在r18版面显示了。
-
 原本想给排行榜增加手动删除按钮，但是做了之后又去掉了。因为排行榜是分多个部分的，所以获取的时候要通过ajax抓取，在页面上删除没有意义。
 
 ### 4.7.2
 
 修复了在tag搜索页里，搜索中断之后，下载时图片网址可能数量异常的问题。
+
+### 4.8.0
+
+- tag搜索页的快速搜索功能可以保持当前搜索模式（全部/普通/R-18）和排序模式
+
+- 优化下载排行榜作品的代码
+
+- 适应pixivision改版
+
+- 增加了对“响应关联作品”的适配
+
+ps0：pixivision改版后，插画页面的头图不是单独的图片了，所以不用单独获取了。
+
+ps1：响应关联作品大部分都比较少，我还没看到超过一页的。目前按作品列表页进行处理，默认下载所有页面。如果有发现分页的话可以告诉我。
+
+ps2：其他排行榜里获取页面时，之前的代码是通过分析dom获得作品数据的。最近发现可以直接获取到json数据了，但是缺少扩展名信息。所以现在只是从json里取得作品页url，其他信息仍然去抓取作品页。
+
+[json示例]https://www.pixiv.net/ranking.php?mode=monthly&content=illust&p=1&format=json
+
+#### 截止2018/2/21，各个排行榜的综合类型的页数（每个排行榜的细分类型的页数和综合不一定相同）：
+
+**普通的有7种排行榜**
+
+- (今日：10页)[https://www.pixiv.net/ranking.php?mode=daily]
+
+- (本周：10页)[https://www.pixiv.net/ranking.php?mode=weekly]
+
+- (本月：10页)[https://www.pixiv.net/ranking.php?mode=monthly]
+
+- (新人：6页)[https://www.pixiv.net/ranking.php?mode=rookie]
+
+- (原创：6页)[https://www.pixiv.net/ranking.php?mode=original]
+
+- (受男性欢迎：10页)[https://www.pixiv.net/ranking.php?mode=male]
+
+- (受女性欢迎：10页)[https://www.pixiv.net/ranking.php?mode=female]
+
+**R-18有4种排行榜**
+
+- (今日r18：2页)[https://www.pixiv.net/ranking.php?mode=daily_r18]
+
+- (本周r18:2页)[https://www.pixiv.net/ranking.php?mode=weekly_r18]
+
+- (受男性欢迎r18：6页)[https://www.pixiv.net/ranking.php?mode=male_r18]
+
+- (受女性欢迎r18：6页)[https://www.pixiv.net/ranking.php?mode=female_r18]
+
+**R-18G只有一种排行榜**
+
+- (r18g：1页)[https://www.pixiv.net/ranking.php?mode=r18g]
