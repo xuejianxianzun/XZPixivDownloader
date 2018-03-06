@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.0.1
+// @version     5.0.2
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github:https://github.com/xuejiansaber/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv image downloader
@@ -25,6 +25,7 @@
 
 /* author:  xuejianxianzun 雪见仙尊
  * E-mail:  xuejianxianzun@gmail.com
+ * Github： https://github.com/xuejiansaber/XZPixivDownloader
  * Blog:    https://saber.love/
  * QQ群:    499873152
  */
@@ -1330,6 +1331,7 @@ function startGet() {
 			return false;
 		}
 	} else if (page_type === 5) {
+		$('._premium-lead-popular-d-body').remove();	// 去除热门作品一栏
 		let userset = prompt(xzlt('_请输入最低收藏数和要抓取的页数'), '1000,1000');
 		want_favorite_number = Number(userset.split(',')[0]);
 		want_page = Number(userset.split(',')[1]);
@@ -1339,7 +1341,6 @@ function startGet() {
 		}
 		$('#outputInfo').html($('#outputInfo').html() + xzlt('_tag搜索任务开始', want_favorite_number, want_page));
 		if (!listPage_finished) { //如果是首次抓取 则处理当前页面
-			$('._2xrGgcY').remove(); // 移除列表的上级元素
 			$(tag_search_list_selector).remove(); // 移除当前列表内容
 			$('body').append('<div id="tag_search_temp_result" style="display:none"></div>');
 			tag_search_temp_result = $('#tag_search_temp_result');
@@ -2737,48 +2738,48 @@ if (loc_url.indexOf('illust_id') > -1 && loc_url.indexOf('mode=manga') == -1 && 
 	if ($('#js-mount-point-search-result-list').length > 0) { // tag搜索页新版
 		tag_search_is_new = true;
 		tag_search_lv1_selector = '#js-mount-point-search-result-list';
-		tag_search_lv2_selector = '._7IVJuWZ';
-		tag_search_list_selector = '._7IVJuWZ';
-		tag_search_multiple_selector = '._2UNGFcb';
-		tag_search_gif_selector = '._3DUGnT4';
+		tag_search_lv2_selector = '._25taFA4';
+		tag_search_list_selector = '._25taFA4';
+		tag_search_multiple_selector = '._1VJYUl1';
+		tag_search_gif_selector = '._347Rtjn';
 		// 因为tag搜索页新版将结果储存在一个div标签的属性里,而不是直接输出到html,但我们需要呈现html,所以需要模拟生成的元素
 		tag_search_new_html = `
-		<div class="_7IVJuWZ">
-		<figure class="gmzooM4" style="width: 200px; max-height: 288px;">
-		<div class="_1NxDA4N">
-		<a href="/member_illust.php?mode=medium&illust_id=xz_illustId" rel="noopener" class="bBzsEVG">
+		<div class="_25taFA4">
+		<figure class="mSh0kS-" style="width: 200px; max-height: 288px;">
+		<div class="_3NnoQkv">
+		<a href="/member_illust.php?mode=medium&illust_id=xz_illustId" rel="noopener" class="_1wlaFo6">
 		<!--xz_multiple_html-->
-		<img alt="" class="_1QvROXv" width="xz_width" height="xz_height" src="xz_url">
+		<img alt="" class="_309ad3C" width="xz_width" height="xz_height" src="xz_url">
 		<!--xz_gif_html-->
 		</a>
 		<div class="thumbnail-menu">
-		<div class="_one-click-bookmark js-click-trackable xz_isBookmarked" data-click-category="abtest_www_one_click_bookmark" data-click-action="illust" data-click-label="xz_illustId" data-type="illust" data-id="xz_illustId" style="position: static;"></div>
+		<div class="_one-click-bookmark js-click-trackable xz_isBookmarked" data-click-category="abtest_www_one_click_bookmark" data-click-action="illust" data-click-label="xz_illustId" data-type="illust" data-id="xz_illustId" title="添加收藏" style="position: static;"></div>
 		<div class="_balloon-menu-opener">
 		<div class="opener"></div>
 		<section class="_balloon-menu-popup">
 		<ul class="_balloon-menu-closer menu">
 		<li>
-		<span class="item"> ${xzlt('_屏蔽设定')} </span>
+		<span class="item">${xzlt('_屏蔽设定')}</span>
 		</li>
 		<li>
-		<a class="item" target="_blank" href="/illust_infomsg.php?illust_id=xz_illustId"> ${xzlt('_举报')} </a>
+		<a class="item" target="_blank" href="/illust_infomsg.php?illust_id=xz_illustId">${xzlt('_举报')}</a>
 		</li>
 		</ul>
 		</section>
 		</div>
 		</div>
 		</div>
-		<figcaption class="_1-dF98p">
+		<figcaption class="_1IP8RNV">
 		<ul>
-		<li class="_1Q-G7T5">
+		<li class="SXucpBq">
 		<a href="/member_illust.php?mode=medium&illust_id=xz_illustId" title="xz_illustTitle">xz_illustTitle</a>
 		</li>
 		<li>
-		<a href="/member_illust.php?id=xz_userId" target="_blank" title="xz_userName" class="js-click-trackable ui-profile-popup _3mThRAs" data-click-category="recommend 20130415-0531" data-click-action="ClickToMember" data-click-label="" data-user_id="xz_userId" data-user_name="xz_userName">
-		<span class="_1vrcjFY">
+		<a href="/member_illust.php?id=xz_userId" target="_blank" title="xz_userName" class="js-click-trackable ui-profile-popup _28hboXu" data-click-category="recommend 20130415-0531" data-click-action="ClickToMember" data-click-label="" data-user_id="xz_userId" data-user_name="xz_userName">
+		<span class="_2taBWk8">
 		<div class="" style="background: url(xz_userImage) center top / cover no-repeat; width: 16px; height: 16px;"></div>
 		</span>
-		<span class="_3UHUppl">xz_userName</span>
+		<span class="_1fXePI5">xz_userName</span>
 		</a>
 		</li>
 		<li style="position: relative;">
@@ -2793,8 +2794,8 @@ if (loc_url.indexOf('illust_id') > -1 && loc_url.indexOf('mode=manga') == -1 && 
 		</figure>
 		</div>
 		`;
-		xz_multiple_html = '<div class="SN11CHZ"><span><span class="_2UNGFcb"></span>xz_pageCount</span></div>';
-		xz_gif_html = '<div class="_3DUGnT4"></div>';
+		xz_multiple_html = '<div class="_1VJYUl1"><span><span class="_1RSXump"></span>xz_pageCount</span></div>';
+		xz_gif_html = '<div class="_347Rtjn"></div>';
 	} else if ($('.autopagerize_page_element').length > 0) { // tag搜索页旧版
 		tag_search_is_new = false;
 		tag_search_lv1_selector = '.autopagerize_page_element';
@@ -3131,10 +3132,10 @@ if (loc_url.indexOf('illust_id') > -1 && loc_url.indexOf('mode=manga') == -1 && 
 	if (loc_url.indexOf('/bookmark_new_illust') > -1) {
 		tag_search_is_new = true;
 		tag_search_lv1_selector = '#js-mount-point-latest-following';
-		tag_search_lv2_selector = '._7IVJuWZ';
-		tag_search_list_selector = '._7IVJuWZ';
-		tag_search_multiple_selector = '._2UNGFcb';
-		tag_search_gif_selector = '._3DUGnT4';
+		tag_search_lv2_selector = '._25taFA4';
+		tag_search_list_selector = '._25taFA4';
+		tag_search_multiple_selector = '._1VJYUl1';
+		tag_search_gif_selector = '._347Rtjn';
 	}
 
 	//列表页url规则
@@ -3177,9 +3178,9 @@ if (loc_url.indexOf('illust_id') > -1 && loc_url.indexOf('mode=manga') == -1 && 
 	// 其实发现页面和9收藏后的推荐页面一样，先获取列表再下载。但是发现页面有个特点是每次获取的数据是不同的，如果再请求一次列表数据，那么下载到的图片和本次加载的图片就不一样了。所以这里改用直接下载左侧已有作品
 	page_type = 11;
 
-	tag_search_list_selector = '._131AzaV'; // 发现作品的已有作品，借用tag搜索页的变量名，直接拿来用
-	tag_search_multiple_selector = '._2UNGFcb'; // 多图的选择器，借用tag搜索页的变量名，直接拿来用
-	tag_search_gif_selector = '._3DUGnT4'; // 动图的选择器，借用tag搜索页的变量名，直接拿来用
+	tag_search_list_selector = '._3msSJaE'; // 发现作品的已有作品，借用tag搜索页的变量名，直接拿来用
+	tag_search_multiple_selector = '._1VJYUl1'; // 多图的选择器，借用tag搜索页的变量名，直接拿来用
+	tag_search_gif_selector = '._347Rtjn'; // 动图的选择器，借用tag搜索页的变量名，直接拿来用
 
 	addBtnsAreaCtrl();
 	addOutputWarp();
