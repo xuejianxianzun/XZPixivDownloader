@@ -10,7 +10,9 @@ Browser: **Chrome** [(download Chrome browser)](http://www.google.com/chrome/bro
 
 User Script Manager: **Tampermonkey** [(view in Chrome webstore)](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
 
-I don't guarantee that this tool will work well in other configurations. If you use other browser, memory usage may be too large, or your browser can not save the file.
+- Please turn off "Ask where to save each file before downloading" in browser settings.
+
+- I don't guarantee that this tool will work well in other configurations. If you use other browser, memory usage may be too large, or your browser can not save the file.
 
 # Install:
 

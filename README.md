@@ -12,7 +12,9 @@
 
 用户脚本管理器：**Tampermonkey** [(在Chrome网上商店查看，此链接需要翻墙)](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
 
-如果你使用其他浏览器，本工具可能不能正常使用。有些浏览器会出现内存占用过高的问题（如Firefox），有些浏览器会出现下载后无法保存文件的问题（常见于各种chromium内核的套壳浏览器）。
+- 请关闭浏览器设置中的“下载前询问每个文件的保存位置”选项，以免在下载时出现弹窗。
+
+- 如果你使用其他浏览器，本工具可能不能正常使用。有些浏览器会出现内存占用过高的问题（如Firefox），有些浏览器会出现下载后无法保存文件的问题（常见于各种chromium内核的套壳浏览器）。
 
 # 安装：
 
