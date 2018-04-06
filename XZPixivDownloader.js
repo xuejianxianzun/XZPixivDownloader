@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.0.4
+// @version     5.0.5
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv image downloader
@@ -925,24 +925,7 @@ function xzlt(name) {
 let block_ad_css = '<style>section.ad,[name=header],.ads_anchor,.ad-bigbanner,.ad-footer,._premium-lead-tag-search-bar,#header-banner.ad,.popular-introduction-overlay,.ad-bigbanner,.adsbygoogle,.ui-fixed-container aside,.ad-multiple_illust_viewer{display: none!important;z-index: -999!important;width: 0!important;height: 0!important;opacity: 0!important;}</style>';
 document.body.insertAdjacentHTML('beforeend', block_ad_css);
 
-// DOMParser，将字符串形式的html代码解析为DOM结构
-! function (a) {
-	let b = a.prototype,
-		c = b.parseFromString;
-	try {
-		if ((new a).parseFromString('', 'text/html')) return;
-	} catch (d) {
-		console.log(d);
-	}
-	b.parseFromString = function (a, b) {
-		if (/^\s*text\/html\s*(?:;|$)/i.test(b)) {
-			let d = document.implementation.createHTMLDocument('');
-			return a.toLowerCase().indexOf('<!doctype') > -1 ? d.documentElement.innerHTML = a : d.body.innerHTML = a, d;
-		}
-		return c.apply(this, arguments);
-	};
-}(DOMParser);
-let parser = new DOMParser();
+let parser = new DOMParser(); // DOMParser，将字符串形式的html代码解析为DOM结构
 
 // 设置输入框获得焦点和失去焦点时的样式
 jQuery.focusblur = function (element, defcolor, truecolor) {
@@ -1330,7 +1313,7 @@ function startGet() {
 			return false;
 		}
 	} else if (page_type === 5) {
-		$('._premium-lead-popular-d-body').remove();	// 去除热门作品一栏
+		$('._premium-lead-popular-d-body').remove(); // 去除热门作品一栏
 		let userset = prompt(xzlt('_请输入最低收藏数和要抓取的页数'), '1000,1000');
 		want_favorite_number = Number(userset.split(',')[0]);
 		want_page = Number(userset.split(',')[1]);
@@ -1993,7 +1976,7 @@ function allWorkFinished() {
 		}
 		// 显示输出结果完毕
 		$(outputInfo).html($(outputInfo).html() + xzlt('_抓取完毕') + '<br><br>');
-		if (!quiet_download) {
+		if (!quiet_download && !quick) {
 			alert(xzlt('_抓取完毕'));
 		}
 		now_tips = $(outputInfo).html();
