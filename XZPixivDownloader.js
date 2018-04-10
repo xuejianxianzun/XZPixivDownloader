@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.0.5
+// @version     5.0.6
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv image downloader
@@ -34,7 +34,7 @@
 let loc_url = window.location.href, //当前页面的url
 	quiet_download = false, // 是否静默下载，即下载时不弹窗提醒
 	page_type, //区分页面类型
-	img_info = [], //储存图片信息，其中可能会有空值，如 undefined 和 ''。如果改成json格式的话使用就更方便了
+	img_info = [], //储存图片信息，其中可能会有空值，如 undefined 和 ''。如果改成json格式的话，使用id调用，就更方便了
 	illust_url_list = [], //储存作品列表url的数组
 	imgList = [], //储存tag搜索页的所有作品
 	showcase_urls = [],
@@ -1757,14 +1757,14 @@ function getIllustPage(url) {
 			let tag_noeNeed_isFound = false;
 			if (notNeed_tag.length > 0) { //如果设置了过滤tag
 				outerloop: //命名外圈语句
-				for (let i = nowAllTag.length - 1; i >= 0; i--) {
-					for (let ii = notNeed_tag.length - 1; ii >= 0; ii--) {
-						if (nowAllTag[i] === notNeed_tag[ii]) {
-							tag_noeNeed_isFound = true;
-							break outerloop;
+					for (let i = nowAllTag.length - 1; i >= 0; i--) {
+						for (let ii = notNeed_tag.length - 1; ii >= 0; ii--) {
+							if (nowAllTag[i] === notNeed_tag[ii]) {
+								tag_noeNeed_isFound = true;
+								break outerloop;
+							}
 						}
 					}
-				}
 			}
 
 			// 检查必须包含的tag
@@ -1772,14 +1772,14 @@ function getIllustPage(url) {
 				if (need_tag.length > 0) { //如果设置了必须包含的tag
 					let tag_need_isFound = false;
 					outerloop2: //命名外圈语句
-					for (let i = nowAllTag.length - 1; i >= 0; i--) {
-						for (let ii = need_tag.length - 1; ii >= 0; ii--) {
-							if (nowAllTag[i] === need_tag[ii]) {
-								tag_need_isFound = true;
-								break outerloop2;
+						for (let i = nowAllTag.length - 1; i >= 0; i--) {
+							for (let ii = need_tag.length - 1; ii >= 0; ii--) {
+								if (nowAllTag[i] === need_tag[ii]) {
+									tag_need_isFound = true;
+									break outerloop2;
+								}
 							}
 						}
-					}
 					tag_check_result = tag_need_isFound;
 				} else { //如果没有设置必须包含的tag，则通过
 					tag_check_result = true;
@@ -2299,6 +2299,10 @@ function addOutputWarp() {
 
 		// 启动或继续 建立并发下载线程
 		$(outputInfo).html($(outputInfo).html() + '<br>' + xzlt('_正在下载中') + '<br>');
+		if (page_type === 5) {
+			img_info.reverse();
+			imgList.reverse();
+		}
 		for (let i = 0; i < download_thread; i++) {
 			if (i + downloaded < img_info.length) {
 				setTimeout(function () {
