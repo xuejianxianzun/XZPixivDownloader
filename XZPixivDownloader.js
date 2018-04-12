@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.0.6
+// @version     5.1.0
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv image downloader
@@ -85,7 +85,7 @@ let loc_url = window.location.href, //当前页面的url
 	fileName_length = 200, // 此为预设值，如果保存路径过长就会出问题
 	safe_fileName_rule = new RegExp(/\\|\/|:|\?|"|<|>|\*|\|/g), // 安全的文件名
 	xianzun_btns_wrap,
-	download_thread_deauflt = 5, // 同时下载的线程数
+	download_thread_deauflt = 5, // 同时下载的线程数。如果不想用加延迟 time_interval 的方法来防止漏图，那么可以把这里改成1，单线程下载不会漏图。此版本用的是加延迟的方法，可以支持多线程
 	donwloadBar_list, // 下载队列的dom元素
 	download_a, // 下载用的a标签
 	download_started = false, // 下载是否已经开始
@@ -96,7 +96,10 @@ let loc_url = window.location.href, //当前页面的url
 	download_pause = false, // 是否暂停下载
 	download_pause_num = 0, // 已暂停的线程数
 	xz_btns_ctr,
-	xz_btns_con;
+	xz_btns_con,
+	click_time = 0, // 点击下载按钮的时间戳
+	time_delay = 0, // 延迟点击的时间
+	time_interval = 400; // 为了不会漏下图，设置的两次点击之间的间隔时间。下载图片的速度越快，此处的值就需要越大。默认的400是比较大的，如果下载速度慢，可以尝试改成300/200。
 
 // 多语言配置
 let lang_type; // 语言类型
@@ -2432,66 +2435,93 @@ function startDownload(downloadNo, donwloadBar_no) {
 				type: fileType
 			});
 			let blobURL = window.URL.createObjectURL(blob);
-			download_a.href = blobURL;
-			download_a.setAttribute('download', fullFileName);
-			download_a.click();
-			window.URL.revokeObjectURL(blobURL);
-			// 下载之后
-			downloaded++;
-			$('.downloaded').html(downloaded);
-			$('.progress1').css('width', downloaded / img_info.length * 100 + '%');
-			if (downloaded === img_info.length) { // 如果所有文件都下载完毕
-				download_started = false;
-				download_stop = false;
-				download_pause = false;
-				downloaded = 0;
-				$('.down_status').html(xzlt('_下载完毕'));
-				$(outputInfo).html($(outputInfo).html() + xzlt('_下载完毕') + '<br><br>');
-				setTimeout(function () {
-					if (!quiet_download) {
-						alert(xzlt('_下载完毕'));
-					}
-				}, 200);
-			} else { // 如果没有全部下载完毕
-				//如果需要暂停下载
-				if (download_pause === 'ready_pause') {
-					download_pause_num++; // 统计中断数量
-					if (download_pause_num === download_thread) {
-						$(outputInfo).html($(outputInfo).html() + xzlt('_已暂停') + '<br>');
-						$('.down_status').html(`<span style="color:#d25b03">${xzlt('_已暂停')}</span>`);
-						download_started = false;
-						download_pause = true;
-						download_pause_num = 0;
-						return false;
-					}
-				} else if (download_pause) { // 如果已经完成暂停
-					download_started = false;
-					return false;
-				}
-
-				//如果需要停止下载
-				if (download_stop === 'ready_stop') {
-					download_stop_num++; // 统计中断数量
-					if (download_stop_num === download_thread) {
-						$(outputInfo).html($(outputInfo).html() + xzlt('_已停止') + '<br>');
-						$('.down_status').html(`<span style="color:#f00">${xzlt('_已停止')}</span>`);
-						download_started = false;
-						download_stop = true;
-						download_stop_num = 0;
-						return false;
-					}
-				} else if (download_stop) { // 如果已经停止下载
-					download_started = false;
-					return false;
-				}
-
-				// 继续添加任务
-				if (downloaded + download_thread - 1 < img_info.length) { // 如果已完成的数量 加上 线程中未完成的数量，仍然没有达到文件总数
-					startDownload(downloaded + download_thread - 1, donwloadBar_no); // 这里需要减一，就是downloaded本次自增的数字，否则会跳一个序号
-				}
+			// 控制点击下载按钮的时间间隔大于0.5秒
+			if (new Date().getTime() - click_time > time_interval) {
+				click_time = new Date().getTime();
+				click_doanload_a(blobURL, fullFileName, donwloadBar_no);
+			} else {
+				time_delay += time_interval;
+				setTimeout(() => {
+					click_doanload_a(blobURL, fullFileName, donwloadBar_no);
+				}, time_delay);
 			}
+
 		}
 	});
+}
+
+function click_doanload_a(blobURL, fullFileName, donwloadBar_no) {
+	if (new Date().getTime() - click_time < time_interval) {
+		setTimeout(() => {
+			click_doanload_a(blobURL, fullFileName, donwloadBar_no);
+		}, time_interval); // 虽然设置了两次点击间隔不得小于time_interval，但实际执行过程中仍然有可能比time_interval小。间隔太小的话就会导致漏下。当间隔过小时补上延迟
+		return false;
+	}
+	console.log(new Date().getTime() - click_time); // 此句输出两次点击的实际间隔
+	download_a.href = blobURL;
+	download_a.setAttribute('download', fullFileName);
+	download_a.click();
+	click_time = new Date().getTime();
+	time_delay -= time_interval;
+
+	if (time_delay < 0) { // 因为有多个线程，所以有可能把time_delay减小到0以下，这里做限制
+		time_delay += time_interval;
+	}
+	window.URL.revokeObjectURL(blobURL);
+	// 下载之后
+	downloaded++;
+	$('.downloaded').html(downloaded);
+	$('.progress1').css('width', downloaded / img_info.length * 100 + '%');
+	if (downloaded === img_info.length) { // 如果所有文件都下载完毕
+		download_started = false;
+		download_stop = false;
+		download_pause = false;
+		downloaded = 0;
+		$('.down_status').html(xzlt('_下载完毕'));
+		$(outputInfo).html($(outputInfo).html() + xzlt('_下载完毕') + '<br><br>');
+		setTimeout(function () {
+			if (!quiet_download) {
+				alert(xzlt('_下载完毕'));
+			}
+		}, 200);
+	} else { // 如果没有全部下载完毕
+		//如果需要暂停下载
+		if (download_pause === 'ready_pause') {
+			download_pause_num++; // 统计中断数量
+			if (download_pause_num === download_thread) {
+				$(outputInfo).html($(outputInfo).html() + xzlt('_已暂停') + '<br>');
+				$('.down_status').html(`<span style="color:#d25b03">${xzlt('_已暂停')}</span>`);
+				download_started = false;
+				download_pause = true;
+				download_pause_num = 0;
+				return false;
+			}
+		} else if (download_pause) { // 如果已经完成暂停
+			download_started = false;
+			return false;
+		}
+
+		//如果需要停止下载
+		if (download_stop === 'ready_stop') {
+			download_stop_num++; // 统计中断数量
+			if (download_stop_num === download_thread) {
+				$(outputInfo).html($(outputInfo).html() + xzlt('_已停止') + '<br>');
+				$('.down_status').html(`<span style="color:#f00">${xzlt('_已停止')}</span>`);
+				download_started = false;
+				download_stop = true;
+				download_stop_num = 0;
+				return false;
+			}
+		} else if (download_stop) { // 如果已经停止下载
+			download_started = false;
+			return false;
+		}
+
+		// 继续添加任务
+		if (downloaded + download_thread - 1 < img_info.length) { // 如果已完成的数量 加上 线程中未完成的数量，仍然没有达到文件总数
+			startDownload(downloaded + download_thread - 1, donwloadBar_no); // 这里需要减一，就是downloaded本次自增的数字，否则会跳一个序号
+		}
+	}
 }
 
 // 清空图片信息并重置输出区域，在重复抓取时使用
