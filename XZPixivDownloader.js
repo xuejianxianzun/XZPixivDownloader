@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.1.0
+// @version     5.2.0
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv image downloader
@@ -32,7 +32,8 @@
 'use strict';
 
 let loc_url = window.location.href, //当前页面的url
-	quiet_download = false, // 是否静默下载，即下载时不弹窗提醒
+	quiet_download = false, // 是否静默下载，即下载时不弹窗提醒，并且自动开始下载（无需点击下载按钮）。目前新版本已经默认不弹窗了，这个参数的意义基本就是自动下载了
+	use_alert = false, // 是否使用弹窗提醒
 	page_type, //区分页面类型
 	img_info = [], //储存图片信息，其中可能会有空值，如 undefined 和 ''。如果改成json格式的话，使用id调用，就更方便了
 	illust_url_list = [], //储存作品列表url的数组
@@ -97,6 +98,8 @@ let loc_url = window.location.href, //当前页面的url
 	download_pause_num = 0, // 已暂停的线程数
 	xz_btns_ctr,
 	xz_btns_con,
+	old_title = document.title,
+	title_timer,
 	click_time = 0, // 点击下载按钮的时间戳
 	time_delay = 0, // 延迟点击的时间
 	time_interval = 400; // 为了不会漏下图，设置的两次点击之间的间隔时间。下载图片的速度越快，此处的值就需要越大。默认的400是比较大的，如果下载速度慢，可以尝试改成300/200。
@@ -950,6 +953,43 @@ jQuery.focusblur = function (element, defcolor, truecolor) {
 	});
 };
 
+// 修改title
+function changeTitle(string) {
+	// 本脚本的提醒会以 [string] 形式添加到title最前面
+	/*
+	0	复原
+	↑	抓取中
+	→	等待下一步操作（tag搜索页）
+	▶ 	准备下载
+	↓	下载中
+	║	下载暂停
+	■	下载停止
+	√	下载完毕
+	*/
+	if (string === '0') {
+		clearInterval(title_timer);
+		document.title = old_title;
+		return false;
+	}
+	if (document.title[0] !== '[') { // 如果当前title里没有本脚本的提醒，就存储当前title为旧title
+		old_title = document.title;
+	}
+	let new_title = `[${string}] ${old_title}`;
+	document.title = new_title;
+	// 当可以执行下一步操作时，闪烁提醒
+	if (string === '▶' || string === '→') {
+		title_timer = setInterval(function () {
+			if (document.title.indexOf(string) > -1) {
+				document.title = new_title.replace(string, ' ');
+			} else {
+				document.title = new_title;
+			}
+		}, 500);
+	} else {
+		clearInterval(title_timer);
+	}
+}
+
 // 添加过滤作品类型的按钮
 function setNotDownType(no) {
 	let notDownType = document.createElement('div');
@@ -1189,7 +1229,10 @@ function tagSearchPageFinished() {
 	// listPage_finished=0; //不注释掉的话，每次添加筛选任务都是从当前页开始，而不是一直往后累计
 	listPage_finished2 = 0; //重置已抓取的页面数量
 	listSort();
-	alert(xzlt('_本次任务已全部完成'));
+	changeTitle('→');
+	if (use_alert) {
+		alert(xzlt('_本次任务已全部完成'));
+	}
 	tagSearchDel();
 }
 
@@ -1266,6 +1309,8 @@ function check_showcase_type() {
 
 // 在pixiv专辑里判断是否应该隐藏下载面板。进行过专辑类型检查之后会传参。初步检查url的时候没有参数
 function is_show_downloader(bool) {
+	old_title = document.title;
+	changeTitle('0');
 	if (bool === true) {
 		xianzun_btns_wrap.style.display = 'block';
 	} else if (bool === false) {
@@ -1376,6 +1421,7 @@ function startGet() {
 
 // 获取作品列表页
 function getListPage() {
+	changeTitle('↑');
 	let url;
 	if (page_type === 9) {
 		let id; //取出作品id
@@ -1594,6 +1640,7 @@ function getListPage() {
 
 // 第二个获取列表的函数，仅在tag搜索页和地区排行榜使用（从当前列表页直接获取所有内容页的列表）
 function getListPage2() {
+	changeTitle('↑');
 	addOutputInfo();
 	if (!allow_work) {
 		alert(xzlt('_当前任务尚未完成2'));
@@ -1658,6 +1705,7 @@ function getListUrlFinished() {
 
 // 获取作品内容页面的函数（区别于获取列表页面的函数）
 function getIllustPage(url) {
+	changeTitle('↑');
 	illust_url_list.shift(); //有时并未使用illust_url_list，但对空数组进行shift()是合法的
 	if (interrupt) { //判断任务是否已中断，目前只在tag搜索页有用到
 		allow_work = true;
@@ -1980,7 +2028,10 @@ function allWorkFinished() {
 		// 显示输出结果完毕
 		$(outputInfo).html($(outputInfo).html() + xzlt('_抓取完毕') + '<br><br>');
 		if (!quiet_download && !quick) {
-			alert(xzlt('_抓取完毕'));
+			if (use_alert) {
+				alert(xzlt('_抓取完毕'));
+			}
+			changeTitle('▶');
 		}
 		now_tips = $(outputInfo).html();
 		// 重置输出区域
@@ -2280,6 +2331,20 @@ function addOutputWarp() {
 	$('.showDownTip').on('click', function () {
 		$('.downTip').toggle();
 	});
+	// 检查是否有用户命名规则
+	let fileNameRule_input = document.querySelector('.fileNameRule');
+	if (page_type !== 8 && page_type !== 12) {
+		if (localStorage.getItem('user_name_rule')) {
+			fileNameRule_input.value = localStorage.getItem('user_name_rule');
+		}
+	}
+	// 当用户改变了命名规则时保存
+	fileNameRule_input.addEventListener('change', function () {
+		if (this.value === '') {
+			this.value = '{id}'; //用户清空时，保持默认值
+		}
+		localStorage.setItem('user_name_rule', this.value);
+	});
 	// 开始下载按钮
 	$('.startDownload').on('click', function () { // 准备下载
 		if (download_started || download_pause === 'ready_pause' || download_stop === 'ready_stop' || img_info.length === 0) { // 如果正在下载中，或正在进行暂停任务，或正在进行停止任务，则不予处理
@@ -2310,7 +2375,7 @@ function addOutputWarp() {
 			if (i + downloaded < img_info.length) {
 				setTimeout(function () {
 					startDownload(i + downloaded, i);
-				}, 100);
+				}, 100 * (i + 1));
 			}
 		}
 		$('.down_status').html(xzlt('_正在下载中'));
@@ -2379,6 +2444,7 @@ function addOutputWarp() {
 // 开始下载 下载序号，要使用的显示队列的序号
 function startDownload(downloadNo, donwloadBar_no) {
 	quick = false;
+	changeTitle('↓');
 	// 处理宽高
 	let px = '';
 	if (fileNameRule.indexOf('{px}') > -1) {
@@ -2407,7 +2473,7 @@ function startDownload(downloadNo, donwloadBar_no) {
 		headers: {
 			referer: 'https://www.pixiv.net/'
 		},
-		overrideMimeType: 'text/plain; charset=x-user-defined',
+		responseType: 'blob',
 		onprogress: function (xhr) {
 			// 显示下载进度
 			let loaded = parseInt(xhr.loaded / 1000);
@@ -2416,25 +2482,7 @@ function startDownload(downloadNo, donwloadBar_no) {
 			donwloadBar_list.eq(donwloadBar_no).find('.progress').css('width', loaded / total * 100 + '%');
 		},
 		onload: function (xhr) {
-			let r = xhr.responseText,
-				data = new Uint8Array(r.length),
-				i = 0;
-			while (i < r.length) {
-				data[i] = r.charCodeAt(i);
-				i++;
-			}
-			let fileType = ''; // 判断文件类型
-			if (img_info[downloadNo].ext === 'jpg') {
-				fileType = 'image/jpeg';
-			} else if (img_info[downloadNo].ext === 'png') {
-				fileType = 'image/png';
-			} else if (img_info[downloadNo].ext === 'zip') {
-				fileType = 'application/x-zip-compressed';
-			}
-			let blob = new Blob([data], {
-				type: fileType
-			});
-			let blobURL = window.URL.createObjectURL(blob);
+			let blobURL = window.URL.createObjectURL(xhr.response); // 返回的blob对象是整个response，而非responseText
 			// 控制点击下载按钮的时间间隔大于0.5秒
 			if (new Date().getTime() - click_time > time_interval) {
 				click_time = new Date().getTime();
@@ -2445,19 +2493,19 @@ function startDownload(downloadNo, donwloadBar_no) {
 					click_doanload_a(blobURL, fullFileName, donwloadBar_no);
 				}, time_delay);
 			}
-
 		}
 	});
 }
 
 function click_doanload_a(blobURL, fullFileName, donwloadBar_no) {
 	if (new Date().getTime() - click_time < time_interval) {
+		// console.count('+1s');	// 此句输出加时的次数
 		setTimeout(() => {
 			click_doanload_a(blobURL, fullFileName, donwloadBar_no);
 		}, time_interval); // 虽然设置了两次点击间隔不得小于time_interval，但实际执行过程中仍然有可能比time_interval小。间隔太小的话就会导致漏下。当间隔过小时补上延迟
 		return false;
 	}
-	console.log(new Date().getTime() - click_time); // 此句输出两次点击的实际间隔
+	// console.log(new Date().getTime() - click_time); // 此句输出两次点击的实际间隔
 	download_a.href = blobURL;
 	download_a.setAttribute('download', fullFileName);
 	download_a.click();
@@ -2481,7 +2529,10 @@ function click_doanload_a(blobURL, fullFileName, donwloadBar_no) {
 		$(outputInfo).html($(outputInfo).html() + xzlt('_下载完毕') + '<br><br>');
 		setTimeout(function () {
 			if (!quiet_download) {
-				alert(xzlt('_下载完毕'));
+				if (use_alert) {
+					alert(xzlt('_下载完毕'));
+				}
+				changeTitle('√');
 			}
 		}, 200);
 	} else { // 如果没有全部下载完毕
@@ -2498,6 +2549,7 @@ function click_doanload_a(blobURL, fullFileName, donwloadBar_no) {
 			}
 		} else if (download_pause) { // 如果已经完成暂停
 			download_started = false;
+			changeTitle('║');
 			return false;
 		}
 
@@ -2514,6 +2566,7 @@ function click_doanload_a(blobURL, fullFileName, donwloadBar_no) {
 			}
 		} else if (download_stop) { // 如果已经停止下载
 			download_started = false;
+			changeTitle('■');
 			return false;
 		}
 
@@ -3061,6 +3114,7 @@ if (loc_url.indexOf('illust_id') > -1 && loc_url.indexOf('mode=manga') == -1 && 
 				$('.logo-area h1').hide();
 				resetResult();
 				addOutputInfo();
+				changeTitle('√');
 				let imageList = []; //图片元素的列表
 				if (type == 'illustration') { // 针对不同的类型，选择器不同
 					imageList = $('.am__work__main img');
@@ -3084,7 +3138,11 @@ if (loc_url.indexOf('illust_id') > -1 && loc_url.indexOf('mode=manga') == -1 && 
 						}), j * ajax_for_illust_delay);
 					}
 				} else {
-					imageList = $('.am__work__illust');
+					if (type == 'manga') {
+						imageList = $('.am__work__illust');
+					} else if (type == 'cosplay') {
+						imageList = $('.fab__image-block__image  img');
+					}
 					for (let i = 0; i < imageList.length; i++) { // 把图片url添加进数组
 						let imgUrl = imageList[i].src;
 						if (imgUrl === 'https://i.pximg.net/imgaz/upload/20170407/256097898.jpg') { // 跳过Cure的logo图片
@@ -3306,6 +3364,7 @@ if (loc_url.indexOf('illust_id') > -1 && loc_url.indexOf('mode=manga') == -1 && 
 			resetResult();
 			addOutputInfo();
 			test_suffix_no = 0;
+			changeTitle('↑');
 
 			for (let j = 0; j < showcase_urls.length; j++) {
 				let id = showcase_urls[j].split('/');
