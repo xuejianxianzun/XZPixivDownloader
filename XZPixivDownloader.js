@@ -3,8 +3,8 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.2.1
-// @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
+// @version     5.2.2
+// @description 在多种情景下批量下载pixiv上的图.片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv image downloader
 // @author      xuejianxianzun 雪见仙尊
@@ -31,9 +31,14 @@
 
 'use strict';
 
-let loc_url = window.location.href, //当前页面的url
-	quiet_download = false, // 是否静默下载，即下载时不弹窗提醒，并且自动开始下载（无需点击下载按钮）。目前新版本已经默认不弹窗了，这个参数的意义基本就是自动下载了
+let quiet_download = false, // 是否静默下载，即下载时不弹窗提醒，并且自动开始下载（无需点击下载按钮）。目前新版本已经默认不弹窗了，这个参数的意义基本就是自动下载了
 	use_alert = false, // 是否使用弹窗提醒
+	download_thread_deauflt = 5, // 同时下载的线程数，可以修改。如果不想用加延迟 time_interval 的方法来防止漏图，那么可以把这里改成1，单线程下载不会漏图。此版本用的是加延迟的方法，可以支持多线程
+	multiple_down_number = 0, // 设置多图作品下载前几张图片。0为不限制，全部下载。改为1则只下载第一张。这是因为有时候多p作品会导致要下载的图片过多，此时可以设置只下载前几张，减少下载量
+	tag_search_show_img = true, //是否显示tag搜索页里面的封面图片。如果tag搜索页的图片数量太多，那么加载封面图可能要很久，并且可能因为占用大量带宽导致抓取中断。这种情况下可以将此参数改为false，不加载封面图。
+	fileName_length = 200, // 文件名的最大长度，超出将会截断。如果文件的保存路径过长可能会保存失败，此时可以把这个数值改小些。
+	// 以上为用户可以视情况修改的设置项
+	loc_url = window.location.href, //当前页面的url
 	page_type, //区分页面类型
 	img_info = [], //储存图片信息，其中可能会有空值，如 undefined 和 ''。如果改成json格式的话，使用id调用，就更方便了
 	illust_url_list = [], //储存作品列表url的数组
@@ -69,7 +74,6 @@ let loc_url = window.location.href, //当前页面的url
 	part_number, //保存不同排行榜的列表数量
 	requset_number, //下载添加收藏后的相似作品时的请求数量
 	max_num = 0, //最多允许获取多少数量
-	multiple_down_number = 0, // 设置多p作品下载前几张图片。0为不限制，全部下载。
 	tag_search_is_new, // tag搜索页是否是新版
 	tag_search_lv1_selector, // tag搜索页，作品列表的父元素的选择器
 	tag_search_lv2_selector, // tag搜索页，作品列表自身的选择器
@@ -81,12 +85,9 @@ let loc_url = window.location.href, //当前页面的url
 	xz_gif_html, // tag搜索页作品的html中的动图标识
 	tag_search_new_html_one_page = '', // 拼接每一页里所有列表的html
 	tag_search_temp_result, // 临时储存tag搜索每一页的结果
-	tag_search_show_img = true, //是否显示tag搜索页里面的封面图片。如果tag搜索页的图片数量太多，那么加载封面图可能要很久，并且可能因为占用大量带宽导致抓取中断。这种情况下可以将此参数改为false，不加载封面图。
 	fileNameRule = '',
-	fileName_length = 200, // 此为预设值，如果文件的保存路径过长就保存失败。
 	safe_fileName_rule = new RegExp(/\\|\/|:|\?|"|<|>|\*|\|/g), // 安全的文件名
 	xianzun_btns_wrap,
-	download_thread_deauflt = 5, // 同时下载的线程数，可以修改。如果不想用加延迟 time_interval 的方法来防止漏图，那么可以把这里改成1，单线程下载不会漏图。此版本用的是加延迟的方法，可以支持多线程
 	donwloadBar_list, // 下载队列的dom元素
 	download_a, // 下载用的a标签
 	download_started = false, // 下载是否已经开始
@@ -1884,7 +1885,7 @@ function getIllustPage(url) {
 							alert('get pNo error!');
 							return false;
 						}
-						// 检查是否需要修改下载的张数。有效值为大于0并不大于总p数
+						// 检查是否需要修改下载的张数。有效值为大于0并不大于总p数，否则下载所有张数
 						if (multiple_down_number > 0 && multiple_down_number <= pNo) {
 							pNo = multiple_down_number;
 						}
