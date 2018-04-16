@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.2.0
+// @version     5.2.1
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv image downloader
@@ -81,12 +81,12 @@ let loc_url = window.location.href, //当前页面的url
 	xz_gif_html, // tag搜索页作品的html中的动图标识
 	tag_search_new_html_one_page = '', // 拼接每一页里所有列表的html
 	tag_search_temp_result, // 临时储存tag搜索每一页的结果
-	tag_search_show_img = true, //是否显示tag搜索页里面的封面图片
+	tag_search_show_img = true, //是否显示tag搜索页里面的封面图片。如果tag搜索页的图片数量太多，那么加载封面图可能要很久，并且可能因为占用大量带宽导致抓取中断。这种情况下可以将此参数改为false，不加载封面图。
 	fileNameRule = '',
-	fileName_length = 200, // 此为预设值，如果保存路径过长就会出问题
+	fileName_length = 200, // 此为预设值，如果文件的保存路径过长就保存失败。
 	safe_fileName_rule = new RegExp(/\\|\/|:|\?|"|<|>|\*|\|/g), // 安全的文件名
 	xianzun_btns_wrap,
-	download_thread_deauflt = 5, // 同时下载的线程数。如果不想用加延迟 time_interval 的方法来防止漏图，那么可以把这里改成1，单线程下载不会漏图。此版本用的是加延迟的方法，可以支持多线程
+	download_thread_deauflt = 5, // 同时下载的线程数，可以修改。如果不想用加延迟 time_interval 的方法来防止漏图，那么可以把这里改成1，单线程下载不会漏图。此版本用的是加延迟的方法，可以支持多线程
 	donwloadBar_list, // 下载队列的dom元素
 	download_a, // 下载用的a标签
 	download_started = false, // 下载是否已经开始
@@ -2527,14 +2527,12 @@ function click_doanload_a(blobURL, fullFileName, donwloadBar_no) {
 		downloaded = 0;
 		$('.down_status').html(xzlt('_下载完毕'));
 		$(outputInfo).html($(outputInfo).html() + xzlt('_下载完毕') + '<br><br>');
-		setTimeout(function () {
-			if (!quiet_download) {
-				if (use_alert) {
-					alert(xzlt('_下载完毕'));
-				}
-				changeTitle('√');
+		changeTitle('√');
+		if (!quiet_download) {
+			if (use_alert) {
+				alert(xzlt('_下载完毕'));
 			}
-		}, 200);
+		}
 	} else { // 如果没有全部下载完毕
 		//如果需要暂停下载
 		if (download_pause === 'ready_pause') {
@@ -3114,7 +3112,7 @@ if (loc_url.indexOf('illust_id') > -1 && loc_url.indexOf('mode=manga') == -1 && 
 				$('.logo-area h1').hide();
 				resetResult();
 				addOutputInfo();
-				changeTitle('√');
+				changeTitle('↑');
 				let imageList = []; //图片元素的列表
 				if (type == 'illustration') { // 针对不同的类型，选择器不同
 					imageList = $('.am__work__main img');
