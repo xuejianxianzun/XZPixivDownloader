@@ -3,8 +3,8 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.2.2
-// @description 在多种情景下批量下载pixiv上的图.片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
+// @version     5.2.3
+// @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv image downloader
 // @author      xuejianxianzun 雪见仙尊
@@ -2335,8 +2335,12 @@ function addOutputWarp() {
 	// 检查是否有用户命名规则
 	let fileNameRule_input = document.querySelector('.fileNameRule');
 	if (page_type !== 8 && page_type !== 12) {
-		if (localStorage.getItem('user_name_rule')) {
-			fileNameRule_input.value = localStorage.getItem('user_name_rule');
+		let user_set_name = localStorage.getItem('user_name_rule');
+		if (user_set_name) {
+			if (page_type !== 5) {
+				user_set_name = user_set_name.replace('{bmk}','');
+			}
+			fileNameRule_input.value = user_set_name;
 		}
 	}
 	// 当用户改变了命名规则时保存
