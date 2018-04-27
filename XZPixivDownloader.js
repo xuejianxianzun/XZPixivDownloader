@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.2.3
+// @version     5.3.0
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv image downloader
@@ -74,6 +74,7 @@ let quiet_download = false, // 是否静默下载，即下载时不弹窗提醒�
 	part_number, //保存不同排行榜的列表数量
 	requset_number, //下载添加收藏后的相似作品时的请求数量
 	max_num = 0, //最多允许获取多少数量
+	illust_is_new, // 作品页是否是新版
 	tag_search_is_new, // tag搜索页是否是新版
 	tag_search_lv1_selector, // tag搜索页，作品列表的父元素的选择器
 	tag_search_lv2_selector, // tag搜索页，作品列表自身的选择器
@@ -426,9 +427,9 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'<br>Start getting the works page'
 	],
 	'_无权访问1': [
-		'无权访问{}，抓取中断。',
-		'アクセス{}、中断はありません。',
-		'No access {}, interruption.'
+		'无权访问{}，抓取中断。请等待修复。现在可以从列表页下载。',
+		'アクセス{}、中断はありません。修理をお待ちください。 現在、リストページからダウンロードできます。',
+		'No access {}, interruption. Please wait for repair. It is now available for download from the list page.'
 	],
 	'_无权访问2': [
 		'无权访问{}，跳过该作品。',
@@ -953,6 +954,13 @@ jQuery.focusblur = function (element, defcolor, truecolor) {
 		}
 	});
 };
+
+// 获取object的第一项，用来取出illust信息。（因为有个key是illust的id，并不固定）
+function get_first_attr(data) {
+	for (let item in data) {
+		return data[item];
+	}
+}
 
 // 修改title
 function changeTitle(string) {
@@ -1730,8 +1738,8 @@ function getIllustPage(url) {
 			let illust_document = $(parser.parseFromString(data, 'text/html'));
 
 			// 处理无权访问的作品 测试id35697511
-			let test_title = illust_document.find('.work-info .title');
-			if (test_title.length === 0) {
+			let error_title = illust_document.find('.error-title'); // 这里新旧版相同
+			if (error_title.length > 0) {
 				console.log('访问不到 ' + url);
 				if (page_type === 1) { // 在作品页内下载时，设置的want_page其实是作品数
 					if (want_page > 0) {
@@ -1757,21 +1765,54 @@ function getIllustPage(url) {
 				return false;
 			}
 
+			// 判断新旧版
+			let test_title = illust_document.find('.work-info .title');
+			if (test_title.length === 0) { // 如果找不到旧版的标题元素，则判断为新版
+				illust_is_new = true;
+			}
+
 			// 预设及获取图片信息
-			let imgUrl = '',
-				id,
-				title = test_title.text(), //标题
-				user = illust_document.find('._user-profile-card .user-name').text(), //画师名字
-				userid = 'uid' + illust_document.find('._user-profile-card .user-name').attr('href').split('=')[1], //画师id
-				jsInfo = illust_document.find('#wrapper script').eq(0).text(), //包含作品信息的js代码
-				sizeInfo = /\[.*?\]/.exec(jsInfo)[0].replace(/\[|\]/g, '').split(','), //取出pixiv.context.illustSize属性
-				fullWidth = parseInt(sizeInfo[0]), //原图宽度
-				fullHeight = parseInt(sizeInfo[1]), //原图高度
-				ext = '', //扩展名
-				nowAllTagE = illust_document.find('li.tag'), // tag列表
-				nowAllTag = [];
-			for (let i = nowAllTagE.length - 1; i >= 0; i--) {
-				nowAllTag[i] = nowAllTagE.eq(i).find('.text').text();
+			let imgUrl = '';
+			let id;
+			let title;
+			let user;
+			let userid;
+			let jsInfo;
+			let sizeInfo;
+			let fullWidth;
+			let fullHeight;
+			let ext = ''; //扩展名
+			let illust_info;
+			let user_info;
+			let nowAllTagE;
+			let nowAllTag = [];
+			if (!illust_is_new) { // 旧版
+				jsInfo = illust_document.find('#wrapper script').eq(0).text(); //包含作品信息的js代码
+				sizeInfo = /\[.*?\]/.exec(jsInfo)[0].replace(/\[|\]/g, '').split(','); //取出pixiv.context.illustSize属性
+				fullWidth = parseInt(sizeInfo[0]); //原图宽度
+				fullHeight = parseInt(sizeInfo[1]); //原图高度
+				title = illust_document.find('.work-info .title').text();
+				user = illust_document.find('._user-profile-card .user-name').text(); //画师名字
+				userid = 'uid' + illust_document.find('._user-profile-card .user-name').attr('href').split('=')[1]; //画师id
+				nowAllTagE = illust_document.find('li.tag'); // tag列表
+				for (let i = nowAllTagE.length - 1; i >= 0; i--) {
+					nowAllTag[i] = nowAllTagE.eq(i).find('.text').html().split('<span')[0];
+				}
+			} else { // 新版
+				jsInfo = illust_document.find('script').eq(7).text(); //包含作品信息的js代码。这个顺序以后也可能会变
+				jsInfo = jsInfo.split('})')[1] + '})'; // 取出主要部分
+				jsInfo = eval(jsInfo); // 这里不能解析为 JSON，因为原数据的key没有加引号，无法使用JSON.parse()解析。p站也是把它用作object的。注意这里参数的首尾要有括号包裹
+				illust_info = get_first_attr(jsInfo.preload.illust); // 因为这里的key值不固定（是作品id），所以用函数取出
+				fullWidth = parseInt(illust_info.width); //原图宽度
+				fullHeight = parseInt(illust_info.height); //原图高度
+				title = illust_info.illustTitle;
+				nowAllTagE = illust_info.tags.tags; // tag列表
+				for (let i = nowAllTagE.length - 1; i >= 0; i--) {
+					nowAllTag[i] = nowAllTagE[i].tag;
+				}
+				user_info = get_first_attr(jsInfo.preload.user);
+				userid = 'uid' + user_info.userId; //画师id
+				user = user_info.name; //画师名字
 			}
 
 			// 检查宽高设置
@@ -1796,14 +1837,22 @@ function getIllustPage(url) {
 				}
 			}
 
-			// 检查要排除的tag 其实page_type==9的时候在获取作品列表时就能获得tag列表，但为了统一，也在这里检查
-			let tag_check_result; // 储存tag检查结果
-
 			// 检查排除收藏
 			let check_bookmark_pass = true;
-			if (notdown_type.indexOf('4') > -1 && !!illust_document.find('.edit-bookmark')[0]) {
-				check_bookmark_pass = false;
+			if (notdown_type.indexOf('4') > -1) {
+				if (illust_is_new) {
+					if (illust_info.bookmarkData !== null) { // 已收藏
+						check_bookmark_pass = false;
+					}
+				} else {
+					if (!!illust_document.find('.edit-bookmark')[0]) {
+						check_bookmark_pass = false;
+					}
+				}
 			}
+
+			// 检查要排除的tag 其实page_type==9的时候在获取作品列表时就能获得tag列表，但为了统一，也在这里检查
+			let tag_check_result; // 储存tag检查结果
 
 			// 检查要排除的tag
 			let tag_noeNeed_isFound = false;
@@ -1840,31 +1889,71 @@ function getIllustPage(url) {
 				tag_check_result = false;
 			}
 
+			// 排除设置：
+			// 1	单图
+			// 2	多图
+			// 3	动图
+			// 4	已收藏，在上面检查过了
+			let this_illust_type;
+			if (illust_is_new) { // 新版要从json信息里检查页面类型
+				if (illust_info.illustType === 0) { // 单图或多图
+					if (illust_info.pageCount === 1) { // 单图
+						this_illust_type = 1;
+					} else if (illust_info.pageCount > 1) { // 多图
+						this_illust_type = 2;
+					}
+				} else if (illust_info.illustType === 2) { // 动图
+					this_illust_type = 3;
+				}
+			} else { // 旧版从DOM检查
+				if (illust_document.find('.original-image')[0] !== undefined) {
+					this_illust_type = 1;
+				} else if (illust_document.find('.full-screen._ui-tooltip')[0] !== undefined) {
+					this_illust_type = 3;
+				} else if (illust_document.find('.works_display a').eq(0).attr('href').indexOf('mode=big') > -1) {
+					this_illust_type = 5; // 增加5 mode=big，虽然pc端可能永远没有这个类型了
+				}
+			}
+
 			// 结合作品类型处理作品
-			if (!!illust_document.find('.original-image')[0] && tag_check_result && check_bookmark_pass && WH_check_result) { //如果是单图，并且通过了tag检查和宽高检查和收藏检查
+			if (this_illust_type === 1 && tag_check_result && check_bookmark_pass && WH_check_result) { //如果是单图，并且通过了tag检查和宽高检查和收藏检查
 				if (notdown_type.indexOf('1') === -1) { //如果没有排除单图
-					imgUrl = illust_document.find('.original-image').attr('data-src'); //作品url
-					id = imgUrl.split('/');
-					id = id[id.length - 1].split('.')[0]; //作品id
+					if (!illust_is_new) {
+						imgUrl = illust_document.find('.original-image').attr('data-src'); //作品url
+						id = imgUrl.split('/');
+						id = id[id.length - 1].split('.')[0]; //作品id
+					} else {
+						imgUrl = illust_info.urls.original;
+						id = illust_info.illustId;
+					}
 					ext = imgUrl.split('.');
 					ext = ext[ext.length - 1]; //扩展名
 					addImgInfo(id, imgUrl, title, nowAllTag, user, userid, fullWidth, fullHeight, ext);
 					outputImgNum();
 				}
-			} else if (!!illust_document.find('.works_display')[0] && tag_check_result && check_bookmark_pass && WH_check_result) { //单图以外的情况,并且通过了tag检查和宽高检查和收藏检查
-				if (illust_document.find('.full-screen._ui-tooltip')[0] !== undefined) { //如果是动图
+			} else if (this_illust_type !== 1 && tag_check_result && check_bookmark_pass && WH_check_result) { //单图以外的情况,并且通过了tag检查和宽高检查和收藏检查
+				if (this_illust_type === 3) { //如果是动图
 					if (notdown_type.indexOf('3') === -1) { //如果没有排除动图
-						let reg1 = /ugokuIllustFullscreenData.*zip/,
-							reg2 = /https.*zip/;
-						imgUrl = reg2.exec(reg1.exec(jsInfo)[0])[0].replace(/\\/g, ''); //取出动图压缩包的url
-						id = imgUrl.split('/');
-						id = id[id.length - 1].split('.')[0].replace('_ugoira1920x1080', ''); //作品id
-						ext = imgUrl.split('.');
-						ext = ext[ext.length - 1]; //扩展名
+						if (!illust_is_new) {
+							let reg1 = /ugokuIllustFullscreenData.*zip/,
+								reg2 = /https.*zip/;
+							imgUrl = reg2.exec(reg1.exec(jsInfo)[0])[0].replace(/\\/g, ''); //取出动图压缩包的url
+							id = imgUrl.split('/');
+							id = id[id.length - 1].split('.')[0].replace('_ugoira1920x1080', ''); //作品id
+						} else {
+							imgUrl = illust_info.urls.original.replace('img-original', 'img-zip-ugoira').replace('ugoira0', 'ugoira1920x1080').replace('jpg', 'zip').replace('png', 'zip');
+							id = illust_info.illustId;
+						}
+						// 动图的最终url如：
+						// https://i.pximg.net/img-zip-ugoira/img/2018/04/25/21/27/44/68401493_ugoira1920x1080.zip
+						ext = 'zip'; //扩展名
 						addImgInfo(id, imgUrl, title, nowAllTag, user, userid, fullWidth, fullHeight, ext);
 						outputImgNum();
 					}
-				} else if (illust_document.find('.works_display a').eq(0).attr('href').indexOf('mode=big') > -1) { //对于mode=big
+				}
+				// 因为怀疑 mode=big 在 pc 端已经消失，所以注释掉其代码
+				/*
+				else if (this_illust_type===5) { //对于mode=big
 					if (notdown_type.indexOf('1') === -1) { //如果没有排除单图
 						imgUrl = illust_document.find('.bookmark_modal_thumbnail').attr('data-src').replace('c/150x150/img-master', 'img-original').replace('_master1200', ''); //此时拼接的url的后缀名是不准确的
 						id = imgUrl.split('/');
@@ -1878,9 +1967,16 @@ function getIllustPage(url) {
 							fullHeight: fullHeight
 						}); //先把能确定的参数传过去，ext和url需要在下一步确定
 					}
-				} else { //多图作品
+				}
+				*/
+				else { //多图作品
 					if (notdown_type.indexOf('2') === -1) { //如果没有排除多图
-						let pNo = parseInt(illust_document.find('ul.meta li').eq(1).text().match(/[0-9]/ig).join('')); //P数
+						let pNo; //P数
+						if (!illust_is_new) {
+							pNo = parseInt(illust_document.find('ul.meta li').eq(1).text().match(/[0-9]/ig).join(''));
+						} else {
+							pNo = illust_info.pageCount;
+						}
 						if (isNaN(pNo)) {
 							alert('get pNo error!');
 							return false;
@@ -1889,7 +1985,12 @@ function getIllustPage(url) {
 						if (multiple_down_number > 0 && multiple_down_number <= pNo) {
 							pNo = multiple_down_number;
 						}
-						let orgPageUrl = illust_document.find('.works_display a').eq(0).attr('href');
+						let orgPageUrl = '';
+						if (!illust_is_new) {
+							orgPageUrl = illust_document.find('.works_display a').eq(0).attr('href');
+						} else {
+							orgPageUrl = 'member_illust.php?mode=manga&illust_id=' + illust_info.illustId;
+						}
 						getMangaOriginalPage(orgPageUrl, pNo, interrupt, { // 多p作品的id需要根据p数循环加上序号，所以放在后面加了
 							title: title,
 							tags: nowAllTag,
@@ -1901,6 +2002,7 @@ function getIllustPage(url) {
 					}
 				}
 			}
+
 			if (page_type === 1) { // 在作品页内下载时，设置的want_page其实是作品数
 				if (want_page > 0) {
 					want_page--;
@@ -2338,7 +2440,7 @@ function addOutputWarp() {
 		let user_set_name = localStorage.getItem('user_name_rule');
 		if (user_set_name) {
 			if (page_type !== 5) {
-				user_set_name = user_set_name.replace('{bmk}','');
+				user_set_name = user_set_name.replace('{bmk}', '');
 			}
 			fileNameRule_input.value = user_set_name;
 		}
