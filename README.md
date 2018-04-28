@@ -36,7 +36,7 @@
 
 - [tag列表页](https://www.pixiv.net/member_illust.php?id=544479&tag=%E6%9D%B1%E6%96%B9)
 
-- [收藏页面](https://www.pixiv.net/bookmark.php?id=544479)
+- [收藏页面](https://www.pixiv.net/bookmark.php)
 
 - [tag搜索页](https://www.pixiv.net/search.php?s_mode=s_tag&word=saber)
 
