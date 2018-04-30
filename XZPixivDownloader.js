@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.5.0
+// @version     5.6.0
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv image downloader
@@ -64,7 +64,6 @@ function XZDownloader() {
 		img_info = [], //储存图片信息，其中可能会有空值，如 undefined 和 ''。如果改成json格式的话，使用id调用，就更方便了
 		illust_url_list = [], //储存作品列表url的数组
 		imgList = [], //储存tag搜索页的所有作品
-		showcase_urls = [],
 		ajax_for_illust_threads = 5, //抓取页面时的并发连接数
 		ajax_for_illust_delay = 100, //抓取页面的并发请求每个间隔多少毫秒
 		ajax_threads_finished = 0, //统计有几个并发线程完成所有请求。统计的是并发数（ajax_for_illust_threads）而非请求数
@@ -91,6 +90,8 @@ function XZDownloader() {
 			width: 0,
 			height: 0
 		}, //宽高条件
+		is_set_filterBMK = false, // 是否设置了筛选收藏数
+		filterBMK,
 		part_number, //保存不同排行榜的列表数量
 		requset_number = 0, //下载添加收藏后的相似作品时的请求数量
 		max_num = 0, //最多允许获取多少数量
@@ -239,6 +240,26 @@ function XZDownloader() {
 			'高さ≥',
 			'height ≥'
 		],
+		'_筛选收藏数的按钮文字': [
+			'设置收藏数量',
+			'お気に入りの数を設定する',
+			'Set the bookmarkCount conditions'
+		],
+		'_筛选收藏数的按钮_title': [
+			'在下载前，您可以设置对收藏数量的要求。',
+			'ダウンロードする前に、お気に入り数の要件を設定することができます。',
+			'Before downloading, You can set the requirements for the number of bookmarks.'
+		],
+		'_筛选收藏数的提示文字': [
+			'请输入一个数字，如果作品的收藏数小于这个数字，作品不会被下载。',
+			'数字を入力してください。 作品のブックマークの数がこの数より少ない場合、作品はダウンロードされません。',
+			'Please enter a number. If the number of bookmarks of the work is less than this number, the work will not be downloaded.'
+		],
+		'_设置了筛选收藏数之后的提示文字': [
+			'本次任务设置了收藏数条件:收藏数>=',
+			'このタスクは、お気に入りの数を設定します。条件：お気に入りの数≥',
+			'This task sets the number of bookmarks condition: number of bookmarks ≥'
+		],
 		'_本次任务已全部完成': [
 			'本次任务已全部完成。',
 			'このタスクは完了しました。',
@@ -287,7 +308,7 @@ function XZDownloader() {
 		'_请输入最低收藏数和要抓取的页数': [
 			'请输入最低收藏数和要抓取的页数，用英文逗号分开。\n类似于下面的形式: \n1000,1000',
 			'お気に入りの最小数とクロールするページ数を，\',\'で区切って入力してください。\n例えば：\n1000,1000',
-			'Please enter the minimum number of favorites, and the number of pages to be crawled, separated by \',\'.\nE.g:\n1000,1000'
+			'Please enter the minimum number of bookmarks, and the number of pages to be crawled, separated by \',\'.\nE.g:\n1000,1000'
 		],
 		'_参数不合法1': [
 			'参数不合法，请稍后重试。',
@@ -560,14 +581,14 @@ function XZDownloader() {
 			'width and height'
 		],
 		'_可用标记8': [
-			'bookmark-count，作品的收藏数，仅在tag搜索页使用。把它放在最前面就可以让下载后的文件按收藏数排序。',
-			'bookmark-count，作品のコレクション数（tag検索ページ使用）のコレクション数は',
-			'bookmark-count, can only be used on tag search page'
+			'bookmark-count，作品的收藏数。把它放在最前面就可以让下载后的文件按收藏数排序。',
+			'bookmark-count，作品のコレクション数のコレクション数は。',
+			'bookmark-count.'
 		],
 		'_可用标记5': [
-			'你可以使用多个标记；并可以在不同标记之间添加分割用的字符。示例：{id}_{userid}_{px}<br>* 在pixivision和特辑里，只有id标记会生效',
-			'複数のタグを使用することができ；異なるタグ間に別の文字を追加することができます。例：{id}_{userid}_{px}<br>* pixivisionでは and ショーケース、idのみが利用可能です',
-			'You can use multiple tags, and you can add a separate character between different tags. Example: {id}_{userid}_{px}<br>* On pixivision and showcase, only id is available'
+			'你可以使用多个标记；建议在不同标记之间添加分割用的字符。示例：{id}_{userid}_{px}<br>* 在pixivision里，只有id标记会生效',
+			'複数のタグを使用することができ；異なるタグ間に別の文字を追加することができます。例：{id}_{userid}_{px}<br>* pixivisionでは、idのみが利用可能です',
+			'You can use multiple tags, and you can add a separate character between different tags. Example: {id}_{userid}_{px}<br>* On pixivision, only id is available'
 		],
 		'_下载按钮1': [
 			'开始下载',
@@ -732,7 +753,7 @@ function XZDownloader() {
 		'_按收藏数筛选': [
 			'按收藏数筛选',
 			'お気に入りからのフィルター',
-			'Filter by Favorites'
+			'Filter by bookmarks'
 		],
 		'_按收藏数筛选_title': [
 			'按收藏数筛选当前tag里的作品。如果多次筛选，页码会一直累加。',
@@ -752,7 +773,7 @@ function XZDownloader() {
 		'_在结果中筛选弹窗': [
 			'将在当前作品列表中再次过滤，请输入要求的最低收藏数: ',
 			'将在当前作品列表中再次筛选，请输入要求的最低收藏数',
-			'Will be filtered again in the current list of works. Please enter the required minimum number of favorites:'
+			'Will be filtered again in the current list of works. Please enter the required minimum number of bookmarks:'
 		],
 		'_下载当前作品': [
 			'下载当前作品',
@@ -1153,7 +1174,7 @@ function XZDownloader() {
 
 		filterWHBotton.addEventListener('click', function () {
 			let inputWH = prompt(xzlt('_筛选宽高的提示文字'), filterWH.width + filterWH.and_or + filterWH.height);
-			if (inputWH === '' || inputWH === null || (inputWH.indexOf('|') === -1 && inputWH.indexOf('&') === -1) || (inputWH.indexOf('|') > -1 && inputWH.indexOf('&') > -1)) { //如果为空值，或取消了输入，或没有输入任意一个分隔符号，或者同时输入了两个分隔符
+			if (inputWH === '' || (inputWH.indexOf('|') === -1 && inputWH.indexOf('&') === -1) || (inputWH.indexOf('|') > -1 && inputWH.indexOf('&') > -1)) { //如果为空值，或没有输入任意一个分隔符号，或者同时输入了两个分隔符
 				alert(xzlt('_本次输入的数值无效'));
 				return false;
 			} else {
@@ -1186,6 +1207,35 @@ function XZDownloader() {
 		if (page_type !== 5 && is_set_filterWH) { // 排除tag搜索页，因为tag搜索页的宽高设置在startGet里不生效
 			let and_or = filterWH.and_or;
 			$('#outputInfo').html($('#outputInfo').html() + '<br>' + xzlt('_设置了筛选宽高之后的提示文字p1') + filterWH.width + and_or.replace('|', xzlt('_或者')).replace('&', xzlt('_并且')) + xzlt('_高度设置') + filterWH.height);
+		}
+	}
+
+	// 添加筛选收藏数的按钮
+	function setFilterBMK(no) {
+		let filterBMKBotton = document.createElement('div');
+		filterBMKBotton.id = 'filterBMKBotton';
+		xz_btns_con.appendChild(filterBMKBotton);
+		$(filterBMKBotton).text(xzlt('_筛选收藏数的按钮文字'));
+		$(filterBMKBotton).attr('title', xzlt('_筛选收藏数的按钮_title'));
+		setButtonStyle(filterBMKBotton, no, '#179FDD');
+
+		filterBMKBotton.addEventListener('click', function () {
+			let inputBMK = parseInt(prompt(xzlt('_筛选收藏数的提示文字'), '0'));
+			if (inputBMK === '' || isNaN(inputBMK) || inputBMK < 0) { //如果为空值，或者不为数字
+				alert(xzlt('_本次输入的数值无效'));
+				return false;
+			} else {
+				filterBMK = inputBMK;
+				is_set_filterBMK = true;
+				alert(xzlt('_设置成功'));
+			}
+		}, false);
+	}
+
+	// 检查过滤收藏数的设置
+	function checkSetBMK() {
+		if (page_type !== 5 && is_set_filterBMK) { // 排除tag搜索页，因为tag搜索页的宽高设置在startGet里不生效
+			$('#outputInfo').html($('#outputInfo').html() + '<br>' + xzlt('_设置了筛选收藏数之后的提示文字') + filterBMK);
 		}
 	}
 
@@ -1244,7 +1294,7 @@ function XZDownloader() {
 	}
 
 	// 获取作品页信息出错，如404
-	function get_illust_error(url) {
+	function illust_error(url) {
 		if (page_type === 1 && !down_xiangguan) { // 在作品页内下载时，设置的want_page其实是作品数
 			if (want_page > 0) {
 				want_page--;
@@ -1337,7 +1387,7 @@ function XZDownloader() {
 	}
 
 	// 添加图片信息
-	function addImgInfo(id, imgUrl, title, nowAllTag, user, userid, fullWidth, fullHeight, ext) {
+	function addImgInfo(id, imgUrl, title, nowAllTag, user, userid, fullWidth, fullHeight, ext, bmk) {
 		img_info.push({
 			id: id,
 			url: imgUrl,
@@ -1347,31 +1397,8 @@ function XZDownloader() {
 			userid: userid,
 			fullWidth: fullWidth,
 			fullHeight: fullHeight,
-			ext: ext
-		});
-	}
-
-	// 判断pixiv专辑类型，如果是插画就下载，其他类型则隐藏下载面板。因为内容是异步加载，需要模拟请求
-	function check_showcase_type() {
-		let showcase_id = /\d.*\d/.exec(window.location.pathname)[0];
-		let tt = $('input[name=tt]')[0].value; //取出token
-		$.ajax({
-			url: 'https://www.pixiv.net/ajax/showcase/article?article_id=' + showcase_id + '&tt=' + tt,
-			type: 'get',
-			dataType: 'json',
-			success: function (data) {
-				if (data.body[0].subCategory === 'illustration') {
-					is_show_downloader(true);
-					// 当前专辑发生变化时，重设图片url
-					showcase_urls = [];
-					let illusts_list = data.body[0].illusts;
-					for (let i = 0; i < illusts_list.length; i++) {
-						showcase_urls.push(illusts_list[i].url['1200x1200'].replace('img-master', 'img-original').replace('_master1200', ''));
-					}
-				} else {
-					is_show_downloader(false);
-				}
-			}
+			ext: ext,
+			bmk: bmk
 		});
 	}
 
@@ -1384,10 +1411,29 @@ function XZDownloader() {
 		} else if (bool === false) {
 			xianzun_btns_wrap.style.display = 'none';
 		} else {
-			// 在子页面正常执行代码
-			if (window.location.href.indexOf('/a/') > -1) {
+			if (window.location.href.indexOf('/a/') > -1) { // 在子页面正常执行代码
 				xianzun_btns_wrap.style.display = 'block';
-				check_showcase_type();
+				// 判断pixiv专辑类型，如果是插画就下载，其他类型则隐藏下载面板。因为内容是异步加载，需要模拟请求
+				let showcase_id = /\d.*\d/.exec(window.location.pathname)[0];
+				let tt = $('input[name=tt]')[0].value; //取出token
+				$.ajax({
+					url: 'https://www.pixiv.net/ajax/showcase/article?article_id=' + showcase_id + '&tt=' + tt,
+					type: 'get',
+					dataType: 'json',
+					success: function (data) {
+						if (data.body[0].subCategory === 'illustration') { // 是插画
+							is_show_downloader(true);
+							// 当前专辑发生变化时，拼接出每个图片的作品页url
+							illust_url_list = [];
+							let illusts_list = data.body[0].illusts;
+							for (let i = 0; i < illusts_list.length; i++) {
+								illust_url_list.push('https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + illusts_list[i].illust_id);
+							}
+						} else {
+							is_show_downloader(false);
+						}
+					}
+				});
 			} else { // 如果不在子页面，则隐藏下载面板
 				xianzun_btns_wrap.style.display = 'none';
 			}
@@ -1465,6 +1511,8 @@ function XZDownloader() {
 		check_multiple_down_number_tips();
 		// 检查是否设置了宽高条件
 		checkSetWH();
+		// 检查是否设置了收藏数要求
+		checkSetBMK();
 		// 获取要排除的tag
 		get_NotNeed_Tag();
 		// 获取必须包含的tag
@@ -1476,9 +1524,9 @@ function XZDownloader() {
 			allow_work = false; //开始执行时更改许可状态
 		}
 
-		if (page_type === 0) {
+		if (page_type === 0 || page_type === 12) {
 			$(outputInfo).html($(outputInfo).html() + xzlt('_开始获取作品页面'));
-			getListUrlFinished(); //通过id抓取时不需要获取列表页
+			getListUrlFinished(); //通过id抓取时，或者showcase 特辑，不需要获取列表页
 		} else if (page_type === 1) {
 			if (down_xiangguan) { // 下载相关作品
 				getListPage();
@@ -1824,6 +1872,7 @@ function XZDownloader() {
 				if (nowAllTagInfo.length > 0) {
 					user = nowAllTagInfo[0].userName; // 从第一个tag里取出画师名字
 				}
+				let bmk = jsInfo.bookmarkCount; // 收藏数
 				let ext = ''; //扩展名
 				let imgUrl = '';
 
@@ -1846,6 +1895,14 @@ function XZDownloader() {
 								WH_check_result = false;
 							}
 						}
+					}
+				}
+
+				// 检查收藏数要求
+				let BMK_check_result = true; //预设为通过
+				if (is_set_filterBMK) {
+					if (bmk < filterBMK) {
+						BMK_check_result = false;
 					}
 				}
 
@@ -1912,22 +1969,22 @@ function XZDownloader() {
 				}
 
 				// 结合作品类型处理作品
-				if (this_illust_type === 1 && tag_check_result && check_bookmark_pass && WH_check_result) { //如果是单图，并且通过了tag检查和宽高检查和收藏检查
+				if (this_illust_type === 1 && tag_check_result && check_bookmark_pass && WH_check_result && BMK_check_result) { //如果是单图，并且通过了tag检查和宽高检查和收藏检查和收藏数检查
 					if (notdown_type.indexOf('1') === -1) { //如果没有排除单图
 						imgUrl = jsInfo.urls.original;
 						ext = imgUrl.split('.');
 						ext = ext[ext.length - 1]; //扩展名
-						addImgInfo(id, imgUrl, title, nowAllTag, user, userid, fullWidth, fullHeight, ext);
+						addImgInfo(id, imgUrl, title, nowAllTag, user, userid, fullWidth, fullHeight, ext, bmk);
 						outputImgNum();
 					}
-				} else if (this_illust_type !== 1 && tag_check_result && check_bookmark_pass && WH_check_result) { //单图以外的情况,并且通过了tag检查和宽高检查和收藏检查
+				} else if (this_illust_type !== 1 && tag_check_result && check_bookmark_pass && WH_check_result && BMK_check_result) { //单图以外的情况,并且通过了tag检查和宽高检查和收藏检查和收藏数检查
 					if (this_illust_type === 3) { //如果是动图
 						if (notdown_type.indexOf('3') === -1) { //如果没有排除动图
 							// 动图的最终url如：
 							// https://i.pximg.net/img-zip-ugoira/img/2018/04/25/21/27/44/68401493_ugoira1920x1080.zip
 							imgUrl = jsInfo.urls.original.replace('img-original', 'img-zip-ugoira').replace('ugoira0', 'ugoira1920x1080').replace('jpg', 'zip').replace('png', 'zip');
 							ext = 'zip'; //扩展名
-							addImgInfo(id, imgUrl, title, nowAllTag, user, userid, fullWidth, fullHeight, ext);
+							addImgInfo(id, imgUrl, title, nowAllTag, user, userid, fullWidth, fullHeight, ext, bmk);
 							outputImgNum();
 						}
 					} else { //多图作品
@@ -1943,7 +2000,7 @@ function XZDownloader() {
 							ext = ext[ext.length - 1];
 							for (let i = 0; i < pNo; i++) {
 								let now_url = imgUrl.replace('p0', 'p' + i); //拼接出每张图片的url
-								addImgInfo(id + '_p' + i, now_url, title, nowAllTag, user, userid, fullWidth, fullHeight, ext);
+								addImgInfo(id + '_p' + i, now_url, title, nowAllTag, user, userid, fullWidth, fullHeight, ext, bmk);
 							}
 							// 检查网址并添加到数组的动作执行完毕
 							outputImgNum();
@@ -1995,22 +2052,22 @@ function XZDownloader() {
 				0: function () {
 					//ERR_CONNECTION_RESET
 					console.log(xzlt('_作品页状态码0'));
-					get_illust_error(url);
+					illust_error(url);
 				},
 				400: function () {
 					//400错误
 					console.log(xzlt('_作品页状态码400')); //在收藏的作品列表中，有些作品被作者删除了，却还显示有“编辑”按钮（但也有些没有这个按钮）。点击这个按钮会跳转到错误的“编辑收藏”页面，导致400错误。这个情况仅在下载书签作品时会发生。
-					get_illust_error(url);
+					illust_error(url);
 				},
 				403: function () {
 					//403错误
 					console.log(xzlt('_作品页状态码403'));
-					get_illust_error(url);
+					illust_error(url);
 				},
 				404: function () {
 					//404错误。无法访问的作品 测试id=35697511
 					console.log(xzlt('_作品页状态码404') + ' ' + url);
-					get_illust_error(url);
+					illust_error(url);
 				}
 			}
 		});
@@ -2037,7 +2094,7 @@ function XZDownloader() {
 				url = url.replace('.jpg', '.png');
 				ext = 'png';
 			}
-			addImgInfo(img_info_data.id, url, img_info_data.title, img_info_data.tags, img_info_data.user, img_info_data.userid, img_info_data.fullWidth, img_info_data.fullHeight, ext);
+			addImgInfo(img_info_data.id, url, img_info_data.title, img_info_data.tags, img_info_data.user, img_info_data.userid, img_info_data.fullWidth, img_info_data.fullHeight, ext, '');
 			outputImgNum();
 			if (length !== undefined) { //length参数只有在获取pixivision插画和pixiv特辑时才会传入
 				test_suffix_no++;
@@ -2373,14 +2430,10 @@ function XZDownloader() {
 		});
 		// 检查是否有用户命名规则
 		let fileNameRule_input = document.querySelector('.fileNameRule');
-		if (page_type !== 8 && page_type !== 12) {
-			let user_set_name = localStorage.getItem('user_name_rule');
-			if (user_set_name) {
-				if (page_type !== 5) {
-					user_set_name = user_set_name.replace('{bmk}', '');
-				}
-				fileNameRule_input.value = user_set_name;
-			}
+		let user_set_name = localStorage.getItem('user_name_rule');
+		fileNameRule_input.value = user_set_name;
+		if (page_type === 8) {
+			fileNameRule_input.value = '{id}'; // pixivision里只有id可以使用
 		}
 		// 当用户改变了命名规则时保存
 		fileNameRule_input.addEventListener('change', function () {
@@ -2496,18 +2549,8 @@ function XZDownloader() {
 				px = img_info[downloadNo].fullWidth + 'x' + img_info[downloadNo].fullHeight;
 			}
 		}
-		// 处理收藏数
-		let bmk = '';
-		if (page_type === 5 && fileNameRule.indexOf('{bmk}') > -1) {
-			let now_id = img_info[downloadNo].id.split('_')[0];
-			for (let i = imgList.length - 1; i >= 0; i--) {
-				if (imgList[i].id == now_id) {
-					bmk = 'bmk' + imgList[i].num + '-';
-				}
-			}
-		}
 		// 拼接文件名
-		let fullFileName = fileNameRule.replace('{id}', 'id_' + img_info[downloadNo].id).replace('{title}', img_info[downloadNo].title).replace('{user}', img_info[downloadNo].user).replace('{px}', px).replace('{userid}', 'uid_' + img_info[downloadNo].userid).replace('{tags}', img_info[downloadNo].tags.join(',')).replace('{bmk}', bmk).replace(safe_fileName_rule, '_').replace(/undefined/g, '');
+		let fullFileName = fileNameRule.replace('{id}', 'id_' + img_info[downloadNo].id).replace('{title}', img_info[downloadNo].title).replace('{user}', img_info[downloadNo].user).replace('{px}', px).replace('{userid}', 'uid_' + img_info[downloadNo].userid).replace('{tags}', img_info[downloadNo].tags.join(',')).replace('{bmk}', 'bmk_' + img_info[downloadNo].bmk).replace(safe_fileName_rule, '_').replace(/undefined/g, '');
 		// 处理文件名长度 这里有个问题，因为无法预知浏览器下载文件夹的长度，所以只能预先设置一个预设值
 		fullFileName = fullFileName.substr(0, fileName_length) + '.' + img_info[downloadNo].ext;
 		donwloadBar_list.eq(donwloadBar_no).find('.download_fileName').html(fullFileName);
@@ -2697,9 +2740,10 @@ function XZDownloader() {
 		});
 
 		setFilterWH(1);
-		setNotDownType(2);
-		setFilterTag_Need(3);
-		setFilterTag_notNeed(4);
+		setFilterBMK(2);
+		setNotDownType(3);
+		setFilterTag_Need(4);
+		setFilterTag_notNeed(5);
 	}
 	if (loc_url.indexOf('illust_id') > -1 && loc_url.indexOf('mode=manga') == -1 && loc_url.indexOf('bookmark_detail') == -1 && loc_url.indexOf('bookmark_add') == -1) { //1.on_illust_list，作品页内页
 		page_type = 1;
@@ -2743,9 +2787,10 @@ function XZDownloader() {
 		})();
 
 		setFilterWH(3);
-		setNotDownType(4);
-		setFilterTag_Need(5);
-		setFilterTag_notNeed(6);
+		setFilterBMK(4);
+		setNotDownType(5);
+		setFilterTag_Need(6);
+		setFilterTag_notNeed(7);
 
 		window.addEventListener('pushState', () => {
 			$(outputInfo).html(''); // 切换页面时，清空输出区域
@@ -2777,9 +2822,10 @@ function XZDownloader() {
 		})();
 
 		setFilterWH(1);
-		setNotDownType(2);
-		setFilterTag_Need(3);
-		setFilterTag_notNeed(4);
+		setFilterBMK(2);
+		setNotDownType(3);
+		setFilterTag_Need(4);
+		setFilterTag_notNeed(5);
 
 	} else if ((loc_url.indexOf('bookmark.php') > -1 && loc_url.indexOf('tag=') > -1) || (loc_url.indexOf('member_illust.php?id=') > -1 && loc_url.indexOf('&tag=') > -1)) { //3.on_tagpage
 
@@ -2808,9 +2854,10 @@ function XZDownloader() {
 		})();
 
 		setFilterWH(1);
-		setNotDownType(2);
-		setFilterTag_Need(3);
-		setFilterTag_notNeed(4);
+		setFilterBMK(2);
+		setNotDownType(3);
+		setFilterTag_Need(4);
+		setFilterTag_notNeed(5);
 
 	} else if (loc_url.indexOf('bookmark.php') > -1 && loc_url.indexOf('tag=') == -1) { //4.on_bookmark
 		page_type = 4;
@@ -2857,9 +2904,10 @@ function XZDownloader() {
 		})();
 
 		setFilterWH(1);
-		setNotDownType(2);
-		setFilterTag_Need(3);
-		setFilterTag_notNeed(4);
+		setFilterBMK(2);
+		setNotDownType(3);
+		setFilterTag_Need(4);
+		setFilterTag_notNeed(5);
 
 	} else if (loc_url.indexOf('search.php?') > -1) { //5.on_tagsearch
 		page_type = 5;
@@ -3111,9 +3159,10 @@ function XZDownloader() {
 		})();
 
 		setFilterWH(1);
-		setNotDownType(2);
-		setFilterTag_notNeed(3);
-		setFilterTag_Need(4);
+		setFilterBMK(2);
+		setNotDownType(3);
+		setFilterTag_notNeed(4);
+		setFilterTag_Need(5);
 
 	} else if (location.pathname === '/ranking.php') { //7.on_ranking_else
 		page_type = 7;
@@ -3151,9 +3200,10 @@ function XZDownloader() {
 		})();
 
 		setFilterWH(1);
-		setNotDownType(2);
-		setFilterTag_Need(3);
-		setFilterTag_notNeed(4);
+		setFilterBMK(2);
+		setNotDownType(3);
+		setFilterTag_Need(4);
+		setFilterTag_notNeed(5);
 
 	} else if (loc_url.indexOf('https://www.pixivision.net') > -1 && loc_url.indexOf('/a/') > -1) { //8.on_pixivision
 		page_type = 8;
@@ -3212,7 +3262,7 @@ function XZDownloader() {
 							id = id[id.length - 1].split('.')[0]; //作品id
 							let ext = imgUrl.split('.');
 							ext = ext[ext.length - 1]; //扩展名
-							addImgInfo(id, imgUrl, '', [], '', '', '', '', ext);
+							addImgInfo(id, imgUrl, '', [], '', '', '', '', ext, '');
 						}
 						allWorkFinished();
 					}
@@ -3247,9 +3297,10 @@ function XZDownloader() {
 		})();
 
 		setFilterWH(1);
-		setNotDownType(2);
-		setFilterTag_Need(3);
-		setFilterTag_notNeed(4);
+		setFilterBMK(2);
+		setNotDownType(3);
+		setFilterTag_Need(4);
+		setFilterTag_notNeed(5);
 
 	} else if (loc_url.indexOf('bookmark_new_illust') > -1 || loc_url.indexOf('new_illust.php') > -1 || loc_url.indexOf('new_illust_r18.php') > -1) { //10.bookmark_new_illust and new_illust 关注的人的新作品 以及 大家的新作品
 		page_type = 10;
@@ -3298,9 +3349,10 @@ function XZDownloader() {
 		})();
 
 		setFilterWH(1);
-		setNotDownType(2);
-		setFilterTag_Need(3);
-		setFilterTag_notNeed(4);
+		setFilterBMK(2);
+		setNotDownType(3);
+		setFilterTag_Need(4);
+		setFilterTag_notNeed(5);
 	} else if (window.location.pathname === '/discovery') { //11.discover 发现
 		// 其实发现页面和9收藏后的推荐页面一样，先获取列表再下载。但是发现页面有个特点是每次获取的数据是不同的，如果再请求一次列表数据，那么下载到的图片和本次加载的图片就不一样了。所以这里改用直接下载左侧已有作品
 		page_type = 11;
@@ -3324,15 +3376,16 @@ function XZDownloader() {
 		})();
 
 		setFilterWH(1);
-		setFilterTag_Need(2);
-		setFilterTag_notNeed(3);
+		setFilterBMK(2);
+		setFilterTag_Need(3);
+		setFilterTag_notNeed(4);
 
 		(function () {
 			let clearMultiple = document.createElement('div');
 			xz_btns_con.appendChild(clearMultiple);
 			$(clearMultiple).text(xzlt('_清除多图作品'));
 			$(clearMultiple).attr('title', xzlt('_清除多图作品_title'));
-			setButtonStyle(clearMultiple, 4, '#E42A2A');
+			setButtonStyle(clearMultiple, 5, '#E42A2A');
 			clearMultiple.addEventListener('click', function () {
 				let allPicArea = $(tag_search_list_selector);
 				for (let i = 0; i < allPicArea.length; i++) {
@@ -3349,7 +3402,7 @@ function XZDownloader() {
 			xz_btns_con.appendChild(clearUgoku);
 			$(clearUgoku).text(xzlt('_清除动图作品'));
 			$(clearUgoku).attr('title', xzlt('_清除动图作品_title'));
-			setButtonStyle(clearUgoku, 5, '#E42A2A');
+			setButtonStyle(clearUgoku, 6, '#E42A2A');
 			clearUgoku.addEventListener('click', function () {
 				let allPicArea = $(tag_search_list_selector);
 				for (let i = 0; i < allPicArea.length; i++) {
@@ -3368,7 +3421,7 @@ function XZDownloader() {
 			$(deleteBotton).text(xzlt('_手动删除作品'));
 			$(deleteBotton).attr('title', xzlt('_手动删除作品_title'));
 			$(deleteBotton).attr('data_del', '0');
-			setButtonStyle(deleteBotton, 6, '#e42a2a');
+			setButtonStyle(deleteBotton, 7, '#e42a2a');
 			$('#deleteBotton').bind('click', function () {
 				$(tag_search_list_selector).bind('click', function () {
 					if ($('#deleteBotton').attr('data_del') === '1') {
@@ -3394,7 +3447,7 @@ function XZDownloader() {
 			xz_btns_con.appendChild(clearBotton);
 			$(clearBotton).text(xzlt('_清空作品列表'));
 			$(clearBotton).attr('title', xzlt('_清空作品列表_title'));
-			setButtonStyle(clearBotton, 7, '#e42a2a');
+			setButtonStyle(clearBotton, 8, '#e42a2a');
 			clearBotton.addEventListener('click', function () {
 				$(tag_search_list_selector).remove();
 			}, false);
@@ -3416,22 +3469,7 @@ function XZDownloader() {
 			downloadBotton.addEventListener('click', function () {
 				resetResult();
 				addOutputInfo();
-				test_suffix_no = 0;
-				changeTitle('↑');
-
-				for (let j = 0; j < showcase_urls.length; j++) {
-					let id = showcase_urls[j].split('/');
-					id = id[id.length - 1].split('.')[0]; //作品id
-					setTimeout(testExtName(showcase_urls[j], showcase_urls.length, {
-						id: id,
-						title: '',
-						tags: [],
-						user: '',
-						userid: '',
-						fullWidth: '',
-						fullHeight: ''
-					}), j * ajax_for_illust_delay);
-				}
+				startGet();
 			}, false);
 		})();
 

@@ -235,7 +235,7 @@ https://www.pixiv.net/ajax/illust/68375792/recommend/init?limit=180
 
 https://www.pixiv.net/ajax/illust/67050051
 
-这个api老版也能用，所以 getIllustPage() 里不需要区分新旧版了，直接都改成用新版的。
+注意最后不能带斜杠。这个api老版也能用，所以 getIllustPage() 里不需要区分新旧版了，直接都改成用新版的。
 
 *但新的api有个问题，就是可能无法获取到作者名字。userName只能从tag信息里获取，如果一个作品没有tag，那就获取不到作者名字了。发生这种情况时，把作者名字留空。*
 
@@ -245,8 +245,26 @@ https://www.pixiv.net/ajax/illust/67050051
 
 - 修改了处理404的代码。之前获取作品页的时候获取的是html页面，404了也可以进入success处理。现在改为获取json数据了，404不进入success了，要在外面statusCode里处理。
 
-**后续计划：**
+### 4.6.0
 
-- 统一添加bmk
+**新增功能：**
 
-- pixiv特辑和pixivision获取图片的方式，是否都可改为获取作品页
+- 在showcase 特辑里面也可以使用全部的命名方式了。
+
+- 命名规则里都可以使用{bmk}了。（之前只有在tag搜索页可以用）
+
+- 添加了筛选收藏数的按钮。（大于等级指定收藏数的作品才会被下载）
+
+**其他**
+
+- 获取动图信息有新的api，在作品信息api后面加上/ugoira_meta，如：
+
+https://www.pixiv.net/ajax/illust/68437318/ugoira_meta
+
+这里面包含原文件（zip）的url和帧率信息。
+
+- pixivision 预计以后不再维护。
+
+首先它和pixiv主站是跨域的，使得同步下载流程比较麻烦。（比如我计划在pixiv特辑里也去获取作品信息api，这样在pixiv特辑里下载时，可以使用更多的命名规则了。但是jQuery的ajax无法设置跨域，用GM_xmlhttpRequest的话改动成本又太高）。
+
+其次pixivision上面的很多板块都已经停止更新了，插画没有停止更新，但是插画是和showcase 特辑同步的，所以从showcase 特辑下载就行了。
