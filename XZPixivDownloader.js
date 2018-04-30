@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.6.1
+// @version     5.6.2
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv image downloader
@@ -95,7 +95,7 @@ function XZDownloader() {
 		part_number, //保存不同排行榜的列表数量
 		requset_number = 0, //下载添加收藏后的相似作品时的请求数量
 		max_num = 0, //最多允许获取多少数量
-		tag_search_is_new, // tag搜索页是否是新版
+		list_is_new, // 列表页加载模式是否是新版
 		tag_search_lv1_selector, // tag搜索页，作品列表的父元素的选择器
 		tag_search_lv2_selector, // tag搜索页，作品列表自身的选择器
 		tag_search_list_selector, // tag搜索页，直接选择作品的选择器
@@ -1580,54 +1580,50 @@ function XZDownloader() {
 				if (page_type === 5) { // tag搜索页
 					listPage_finished2++;
 					let this_one_info;
-					if (tag_search_is_new) { // 新版tag搜索页，需要将结果解析出来
-						this_one_info = listPage_document.find(tag_search_lv1_selector).attr('data-items'); // 保存这一次的信息
-						this_one_info = JSON.parse(this_one_info); // 转化为数组
-						for (let j = 0; j < this_one_info.length; j++) {
-							// 拼接每个作品的html
-							let new_html = tag_search_new_html;
-							let pageCount = parseInt(this_one_info[j]['pageCount']); // 包含的图片数量
-							if (pageCount > 1) { // 多图
-								new_html = new_html.replace('<!--xz_multiple_html-->', xz_multiple_html);
-							}
-							let illustType = this_one_info[j]['illustType']; // 作品类型 0 插画 1 漫画 2 动图
-							if (illustType === '2') { // 动图
-								new_html = new_html.replace('<!--xz_gif_html-->', xz_gif_html);
-							}
-							if (this_one_info[j]['isBookmarked']) { // 是否已收藏
-								new_html = new_html.replace(/xz_isBookmarked/g, 'on');
-							}
-							// 填充内容
-							new_html = new_html.replace(/xz_illustId/g, this_one_info[j]['illustId']);
-							new_html = new_html.replace(/xz_pageCount/g, this_one_info[j]['pageCount']);
-							if (tag_search_show_img) {
-								new_html = new_html.replace(/xz_url/g, this_one_info[j]['url']);
-							}
-							new_html = new_html.replace(/xz_illustTitle/g, this_one_info[j]['illustTitle']);
-							new_html = new_html.replace(/xz_userId/g, this_one_info[j]['userId']);
-							new_html = new_html.replace(/xz_userName/g, this_one_info[j]['userName']);
-							new_html = new_html.replace(/xz_userImage/g, this_one_info[j]['userImage']);
-							new_html = new_html.replace(/xz_bookmarkCount/g, this_one_info[j]['bookmarkCount']);
-							// 设置宽高
-							let ture_width = parseInt(this_one_info[j]['width']);
-							let ture_height = parseInt(this_one_info[j]['height']);
-							let max_width = '198';
-							let max_height = '198';
-							if (ture_width >= ture_height) {
-								new_html = new_html.replace(/xz_width/g, max_width);
-								new_html = new_html.replace(/xz_height/g, 'auto');
-							} else {
-								new_html = new_html.replace(/xz_width/g, 'auto');
-								new_html = new_html.replace(/xz_height/g, max_height);
-							}
-							tag_search_new_html_one_page += new_html;
+					this_one_info = listPage_document.find(tag_search_lv1_selector).attr('data-items'); // 保存这一次的信息
+					this_one_info = JSON.parse(this_one_info); // 转化为数组
+					for (let j = 0; j < this_one_info.length; j++) {
+						// 拼接每个作品的html
+						let new_html = tag_search_new_html;
+						let pageCount = parseInt(this_one_info[j]['pageCount']); // 包含的图片数量
+						if (pageCount > 1) { // 多图
+							new_html = new_html.replace('<!--xz_multiple_html-->', xz_multiple_html);
 						}
-						tag_search_temp_result.html(tag_search_new_html_one_page);
-						tag_search_new_html_one_page = '';
-						allPicArea = tag_search_temp_result.find(tag_search_lv2_selector);
-					} else {
-						allPicArea = listPage_document.find(tag_search_list_selector);
+						let illustType = this_one_info[j]['illustType']; // 作品类型 0 插画 1 漫画 2 动图
+						if (illustType === '2') { // 动图
+							new_html = new_html.replace('<!--xz_gif_html-->', xz_gif_html);
+						}
+						if (this_one_info[j]['isBookmarked']) { // 是否已收藏
+							new_html = new_html.replace(/xz_isBookmarked/g, 'on');
+						}
+						// 填充内容
+						new_html = new_html.replace(/xz_illustId/g, this_one_info[j]['illustId']);
+						new_html = new_html.replace(/xz_pageCount/g, this_one_info[j]['pageCount']);
+						if (tag_search_show_img) {
+							new_html = new_html.replace(/xz_url/g, this_one_info[j]['url']);
+						}
+						new_html = new_html.replace(/xz_illustTitle/g, this_one_info[j]['illustTitle']);
+						new_html = new_html.replace(/xz_userId/g, this_one_info[j]['userId']);
+						new_html = new_html.replace(/xz_userName/g, this_one_info[j]['userName']);
+						new_html = new_html.replace(/xz_userImage/g, this_one_info[j]['userImage']);
+						new_html = new_html.replace(/xz_bookmarkCount/g, this_one_info[j]['bookmarkCount']);
+						// 设置宽高
+						let ture_width = parseInt(this_one_info[j]['width']);
+						let ture_height = parseInt(this_one_info[j]['height']);
+						let max_width = '198';
+						let max_height = '198';
+						if (ture_width >= ture_height) {
+							new_html = new_html.replace(/xz_width/g, max_width);
+							new_html = new_html.replace(/xz_height/g, 'auto');
+						} else {
+							new_html = new_html.replace(/xz_width/g, 'auto');
+							new_html = new_html.replace(/xz_height/g, max_height);
+						}
+						tag_search_new_html_one_page += new_html;
 					}
+					tag_search_temp_result.html(tag_search_new_html_one_page);
+					tag_search_new_html_one_page = '';
+					allPicArea = tag_search_temp_result.find(tag_search_lv2_selector);
 					for (let i = 0; i < allPicArea.length; i++) {
 						let now_id = this_one_info[i]['illustId'];
 						let shoucang = this_one_info[i]['bookmarkCount'];
@@ -1692,7 +1688,7 @@ function XZDownloader() {
 					$('#outputInfo').html($('#outputInfo').html() + '<br>' + xzlt('_列表页获取完成2', illust_url_list.length));
 					getListUrlFinished();
 				} else { // 不要把下面的if和这个else合并
-					if (page_type === 10 && tag_search_is_new === true) { //关注的新作品 列表改成和tag搜索页一样的了
+					if (page_type === 10 && list_is_new === true) { //关注的新作品 列表改成和tag搜索页一样的了
 						let this_one_info = listPage_document.find(tag_search_lv1_selector).attr('data-items'); // 保存这一次的信息
 						this_one_info = JSON.parse(this_one_info); // 转化为数组
 						for (let j = 0; j < this_one_info.length; j++) {
@@ -2912,15 +2908,13 @@ function XZDownloader() {
 	} else if (loc_url.indexOf('search.php?') > -1) { //5.on_tagsearch
 		page_type = 5;
 
-		if ($('#js-mount-point-search-result-list').length > 0) { // tag搜索页新版
-			tag_search_is_new = true;
-			tag_search_lv1_selector = '#js-mount-point-search-result-list';
-			tag_search_lv2_selector = '._25taFA4';
-			tag_search_list_selector = '._25taFA4';
-			tag_search_multiple_selector = '._1VJYUl1';
-			tag_search_gif_selector = '._347Rtjn';
-			// 因为tag搜索页新版将结果储存在一个div标签的属性里,而不是直接输出到html,但我们需要呈现html,所以需要模拟生成的元素
-			tag_search_new_html = `
+		tag_search_lv1_selector = '#js-mount-point-search-result-list';
+		tag_search_lv2_selector = '._25taFA4';
+		tag_search_list_selector = '._25taFA4';
+		tag_search_multiple_selector = '._1VJYUl1';
+		tag_search_gif_selector = '._347Rtjn';
+		// 因为tag搜索页新版将结果储存在一个div标签的属性里,而不是直接输出到html,但我们需要呈现html,所以需要模拟生成的元素
+		tag_search_new_html = `
 		<div class="_25taFA4">
 		<figure class="mSh0kS-" style="width: 200px; max-height: 288px;">
 		<div class="_3NnoQkv">
@@ -2971,15 +2965,8 @@ function XZDownloader() {
 		</figure>
 		</div>
 		`;
-			xz_multiple_html = '<div class="_1VJYUl1"><span><span class="_1RSXump"></span>xz_pageCount</span></div>';
-			xz_gif_html = '<div class="_347Rtjn"></div>';
-		} else if ($('.autopagerize_page_element').length > 0) { // tag搜索页旧版
-			tag_search_is_new = false;
-			tag_search_lv1_selector = '.autopagerize_page_element';
-			tag_search_list_selector = '.autopagerize_page_element .image-item';
-			tag_search_multiple_selector = '.multiple';
-			tag_search_gif_selector = '.ugoku-illust';
-		}
+		xz_multiple_html = '<div class="_1VJYUl1"><span><span class="_1RSXump"></span>xz_pageCount</span></div>';
+		xz_gif_html = '<div class="_347Rtjn"></div>';
 
 		base_url = loc_url.split('&p=')[0] + '&p=';
 		startpage_no = Number($('.page-list .current').eq(0).text()); //最开始时的页码
@@ -3308,7 +3295,7 @@ function XZDownloader() {
 		addBtnsAreaCtrl();
 		addOutputWarp();
 		if (loc_url.indexOf('/bookmark_new_illust') > -1) {
-			tag_search_is_new = true;
+			list_is_new = true;
 			tag_search_lv1_selector = '#js-mount-point-latest-following';
 			tag_search_lv2_selector = '._25taFA4';
 			tag_search_list_selector = '._25taFA4';
