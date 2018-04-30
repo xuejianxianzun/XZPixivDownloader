@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.6.0
+// @version     5.6.1
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv image downloader
@@ -2993,8 +2993,8 @@ function XZDownloader() {
 
 		// 添加快速筛选功能
 		let nowTag = $('.column-title a').text().split(' ')[0];
-		let favNums = ['100users入り', '500users入り', '1000users入り', '3000users入り', '5000users入り', '10000users入り']; //200和2000的因为数量太少，不添加
-		styleE.innerHTML += '.fastScreenArea a{display:inline-block;padding:10px;margin:0 25px;}';
+		let favNums = ['100users入り', '500users入り', '1000users入り', '3000users入り', '5000users入り', '10000users入り', '20000users入り', '30000users入り', '50000users入り']; //200和2000的因为数量太少，不添加。40000的也少
+		styleE.innerHTML += '.fastScreenArea a{display:inline-block;padding:10px;}';
 		let fastScreenArea = document.createElement('div');
 		fastScreenArea.className = 'fastScreenArea';
 		let insetParent = document.querySelector('._unit');
