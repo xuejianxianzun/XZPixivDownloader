@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.6.2
+// @version     5.6.3
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv image downloader
@@ -551,9 +551,9 @@ function XZDownloader() {
 			'View available tags'
 		],
 		'_可用标记1': [
-			'作品id，包含序号，如',
-			'作品ID（シリアル番号を含む）、例えば ',
-			'works id, including serial number, for example '
+			'作品id',
+			'作品ID',
+			'works id'
 		],
 		'_可用标记2': [
 			'作品标题',
@@ -2312,7 +2312,7 @@ function XZDownloader() {
 		</p>
 		<p class="fileNameTip tip">
 		<span class="blue">{id}</span>
-		${xzlt('_可用标记1')} 63011502_p0
+		${xzlt('_可用标记1')}
 		<br>
 		<span class="blue">{title}</span>
 		${xzlt('_可用标记2')}
@@ -2427,7 +2427,11 @@ function XZDownloader() {
 		// 检查是否有用户命名规则
 		let fileNameRule_input = document.querySelector('.fileNameRule');
 		let user_set_name = localStorage.getItem('user_name_rule');
-		fileNameRule_input.value = user_set_name;
+		if (user_set_name) {
+			fileNameRule_input.value = user_set_name;
+		}else{
+			fileNameRule_input.value = '{id}';	// 如果没有找到保存的用户规则，则设置为默认值
+		}
 		if (page_type === 8) {
 			fileNameRule_input.value = '{id}'; // pixivision里只有id可以使用
 		}
@@ -2435,8 +2439,9 @@ function XZDownloader() {
 		fileNameRule_input.addEventListener('change', function () {
 			if (this.value === '') {
 				this.value = '{id}'; //用户清空时，保持默认值
+			}else{
+				localStorage.setItem('user_name_rule', this.value);
 			}
-			localStorage.setItem('user_name_rule', this.value);
 		});
 		// 开始下载按钮
 		$('.startDownload').on('click', function () { // 准备下载
