@@ -276,3 +276,13 @@ https://www.pixiv.net/ajax/illust/68437318/ugoira_meta
 ### 5.6.2
 
 tag搜索页和大家关注的新作品都有一次改版，改版前是源码里包含着列表的DOM元素，改版后是把作品信息改成json方式保存到源码里了。因为p站的改版一直是新旧版共存过渡，所以当时有个tag_search_is_new参数来区别新旧版。但是到现在应该所有人都改成新版了。tag搜索页可以把tag_search_is_new去掉，但是page_type === 10里面还要留着。因为10里面的大家的新作品是旧版，关注的人的新作品是新版，这俩还得区分。现在先把tag搜索页的旧代码去掉了，并把tag_search_is_new改成list_is_new。
+
+### 5.6.4
+
+p站自己用的jQuery地址为：
+https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js
+
+之前我担心有些人用改dns的方法上p站的话，可能打不开google的网址，所以用了下面的网址：
+https://code.jquery.com/jquery-2.0.3.min.js
+
+但是有人打不开这个。怀疑是少数。如果人再有人打不开jquery官网的这个，就改成p站自己的网址吧。
