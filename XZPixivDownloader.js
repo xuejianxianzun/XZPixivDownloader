@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.6.4
+// @version     5.6.5
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv image downloader
@@ -1337,7 +1337,7 @@ function XZDownloader() {
 		imgList.sort(sortByProperty('num'));
 		$(tag_search_list_selector).remove();
 		for (let i = 0; i < imgList.length; i++) {
-			$('#js-react-search-mid').append(imgList[i].e);
+			$('#js-react-search-mid ._1BUAfFH').append(imgList[i].e);
 		}
 	}
 
