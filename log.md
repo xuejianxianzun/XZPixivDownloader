@@ -286,3 +286,7 @@ https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js
 https://code.jquery.com/jquery-2.0.3.min.js
 
 但是有人打不开这个。怀疑是少数。如果人再有人打不开jquery官网的这个，就改成p站自己的网址吧。
+
+### 5.6.6
+
+前些版本我更改了命名规则，现在有人想用原来的格式，增加了 use_original_name 参数来控制该选项。
