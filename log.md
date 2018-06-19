@@ -294,3 +294,42 @@ https://code.jquery.com/jquery-2.0.3.min.js
 ### 5.6.7
 
 屏蔽了新版的一些广告
+
+### 5.6.8
+
+添加一键收藏功能，并且附带tag。
+
+但是此功能目前有个小瑕疵，如果点了快速收藏，之后向前/后切换一张作品，再切换回来，回来之后会看到又变成没有收藏时的状态了。这是因为页面没有刷新，不要介意。只要快速收藏时显示了收藏成功就没问题。
+
+####一键收藏功能 API：####
+
+```https://www.pixiv.net/rpc/index.php```
+
+以 post 方式发送一些参数（并且需要发送 cookie），示例：
+
+```
+mode: save_illust_bookmark
+illust_id: 68201395
+restrict: 0
+comment:
+tags: Fate/GrandOrder セイバー・ブライド
+tt: 489520361bf22a5bb897306b3d9cdc1b
+```
+
+参数说明：
+
+```
+mode: save_illust_bookmark 此项固定
+
+illust_id: 68201395 id 按需要修改
+
+restrict: 0 此项固定
+
+comment: 保持留空即可
+
+tag：格式为 encodeURI 编码后的字符，如果要添加多个tag，不同tag之间用空格分开（%20）。
+
+tt：可以从 pixiv 页面上的全局变量获取：globalInitData.token
+```
+
+另外，删除收藏用的不是这个 api，而且使用的 id 也不是作品 id，而是该书签的 bookmark_id。

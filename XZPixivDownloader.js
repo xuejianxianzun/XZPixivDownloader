@@ -3,8 +3,8 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.6.7
-// @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设定各种筛选条件、文件命名规则、复制图片url；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
+// @version     5.6.8
+// @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设置筛选条件和文件命名规则；一键收藏（自动添加tag）；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixivピクチャバッチダウンローダ
 // @description:en Pixiv image downloader
 // @author      xuejianxianzun 雪见仙尊
@@ -31,7 +31,7 @@
 
 'use strict';
 
-if (typeof jQuery === 'undefined') { // 新版作品页没有jQuery了，所以引入jQuery。而且因为要等jQuery加载后在执行后面的代码，所以用同步请求。
+if (typeof jQuery === 'undefined') { // 新版作品页没有jQuery了，所以引入jQuery。
 	fetch('https://code.jquery.com/jquery-2.0.3.min.js', {
 			method: 'get'
 		})
@@ -126,6 +126,7 @@ function XZDownloader() {
 		click_time = 0, // 点击下载按钮的时间戳
 		time_delay = 0, // 延迟点击的时间
 		time_interval = 400, // 为了不会漏下图，设置的两次点击之间的间隔时间。下载图片的速度越快，此处的值就需要越大。默认的400是比较大的，如果下载速度慢，可以尝试改成300/200。
+		quickBookmark_timer,
 		down_xiangguan = false; // 下载相关作品（作品页内的）
 
 	// 多语言配置
@@ -950,6 +951,11 @@ function XZDownloader() {
 			'id不合法，操作取消。',
 			'idが不正な、操作はキャンセルされます。',
 			'id is illegal, the operation is canceled.'
+		],
+		'_快速收藏': [
+			'快速收藏',
+			'クイックブックマーク',
+			'Quick bookmarks'
 		]
 	};
 
@@ -965,7 +971,7 @@ function XZDownloader() {
 	}
 
 	// 去除广告
-	let block_ad_css = '<style>section.ad,._3M6FtEB,._2vNejsc,[name=header],.ads_anchor,.ad-bigbanner,.ad-footer,._premium-lead-tag-search-bar,#header-banner.ad,.popular-introduction-overlay,.ad-bigbanner,.adsbygoogle,.ui-fixed-container aside,.ad-multiple_illust_viewer{display: none!important;z-index: -999!important;width: 0!important;height: 0!important;opacity: 0!important;}</style>';
+	let block_ad_css = '<style>section.ad,._3M6FtEB,._2vNejsc,[name=header],.ads_anchor,.ad-bigbanner,.ad-footer,._premium-lead-tag-search-bar,#header-banner.ad,.popular-introduction-overlay,.ad-bigbanner,.adsbygoogle,.ui-fixed-container aside,.ad-multiple_illust_viewer,.ads_area{display: none!important;z-index: -999!important;width: 0!important;height: 0!important;opacity: 0!important;}</style>';
 	document.body.insertAdjacentHTML('beforeend', block_ad_css);
 
 	let parser = new DOMParser(); // DOMParser，将字符串形式的html代码解析为DOM结构
@@ -989,6 +995,89 @@ function XZDownloader() {
 			}
 		});
 	};
+
+	// 快速收藏
+	function quickBookmark() {
+		// 本函数一直运行。因为切换作品（pushstate）时，不能准确的知道 toolbar 何时更新，所以只能不断检测，这样在切换作品时才不会出问题
+		// 启动定时器
+		quickBookmark_timer = setTimeout(() => {
+			quickBookmark();
+		}, 300);
+
+		let toolbar = document.querySelector('._1OvFbUk');
+		if (!toolbar) { // 如果没有 toolbar
+			return false;
+		} else { // 如果有 toolbar
+			let quickBookmarkId = 'quickBookmarkElement';
+			let quickBookmarkElement = document.querySelector(`#${quickBookmarkId}`);
+			if (!quickBookmarkElement) { // 如果没有 quick 元素则添加
+				let pinkClass = '_2zvNuR6';
+				let heartA = toolbar.querySelector('._2B0vXTj a');
+
+				let quickBookmarkElement = document.createElement('div');
+				quickBookmarkElement.id = quickBookmarkId;
+				quickBookmarkElement.innerHTML = '✩';
+				quickBookmarkElement.title = xzlt('_快速收藏');
+				quickBookmarkElement.style.fontSize = '34px';
+				quickBookmarkElement.style.lineHeight = '30px';
+				quickBookmarkElement.style.marginRight = '15px';
+				quickBookmarkElement.style.cursor = 'pointer';
+				quickBookmarkElement.style.display = 'none';
+				toolbar.insertBefore(quickBookmarkElement, toolbar.childNodes[3]);
+				quickBookmarkElement.addEventListener('click', () => {
+					let now_id = location.search.match(/illust_id=.*\d?/)[0].split('=')[1];
+					let tagArray = [];
+					let tagElements = document.querySelectorAll('._1tTPwGC');
+					for (const element of tagElements) {
+						tagArray.push(element.querySelector('span a').innerHTML); // 储存 tag
+					}
+					let original = document.querySelector('._2XmoSW7 a');	// "原创" tag 是一个单独的元素
+					if (original) {
+						tagArray.push(original.innerHTML);
+					}
+					let tagString = encodeURI(tagArray.join(' '));
+					let tt = unsafeWindow.globalInitData.token;
+					// 调用添加收藏的 api
+					fetch('https://www.pixiv.net/rpc/index.php', {
+							method: 'post',
+							headers: {
+								'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+							},
+							credentials: 'include', // 附带 cookie
+							body: `mode=save_illust_bookmark&illust_id=${now_id}&restrict=0&comment=&tags=${tagString}&tt=${tt}`
+						})
+						.then(function (response) {
+							response.text()
+								.then(function (data) {
+									if (response.ok) {
+										data = JSON.parse(data);
+										if (data.error !== undefined && data.error === false) {
+											// console.log('收藏成功');
+											// 如果已经收藏过了，则隐藏 quick 元素
+											quickBookmarkElement.style.color = '#FF4060';
+											quickBookmarkElement.style.display = 'none';
+											heartA.classList.add(pinkClass); // 添加这个 class 变红
+										}
+									} else {
+										// 失败 如 403 404
+									}
+								});
+						});
+				});
+				// 添加完毕后，不要清除定时器，在外部调用本函数之前再清除
+				// clearInterval(quickBookmark_timer);
+				// 刚添加之后是隐藏的，之后检测一下，如果没有收藏再显示
+				setTimeout(() => {
+					if (!heartA.classList.contains(pinkClass)) {
+						quickBookmarkElement.style.display = 'block';
+					}
+				}, 100);
+				// 这里加一点延时，防止判断的太早，那样可能判断时收藏图标还没变红，产生误判
+			} else { // 如果有 quick 元素，什么都不做
+				return false;
+			}
+		}
+	}
 
 	// 修改title
 	function changeTitle(string) {
@@ -2796,7 +2885,12 @@ function XZDownloader() {
 
 		window.addEventListener('pushState', () => {
 			$(outputInfo).html(''); // 切换页面时，清空输出区域
+			clearInterval(quickBookmark_timer);
+			quickBookmark();
 		});
+
+		clearInterval(quickBookmark_timer);
+		quickBookmark();
 
 	} else if ((loc_url.indexOf('member_illust.php?id=') > -1 || loc_url.indexOf('&id=') > -1) && (loc_url.indexOf('&tag') == -1 && loc_url.indexOf('?tag') == -1) && loc_url.indexOf('response.php') == -1) { //2.on_illust_list
 		page_type = 2;
