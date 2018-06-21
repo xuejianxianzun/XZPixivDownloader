@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.7.0
+// @version     5.7.1
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设置筛选条件和文件命名规则；一键收藏（自动添加tag）；在当前页面查看多图；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -1357,15 +1357,29 @@ function XZDownloader() {
 	}
 
 	function setViewerCenter() {
-		// 获取网页宽高
-		let htmlWidth = document.documentElement.clientWidth;
-		let htmlHeight = document.documentElement.clientHeight;
 		// 获取图片宽高
-		let imgSize = document.querySelector('.viewer-title').innerHTML.match(/\(.*\)/)[0].replace(/\(|\)| /g, '').split('×');
+		let imgInfo = document.querySelector('.viewer-title').innerHTML;
+		if (!imgInfo) { // 但是如果图片尚未加载出来的话，就没有内容，就过一会儿再执行
+			setTimeout(() => {
+				setViewerCenter();
+			}, 400);
+			return false;
+		}
+		let imgSize = imgInfo.match(/\(.*\)/)[0].replace(/\(|\)| /g, '').split('×');
 		// > '66360324_p5_master1200.jpg (919 × 1300)'
 		// < [919,1300]
 		let imgWidth = imgSize[0];
 		let imgHeight = imgSize[1];
+		let viewerImg = document.querySelector('.viewer-canvas img');
+		if (viewerImg.width !== imgWidth) { // 如果图片宽高不是自然宽高，则设置图片宽高，让它显示为100%
+			setTimeout(() => { // 又要加延时，心好累
+				viewerImg.style.width = imgWidth + 'px';
+				viewerImg.style.height = imgHeight + 'px';
+			}, 100);
+		}
+		// 获取网页宽高
+		let htmlWidth = document.documentElement.clientWidth;
+		let htmlHeight = document.documentElement.clientHeight;
 		// 设置边距
 		let setWidth = (htmlWidth - imgWidth) / 2;
 		let setHeight = (htmlHeight - imgHeight) / 2;
