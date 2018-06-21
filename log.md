@@ -245,7 +245,7 @@ https://www.pixiv.net/ajax/illust/67050051
 
 - 修改了处理404的代码。之前获取作品页的时候获取的是html页面，404了也可以进入success处理。现在改为获取json数据了，404不进入success了，要在外面statusCode里处理。
 
-### 4.6.0
+### 5.6.0
 
 **新增功能：**
 
@@ -307,7 +307,7 @@ https://code.jquery.com/jquery-2.0.3.min.js
 
 - 收藏时添加的 tag 貌似有 20 个字符的最大长度限制，如添加“バーチャルYouTuber5000users入り”会被截断成为“バーチャルYouTuber5000use”，即使是手动添加也会被截断。
 
-####一键收藏功能 API：
+##### 一键收藏功能 API：
 
 ```https://www.pixiv.net/rpc/index.php```
 
@@ -368,7 +368,7 @@ https://greasyfork.org/scripts/369647-viewer-js-mix/code/Viewerjs%20mix.js
 
 不要用左右方向键 ← → 来切换图片，因为这样会导致 pixiv 也响应了左右方向键，从而切换了作品。还是用鼠标来切换图片吧。
 
-如果你在p站切换作品时，使用的不是 左右方向键 ← →，而是用的浏览器的前进后退按钮来操作，那么切换到的这个页面不会触发快速收藏和看图模式。
+你在p站切换作品时，推荐使用左右方向键 ← →。如果用浏览器的前进后退按钮来操作，那么切换到的这个页面不会触发快速收藏和看图模式。
 
 - pixiv 上缩略图的 url 开头是这样的， ```https://i.pximg.net/c/240x240/img-master/img/```，例如：
 

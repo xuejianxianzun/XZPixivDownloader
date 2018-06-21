@@ -6,6 +6,8 @@
 
 这是一个使用JavaScript编写的Pixiv图片下载器，它实质上是一个用户脚本（UserScript），必须使用用户脚本管理器来安装。
 
+现在也增加了一些辅助功能，如去除广告、快速收藏、看图模式等。
+
 ### 推荐环境：
 
 浏览器：**Chrome** [(下载Chrome浏览器，此链接需要翻墙)](http://www.google.cn/chrome/browser/desktop/)
