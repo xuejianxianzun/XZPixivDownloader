@@ -3,10 +3,10 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.6.8
+// @version     5.7.0
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设置筛选条件和文件命名规则；一键收藏（自动添加tag）；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
-// @description:ja Pixivピクチャバッチダウンローダ
-// @description:en Pixiv image downloader
+// @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
+// @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
 // @author      xuejianxianzun 雪见仙尊
 // @include     *://www.pixiv.net/*
 // @include     *://www.pixivision.net/*
@@ -59,6 +59,7 @@ function XZDownloader() {
 		multiple_down_number = 0, // 设置多图作品下载前几张图片。0为不限制，全部下载。改为1则只下载第一张。这是因为有时候多p作品会导致要下载的图片过多，此时可以设置只下载前几张，减少下载量
 		tag_search_show_img = true, //是否显示tag搜索页里面的封面图片。如果tag搜索页的图片数量太多，那么加载封面图可能要很久，并且可能因为占用大量带宽导致抓取中断。这种情况下可以将此参数改为false，不加载封面图。
 		fileName_length = 200, // 文件名的最大长度，超出将会截断。如果文件的保存路径过长可能会保存失败，此时可以把这个数值改小些。
+		viewer_enable = true, // 是否启用看图模式
 		// 以上为用户可以视情况修改的设置项
 		loc_url = window.location.href, //当前页面的url
 		page_type, //区分页面类型
@@ -127,7 +128,11 @@ function XZDownloader() {
 		time_delay = 0, // 延迟点击的时间
 		time_interval = 400, // 为了不会漏下图，设置的两次点击之间的间隔时间。下载图片的速度越快，此处的值就需要越大。默认的400是比较大的，如果下载速度慢，可以尝试改成300/200。
 		quickBookmark_timer,
-		down_xiangguan = false; // 下载相关作品（作品页内的）
+		down_xiangguan = false, // 下载相关作品（作品页内的）
+		viewerELCreated = false, // 是否已经创建了图片列表元素
+		viewerWarpper, // 图片列表的容器
+		viewerUl, // 图片列表的 ul 元素
+		myViewer; // 查看器
 
 	// 多语言配置
 	let lang_type; // 语言类型
@@ -1031,7 +1036,7 @@ function XZDownloader() {
 					for (const element of tagElements) {
 						tagArray.push(element.querySelector('span a').innerHTML); // 储存 tag
 					}
-					let original = document.querySelector('._2XmoSW7 a');	// "原创" tag 是一个单独的元素
+					let original = document.querySelector('._2XmoSW7 a'); // "原创" tag 是一个单独的元素
 					if (original) {
 						tagArray.push(original.innerHTML);
 					}
@@ -1078,6 +1083,349 @@ function XZDownloader() {
 			}
 		}
 	}
+
+	// 初始化图片查看器
+	function initViewer() {
+		if (!viewer_enable) {
+			return false;
+		}
+		if (typeof Viewer !== 'function') {
+			loadViewer();
+			return false;
+		}
+		if (!viewerELCreated) {
+			createViewer();
+			return false;
+		}
+		if (viewerELCreated) { // 每次被调用时，如果一切都准备好了，则更新数据
+			updateViewer();
+		}
+	}
+
+	// 加载图片查看器 js 文件
+	function loadViewer() {
+		fetch('https://greasyfork.org/scripts/369647-viewer-js-mix/code/Viewerjs%20mix.js', {
+				method: 'get'
+			})
+			.then(function (response) {
+				response.text()
+					.then(function (data) {
+						let element = document.createElement('script');
+						element.setAttribute('type', 'text/javascript');
+						element.innerHTML = data;
+						document.head.appendChild(element);
+						if (typeof Viewer === 'function') {
+							initViewer();
+						}
+					});
+			});
+	}
+
+	// 创建图片查看器 html 元素，并绑定一些事件，这个函数只会执行一次
+	function createViewer() {
+		if (!document.querySelector('._290uSJE')) { // 如果图片中间部分的元素还未生成，则过一会儿再检测
+			setTimeout(() => {
+				createViewer();
+			}, 200);
+			return false;
+		}
+		// 图片列表样式
+		let viewerStyle = `
+		<style>
+		#viewerWarpper {
+			margin:24px auto 15px;
+			overflow: hidden;
+			background: #fff;
+			padding: 0 16px;
+			display: none;
+			border-top: 1px solid #eee;
+			border-bottom: 1px solid #eee;
+		}
+		#viewerWarpper ul {
+			max-width:568px;
+			margin:24px auto;
+			padding: 0 16px;
+			display: flex;
+			justify-content: flex-start;
+			align-items: center;
+			flex-wrap: nowrap;
+			overflow: auto;
+		}
+		#viewerWarpper li {
+			display: flex;
+			flex-shrink: 0;
+			margin-right: 8px;
+			overflow: hidden;
+		}
+		#viewerWarpper li img {
+			cursor: pointer;
+			max-height: 144px;
+			width: auto;
+		}
+		</style>
+		`;
+		document.body.insertAdjacentHTML('beforeend', viewerStyle);
+		// 图片列表 html 结构： div#viewerWarpper > ul > li > img
+		viewerWarpper = document.createElement('div');
+		viewerWarpper.id = 'viewerWarpper';
+		viewerUl = document.createElement('ul');
+		viewerWarpper.appendChild(viewerUl);
+		document.querySelector('._290uSJE').insertBefore(viewerWarpper, document.querySelector('._1Hctrfm'));
+
+		viewerELCreated = true;
+
+		// 覆写 Viewer.js 的部分样式
+		let over_viewer_style = `
+		<style>
+		.viewer-backdrop{
+			background: rgba(0, 0, 0, .8);
+		}
+		.viewer-toolbar .viewer-prev {
+			background-color: rgba(0, 0, 0, .8);
+			border-radius: 50%;
+			cursor: pointer;
+			height: 100px;
+			overflow: hidden;
+			position: fixed;
+			left: -70px;
+			top: 40%;
+			width: 100px;
+		  }
+		  .viewer-toolbar .viewer-prev::before {
+			top: 40px;
+			left: 70px;
+			position: absolute;
+		  }
+
+		  .viewer-toolbar .viewer-next {
+			background-color: rgba(0, 0, 0, .8);
+			border-radius: 50%;
+			cursor: pointer;
+			height: 100px;
+			overflow: hidden;
+			position: fixed;
+			right: -70px;
+			top: 40%;
+			width: 100px;
+		  }
+		  .viewer-toolbar .viewer-next::before {
+			left: 10px;
+			top: 40px;
+			position: absolute;
+		  }
+		  .black-background{
+			  background: rgba(0, 0, 0, 1);
+		  }
+		</style>
+		`;
+		document.body.insertAdjacentHTML('beforeend', over_viewer_style);
+
+		// 缩放时显示或隐藏某些元素，本来想超过100%自动进入全屏，但是全屏必须要用户操作才行
+		// viewerUl.addEventListener('zoom', function () {
+		// 	if (event.detail.ratio >= 1) { // 缩放达到或超过100%（或者点击1:1按钮时）
+		// 		// 隐藏查看器的其他元素
+		// 		hideViewerOther();
+		// 	} else { // 显示查看器的其他元素
+		// 		showViewerOther();
+		// 	}
+		// });
+
+		// 图片查看器显示之后
+		viewerUl.addEventListener('shown', function () {
+			// 显示相关元素
+			showViewerOther();
+			// 绑定点击全屏事件
+			document.querySelector('.viewer-one-to-one').addEventListener('click', () => {
+				hideViewerOther(); // 隐藏查看器的其他元素
+				launchFullScreen(document.body); // 进入全屏
+				setTimeout(() => { // 使图片居中显示，必须加延迟
+					setViewerCenter();
+				}, 100);
+			});
+		});
+
+		// 全屏状态下，查看器查看和切换图片时，始终显示为100%
+		viewerUl.addEventListener('view', function () {
+			if (isFullscreen()) {
+				setTimeout(() => { // 通过点击 1:1 按钮，调整为100%并居中。这里必须要加延时，否则点击的时候图片还是旧的
+					document.querySelector('.viewer-one-to-one').click();
+				}, 50);
+			}
+		});
+
+		// 查看器隐藏时，如果还处于全屏，则退出全屏
+		viewerUl.addEventListener('hidden', function () {
+			if (isFullscreen()) {
+				exitFullscreen();
+			}
+		});
+
+		// esc 退出图片查看器
+		document.addEventListener('keyup', function (event) {
+			let e = event || window.event;
+			if (e.keyCode == 27) { // 按下 esc
+				// 如果非全屏，且查看器已经打开，则退出查看器
+				if (!isFullscreen() && viewerIsShow()) {
+					document.querySelector('.viewer-close').click();
+				}
+			}
+		});
+
+		updateViewer();
+	}
+
+	// 更新图片查看器的图片列表
+	function updateViewer() {
+		// 每次要更新的时候，先隐藏 viewerWarpper
+		viewerWarpper.style.display = 'none';
+		let now_id = location.search.match(/\d.*\d/)[0];
+		fetch('https://www.pixiv.net/ajax/illust/' + now_id, {
+				method: 'get',
+				credentials: 'include', // 附带 cookie
+			})
+			.then(function (response) {
+				response.text()
+					.then(function (data) {
+						let this_one_data = JSON.parse(data).body;
+						if (this_one_data.illustType === 0 || this_one_data.illustType === 1) { // 单图或多图，0插画1漫画2动图（1的如68430279）
+							if (this_one_data.pageCount > 1) { // 多图
+								// 当作品类型为 插画或者漫画，并且是多图时，才会产生缩略图
+								let urls_thumb = this_one_data.urls.thumb;
+								// https://i.pximg.net/c/240x240/img-master/img/2017/11/28/00/23/44/66070515_p0_master1200.jpg
+								let urls_original = this_one_data.urls.original;
+								// https://i.pximg.net/img-original/img/2017/11/28/00/23/44/66070515_p0.png
+								let length = this_one_data.pageCount;
+								let viewerList = '';
+								for (let index = 0; index < length; index++) {
+									let pageNo = 'p' + index;
+									viewerList += `<li><img src="${urls_thumb.replace('p0',pageNo)}" data-src="${urls_original.replace('p0',pageNo)}"></li>`;
+								}
+								viewerUl.innerHTML = viewerList;
+								// 数据更新后，显示 viewerWarpper
+								viewerWarpper.style.display = 'block';
+								// 销毁看图组件
+								if (myViewer) {
+									myViewer.destroy();
+								}
+								// 重新配置看图组件
+								myViewer = new Viewer(viewerUl, {
+									toolbar: {
+										zoomIn: 0,
+										zoomOut: 0,
+										oneToOne: 1,
+										reset: 0,
+										prev: 1,
+										play: {
+											show: 0,
+											size: 'large',
+										},
+										next: 1,
+										rotateLeft: 0,
+										rotateRight: 0,
+										flipHorizontal: 0,
+										flipVertical: 0,
+									},
+									url(image) {
+										return image.getAttribute('data-src');
+									},
+									transition: false, // 取消一些动画，比如切换图片时，图片从小变大出现的动画
+									keyboard: false, // 取消键盘支持，主要是用键盘左右方向键切换的话，会和 pixiv 页面产生冲突。（pixiv 页面上，左右方向键会切换作品）
+									title: false, // 不显示 title（图片名和宽高信息）
+									tooltip: false, // 不显示缩放比例
+								});
+							}
+						}
+					});
+			});
+	}
+
+	// 隐藏查看器的其他元素
+	function hideViewerOther() {
+		document.querySelector('.viewer-container').classList.add('black-background');
+		document.querySelector('.viewer-close').style.display = 'none';
+		// 隐藏底部的其他元素，仍然显示左右切换按钮
+		document.querySelector('.viewer-one-to-one').style.display = 'none';
+		document.querySelector('.viewer-navbar').style.display = 'none';
+	}
+
+	// 显示查看器的其他元素
+	function showViewerOther() {
+		document.querySelector('.viewer-container').classList.remove('black-background');
+		document.querySelector('.viewer-close').style.display = 'block';
+		document.querySelector('.viewer-one-to-one').style.display = 'block';
+		document.querySelector('.viewer-navbar').style.display = 'block';
+	}
+
+	function setViewerCenter() {
+		// 获取网页宽高
+		let htmlWidth = document.documentElement.clientWidth;
+		let htmlHeight = document.documentElement.clientHeight;
+		// 获取图片宽高
+		let imgSize = document.querySelector('.viewer-title').innerHTML.match(/\(.*\)/)[0].replace(/\(|\)| /g, '').split('×');
+		// > '66360324_p5_master1200.jpg (919 × 1300)'
+		// < [919,1300]
+		let imgWidth = imgSize[0];
+		let imgHeight = imgSize[1];
+		// 设置边距
+		let setWidth = (htmlWidth - imgWidth) / 2;
+		let setHeight = (htmlHeight - imgHeight) / 2;
+		if (setHeight < 0) { // 当图片高度大于浏览器窗口高度时，居顶显示而不是居中
+			setHeight = 0;
+		}
+		myViewer.moveTo(setWidth, setHeight);
+	}
+
+	// 进入全屏
+	function launchFullScreen(element) {
+		if (element.requestFullscreen) {
+			element.requestFullscreen();
+		} else if (element.msRequestFullscreen) {
+			element.msRequestFullscreen();
+		} else if (element.mozRequestFullScreen) {
+			element.mozRequestFullScreen();
+		} else if (element.webkitRequestFullscreen) {
+			element.webkitRequestFullscreen();
+		}
+	}
+
+	// 退出全屏
+	function exitFullscreen() {
+		if (document.exitFullscreen) {
+			document.exitFullscreen();
+		} else if (document.mozExitFullScreen) {
+			document.mozExitFullScreen();
+		} else if (document.webkitExitFullscreen) {
+			document.webkitExitFullscreen();
+		}
+	}
+
+	// 全屏状态变化时的处理
+	function changeFullscreen() {
+		if (isFullscreen()) { // 进入全屏
+
+		} else { // 退出全屏
+			showViewerOther();
+		}
+	}
+
+	// 判断是否处于全屏状态
+	function isFullscreen() {
+		return document.fullscreenElement || document.msFullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || false;
+	}
+
+	function viewerIsShow() {
+		return document.querySelector('.viewer-container').classList.contains('viewer-in');
+	}
+
+	// 检测全屏状态变化，绑定的事件有兼容性问题（这里也相当于绑定了 esc 按键事件）
+	// fullscreenchange/webkitfullscreenchange/mozfullscreenchange
+	// 标准的 fullscreenchange 至今没有支持
+	document.addEventListener('webkitfullscreenchange', () => {
+		changeFullscreen();
+	});
+	document.addEventListener('mozfullscreenchange', () => {
+		changeFullscreen();
+	});
 
 	// 修改title
 	function changeTitle(string) {
@@ -2885,12 +3233,17 @@ function XZDownloader() {
 
 		window.addEventListener('pushState', () => {
 			$(outputInfo).html(''); // 切换页面时，清空输出区域
+
 			clearInterval(quickBookmark_timer);
 			quickBookmark();
+
+			initViewer();
 		});
 
 		clearInterval(quickBookmark_timer);
 		quickBookmark();
+
+		initViewer();
 
 	} else if ((loc_url.indexOf('member_illust.php?id=') > -1 || loc_url.indexOf('&id=') > -1) && (loc_url.indexOf('&tag') == -1 && loc_url.indexOf('?tag') == -1) && loc_url.indexOf('response.php') == -1) { //2.on_illust_list
 		page_type = 2;
