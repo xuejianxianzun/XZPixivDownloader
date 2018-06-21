@@ -1016,8 +1016,8 @@ function XZDownloader() {
 			let quickBookmarkId = 'quickBookmarkElement';
 			let quickBookmarkElement = document.querySelector(`#${quickBookmarkId}`);
 			if (!quickBookmarkElement) { // 如果没有 quick 元素则添加
-				let pinkClass = '_2zvNuR6';
-				let heartA = toolbar.querySelector('._2B0vXTj a');
+				let pinkClass = '_20nOYr7';
+				let heartA = toolbar.querySelector('._2B0vXTj a svg');
 
 				let quickBookmarkElement = document.createElement('div');
 				quickBookmarkElement.id = quickBookmarkId;
