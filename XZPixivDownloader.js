@@ -1370,13 +1370,7 @@ function XZDownloader() {
 		// < [919,1300]
 		let imgWidth = imgSize[0];
 		let imgHeight = imgSize[1];
-		let viewerImg = document.querySelector('.viewer-canvas img');
-		if (viewerImg.width !== imgWidth) { // 如果图片宽高不是自然宽高，则设置图片宽高，让它显示为100%
-			setTimeout(() => { // 又要加延时，心好累
-				viewerImg.style.width = imgWidth + 'px';
-				viewerImg.style.height = imgHeight + 'px';
-			}, 100);
-		}
+		myViewer.zoomTo(1);
 		// 获取网页宽高
 		let htmlWidth = document.documentElement.clientWidth;
 		let htmlHeight = document.documentElement.clientHeight;
