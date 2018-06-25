@@ -1356,13 +1356,14 @@ function XZDownloader() {
 		document.querySelector('.viewer-navbar').style.display = 'block';
 	}
 
+	// 在图片100%显示时，使其居中
 	function setViewerCenter() {
 		// 获取图片宽高
 		let imgInfo = document.querySelector('.viewer-title').innerHTML;
 		if (!imgInfo) { // 但是如果图片尚未加载出来的话，就没有内容，就过一会儿再执行
 			setTimeout(() => {
 				setViewerCenter();
-			}, 400);
+			}, 200);
 			return false;
 		}
 		let imgSize = imgInfo.match(/\(.*\)/)[0].replace(/\(|\)| /g, '').split('×');
