@@ -1,6 +1,6 @@
 [View English introduction](https://github.com/xuejiansaber/XZPixivDownloader/blob/master/README-EN.md)
 
-![图片1](https://wx3.sinaimg.cn/mw1024/640defebgy1fsndo9dwvcj20zm0wv0xj.jpg)
+![图片1](https://wx3.sinaimg.cn/large/640defebgy1fsndo9dwvcj20zm0wv0xj.jpg)
 
 # 简介：
 
