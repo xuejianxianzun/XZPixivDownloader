@@ -1,6 +1,6 @@
 [View English introduction](https://github.com/xuejiansaber/XZPixivDownloader/blob/master/README-EN.md)
 
-![图片1](https://wx3.sinaimg.cn/large/640defebgy1fsndo9dwvcj20zm0wv0xj.jpg)
+![仙尊 pixiv 下载器 中文截图](https://wx3.sinaimg.cn/large/640defebgy1fsndo9dwvcj20zm0wv0xj.jpg)
 
 # 简介：
 
@@ -23,8 +23,6 @@
 你可以在greasyfork.org上安装它：
 
 [https://greasyfork.org/zh-CN/scripts/24252](https://greasyfork.org/zh-CN/scripts/24252)
-
-安装后，在可以进行下载的页面上就会显示下载功能按钮。
 
 下载的文件会保存在浏览器的下载目录里。
 
@@ -72,11 +70,11 @@ English （机翻，韩语设置下也使用英语文本）
 
 # 提示：
 
-#### 修改默认参数
+- 修改默认参数
 
-在脚本的前几行，可以按需要修改一些变量的默认值有一些变量的可以按需要修改。
+在```XZDownloader```函数里，可以按需要修改一些变量的默认值。当脚本更新后，需要再次进行修改。
 
-#### Chrome 的资源限制问题
+- Chrome 的资源限制问题
 
 下载p站图片时，该页面会占用较多内存和cpu资源。如果切换到了其他页面，导致下载页面未激活，那么chrome就会限制下载页面的资源使用，导致下载缓慢。
 
@@ -84,7 +82,7 @@ English （机翻，韩语设置下也使用英语文本）
 
 办法2：把下载的标签页单独拖出来，成为一个独立的窗口。新窗口里只有这一个页面，它始终是激活的。这样下载不受影响，我们也可以使用其他页面了。
 
-#### 手动将动图合成为视频：
+- 手动将动图合成为视频：
 
 因为pixiv上动图的源文件是zip压缩包，体积大，看图还麻烦。我们可以将压缩包里的图片解压出来，之后用ffmpeg将动图转换成视频。你可以参考这里：
 

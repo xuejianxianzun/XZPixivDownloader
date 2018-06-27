@@ -1,8 +1,10 @@
-![图片1](https://wx3.sinaimg.cn/large/640defebgy1fo5o99pc8pj20mr0ie4cb.jpg)
+![仙尊 pixiv 下载器 英文截图](https://wx4.sinaimg.cn/large/640defebgy1fspktkplcxj20zs0xbq84.jpg)
 
 # Introduction:
 
 This is a Pixiv image downloader written in JavaScript, which is essentially a UserScript. It must be installed using User Script Manager.
+
+Some auxiliary functions have also been added, such as removing ads, quick collections, and viewing pictures.
 
 ### Recommended Use:
 
@@ -19,8 +21,6 @@ User Script Manager: **Tampermonkey** [(view in Chrome webstore)](https://chrome
 You can install it at greasyfork.org:
 
 [https://greasyfork.org/zh-CN/scripts/24252](https://greasyfork.org/zh-CN/scripts/24252)
-
-After installation, the download function button will displayed on the downloadable page.
 
 The downloaded file will be saved in your browser's download directory.
 
@@ -69,6 +69,8 @@ English (machine translation, also used under Korean settings)
 You can also optimize the translation, thank you very much :)
 
 # Tips:
+
+- Chrome's resource limits
 
 When you download picture, this page uses more memory and cpu resources. If you switch to another page and the download page is not activated, Chrome will limit the resource usage of the download page, resulting in slow download.
 
