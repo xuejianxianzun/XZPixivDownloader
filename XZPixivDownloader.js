@@ -2898,11 +2898,10 @@ function XZDownloader() {
 		}
 		// 当用户改变了命名规则时保存
 		fileNameRule_input.addEventListener('change', function () {
-			if (this.value === '') {
-				this.value = '{id}'; //用户清空时，保持默认值
-			} else {
-				localStorage.setItem('user_name_rule', this.value);
+			if (this.value === '') {	//用户清空时，恢复成默认值
+				this.value = '{id}';
 			}
+			localStorage.setItem('user_name_rule', this.value);
 		});
 		// 开始下载按钮
 		$('.startDownload').on('click', function () { // 准备下载
