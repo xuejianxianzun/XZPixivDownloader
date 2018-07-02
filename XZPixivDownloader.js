@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.7.1
+// @version     5.7.2
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设置筛选条件和文件命名规则；一键收藏（自动添加tag）；在当前页面查看多图；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -54,7 +54,6 @@ if (typeof jQuery === 'undefined') { // 新版作品页没有jQuery了，所以�
 function XZDownloader() {
 	let quiet_download = false, // 是否静默下载，即下载时不弹窗提醒，并且自动开始下载（无需点击下载按钮）。目前新版本已经默认不弹窗了，这个参数的意义基本就是自动下载了
 		use_alert = false, // 是否使用弹窗提醒
-		use_original_name = false, // 是否使用图片的原名。想让图片前面不加 id_ 以及单图带 p0 序号时把这个改为 true
 		download_thread_deauflt = 5, // 同时下载的线程数，可以修改。如果不想用加延迟 time_interval 的方法来防止漏图，那么可以把这里改成1，单线程下载不会漏图。此版本用的是加延迟的方法，可以支持多线程
 		multiple_down_number = 0, // 设置多图作品下载前几张图片。0为不限制，全部下载。改为1则只下载第一张。这是因为有时候多p作品会导致要下载的图片过多，此时可以设置只下载前几张，减少下载量
 		tag_search_show_img = true, //是否显示tag搜索页里面的封面图片。如果tag搜索页的图片数量太多，那么加载封面图可能要很久，并且可能因为占用大量带宽导致抓取中断。这种情况下可以将此参数改为false，不加载封面图。
@@ -522,15 +521,15 @@ function XZDownloader() {
 			'クローズド',
 			'close'
 		],
-		'_图片url列表': [
-			'图片url列表',
-			'画像URLリスト',
-			'Image url list'
+		'_输出信息': [
+			'输出信息',
+			'出力情報',
+			'Output information'
 		],
-		'_复制图片url': [
-			'复制图片url',
-			'画像URLをコピーする',
-			'Copy the image url'
+		'_复制': [
+			'复制',
+			'コピー',
+			'Copy'
 		],
 		'_已复制到剪贴板': [
 			'已复制到剪贴板，可直接粘贴',
@@ -555,7 +554,7 @@ function XZDownloader() {
 		'_查看可用的标记': [
 			'查看可用的标记',
 			'利用可能なタグを見る',
-			'View available tags'
+			'See available tags'
 		],
 		'_可用标记1': [
 			'作品id',
@@ -593,9 +592,14 @@ function XZDownloader() {
 			'bookmark-count.'
 		],
 		'_可用标记5': [
-			'你可以使用多个标记；建议在不同标记之间添加分割用的字符。示例：{id}_{userid}_{px}<br>* 在pixivision里，只有id标记会生效',
-			'複数のタグを使用することができ；異なるタグ間に別の文字を追加することができます。例：{id}_{userid}_{px}<br>* pixivisionでは、idのみが利用可能です',
-			'You can use multiple tags, and you can add a separate character between different tags. Example: {id}_{userid}_{px}<br>* On pixivision, only id is available'
+			'你可以使用多个标记；建议在不同标记之间添加分割用的字符。示例：{id}-{userid}-{px}<br>* 在pixivision里，只有id标记会生效',
+			'複数のタグを使用することができ；異なるタグ間に別の文字を追加することができます。例：{id}-{userid}-{px}<br>* pixivisionでは、idのみが利用可能です',
+			'You can use multiple tags, and you can add a separate character between different tags. Example: {id}-{userid}-{px}<br>* On pixivision, only id is available'
+		],
+		'_预览文件名': [
+			'预览文件名',
+			'ファイル名のプレビュー',
+			'Preview file name'
 		],
 		'_下载按钮1': [
 			'开始下载',
@@ -1423,7 +1427,12 @@ function XZDownloader() {
 	}
 
 	function viewerIsShow() {
-		return document.querySelector('.viewer-container').classList.contains('viewer-in');
+		let viewer_container = document.querySelector('.viewer-container');
+		if (viewer_container) {
+			return viewer_container.classList.contains('viewer-in');
+		} else {
+			return false;
+		}
 	}
 
 	// 检测全屏状态变化，绑定的事件有兼容性问题（这里也相当于绑定了 esc 按键事件）
@@ -2417,7 +2426,7 @@ function XZDownloader() {
 						imgUrl = jsInfo.urls.original;
 						ext = imgUrl.split('.');
 						ext = ext[ext.length - 1]; //扩展名
-						addImgInfo(id + (use_original_name ? '_p0' : ''), imgUrl, title, nowAllTag, user, userid, fullWidth, fullHeight, ext, bmk);
+						addImgInfo(id + '_p0', imgUrl, title, nowAllTag, user, userid, fullWidth, fullHeight, ext, bmk);
 						outputImgNum();
 					}
 				} else if (this_illust_type !== 1 && tag_check_result && check_bookmark_pass && WH_check_result && BMK_check_result) { //单图以外的情况,并且通过了tag检查和宽高检查和收藏检查和收藏数检查
@@ -2700,23 +2709,23 @@ function XZDownloader() {
 
 	function addOutputWarp() {
 		// 添加输出url的区域
-		let outputImgUrlWrap = document.createElement('div');
-		document.body.appendChild(outputImgUrlWrap);
-		outputImgUrlWrap.outerHTML = `
-		<div class="outputUrlWrap">
+		let outputInfoWrap = document.createElement('div');
+		document.body.appendChild(outputInfoWrap);
+		outputInfoWrap.outerHTML = `
+		<div class="outputInfoWrap">
 		<div class="outputUrlClose" title="${xzlt('_关闭')}">X</div>
-		<div class="outputUrlTitle">${xzlt('_图片url列表')}</div>
-		<div class="outputUrlContent"></div>
+		<div class="outputUrlTitle">${xzlt('_输出信息')}</div>
+		<div class="outputInfoContent"></div>
 		<div class="outputUrlFooter">
-		<div class="outputUrlCopy" title="">${xzlt('_复制图片url')}</div>
+		<div class="outputUrlCopy" title="">${xzlt('_复制')}</div>
 		</div>
 		</div>
 		`;
 		styleE.innerHTML += `
-		.outputUrlWrap{padding: 20px 30px;width: 520px;background:#fff;border-radius: 20px;z-index: 9999;box-shadow: 0px 0px 15px #2ca6df;display: none;position: fixed;top: 15%; margin-left: -300px;left: 50%;}
+		.outputInfoWrap{padding: 20px 30px;width: 520px;background:#fff;border-radius: 20px;z-index: 9999;box-shadow: 0px 0px 15px #2ca6df;display: none;position: fixed;top: 15%; margin-left: -300px;left: 50%;}
 		.outputUrlTitle{height: 20px;line-height: 20px;text-align: center;font-size:18px;color:#179FDD;}
-		.outputUrlContent{border: 1px solid #ccc;transition: .3s;font-size: 14px;margin-top: 10px;padding: 5px 10px;overflow: auto;max-height:400px;line-height:20px;}
-		.outputUrlContent::selection{background:#179FDD;color:#fff;}
+		.outputInfoContent{border: 1px solid #ccc;transition: .3s;font-size: 14px;margin-top: 10px;padding: 5px 10px;overflow: auto;max-height:400px;line-height:20px;}
+		.outputInfoContent::selection{background:#179FDD;color:#fff;}
 		.outputUrlFooter{height: 60px;text-align: center;}
 		.outputUrlClose{cursor: pointer;position: absolute;width: 30px;height: 30px;top:20px;right:30px;z-index: 9999;font-size:18px;text-align:center;}
 		.outputUrlClose:hover{color:#179FDD;}
@@ -2724,12 +2733,12 @@ function XZDownloader() {
 		`;
 		// 绑定关闭输出url区域的事件
 		$('.outputUrlClose').on('click', function () {
-			$('.outputUrlWrap').hide();
+			$('.outputInfoWrap').hide();
 		});
 		// 绑定复制url的事件
 		$('.outputUrlCopy').on('click', function () {
 			let range = document.createRange();
-			range.selectNodeContents($('.outputUrlContent')[0]);
+			range.selectNodeContents($('.outputInfoContent')[0]);
 			window.getSelection().removeAllRanges();
 			window.getSelection().addRange(range);
 			document.execCommand('copy');
@@ -2737,8 +2746,8 @@ function XZDownloader() {
 			$('.outputUrlCopy').text(xzlt('_已复制到剪贴板'));
 			setTimeout(function () {
 				window.getSelection().removeAllRanges();
-				$('.outputUrlCopy').text(xzlt('_复制图片url'));
-			}, 2000);
+				$('.outputUrlCopy').text(xzlt('_复制'));
+			}, 1000);
 		});
 
 		// 设置下载区域
@@ -2756,6 +2765,8 @@ function XZDownloader() {
 		<input type="text" name="fileNameRule" class="fileNameRule" value="{id}">
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		<span class="blue showFileNameTip"> ${xzlt('_查看可用的标记')}</span>
+		&nbsp;&nbsp;&nbsp;
+		<span class="blue showFileNameResult"> ${xzlt('_预览文件名')}</span>
 		</p>
 		<p class="fileNameTip tip">
 		<span class="blue">{id}</span>
@@ -2837,7 +2848,7 @@ function XZDownloader() {
 		.outputWrap_close{font-size: 18px;position: absolute;top: 0px;right: 0px;width: 30px;height: 30px;text-align: center;cursor: pointer;}
 		.outputWrap_close:hover{color:#4a9fff;}
 		.fileNameRule{min-width: 200px;line-height: 20px;font-size: 12px;height: 20px;text-indent: 4px;box-sizing:border-box;}
-		.showFileNameTip{cursor: pointer;}
+		.showFileNameTip,.showFileNameResult{cursor: pointer;}
 		.fileNameTip{display: none;padding-top: 5px;}
 		.outputWrap_btns{padding: 15px 0 8px;font-size: 0;}
 		.outputWrap_btns div{display: inline-block;min-width: 100px;padding: 0 10px;text-align: center;height: 36px;line-height: 36px;color: #fff;border-radius: 4px;margin-right: 35px;font-size: 14px;cursor: pointer;}
@@ -2867,6 +2878,9 @@ function XZDownloader() {
 		});
 		$('.showFileNameTip').on('click', function () {
 			$('.fileNameTip').toggle();
+		});
+		$('.showFileNameResult').on('click', function () {
+			showOutputInfoWrap('name');
 		});
 		$('.showDownTip').on('click', function () {
 			$('.downTip').toggle();
@@ -2963,15 +2977,7 @@ function XZDownloader() {
 		});
 		// 复制url按钮
 		$('.copyUrl').on('click', function () { // 显示图片url列表
-			if (img_info.length === 0) {
-				return false;
-			}
-			let result = '';
-			for (let i = 0; i < img_info.length; i++) {
-				result = result + img_info[i].url + '<br>';
-			}
-			$('.outputUrlContent').html(result);
-			$('.outputUrlWrap').show();
+			showOutputInfoWrap('url');
 		});
 
 		// 添加控制下载区域的按钮
@@ -2986,19 +2992,49 @@ function XZDownloader() {
 		}, false);
 	}
 
+	// 生成输出区域的内容，按 type 不同，输出不同的内容
+	function showOutputInfoWrap(type) {
+		if (img_info.length === 0) {
+			return false;
+		}
+		let result = '';
+		if (type === 'url') { // 拷贝图片 url
+			for (let i = 0; i < img_info.length; i++) {
+				result = result + img_info[i].url + '<br>';
+			}
+		} else if (type === 'name') { // 预览和拷贝图片名
+			for (let i = 0; i < img_info.length; i++) {
+				let ext = '.' + img_info[i].ext;
+				result = result + img_info[i].id + ext + ': ' + getFileName(img_info[i]) + ext + '<br>';
+				// 在每个文件名前面加上它的原本的名字，方便用来做重命名
+			}
+		} else {
+			return false;
+		}
+		$('.outputInfoContent').html(result);
+		$('.outputInfoWrap').show();
+	}
+
+	// 生成文件名，传入参数为图片信息
+	function getFileName(data) {
+		fileNameRule = $('.fileNameRule').val();
+		// 处理宽高
+		let px = '';
+		if (fileNameRule.indexOf('{px}') > -1) {
+			if (data.fullWidth !== undefined) {
+				px = data.fullWidth + 'x' + data.fullHeight;
+			}
+		}
+		// 拼接文件名，不包含后缀名
+		let result = fileNameRule.replace('{id}', data.id).replace('{title}', 'title_' + data.title).replace('{user}', 'user_' + data.user).replace('{userid}', 'uid_' + data.userid).replace('{px}', px).replace('{tags}', 'tags_' + (data.tags.join(','))).replace('{bmk}', 'bmk_' + data.bmk).replace(safe_fileName_rule, '_').replace(/undefined/g, '');
+		return result;
+	}
+
 	// 开始下载 下载序号，要使用的显示队列的序号
 	function startDownload(downloadNo, donwloadBar_no) {
 		quick = false;
 		changeTitle('↓');
-		// 处理宽高
-		let px = '';
-		if (fileNameRule.indexOf('{px}') > -1) {
-			if (img_info[downloadNo].fullWidth !== undefined) {
-				px = img_info[downloadNo].fullWidth + 'x' + img_info[downloadNo].fullHeight;
-			}
-		}
-		// 拼接文件名
-		let fullFileName = fileNameRule.replace('{id}', (use_original_name ? '' : 'id_') + img_info[downloadNo].id).replace('{title}', img_info[downloadNo].title).replace('{user}', img_info[downloadNo].user).replace('{px}', px).replace('{userid}', 'uid_' + img_info[downloadNo].userid).replace('{tags}', img_info[downloadNo].tags.join(',')).replace('{bmk}', 'bmk_' + img_info[downloadNo].bmk).replace(safe_fileName_rule, '_').replace(/undefined/g, '');
+		let fullFileName = getFileName(img_info[downloadNo]);
 		// 处理文件名长度 这里有个问题，因为无法预知浏览器下载文件夹的长度，所以只能预先设置一个预设值
 		fullFileName = fullFileName.substr(0, fileName_length) + '.' + img_info[downloadNo].ext;
 		donwloadBar_list.eq(donwloadBar_no).find('.download_fileName').html(fullFileName);
@@ -3114,7 +3150,7 @@ function XZDownloader() {
 	function resetResult() {
 		img_info = [];
 		$('.outputWrap').hide();
-		$('.outputUrlContent').text('');
+		$('.outputInfoContent').text('');
 		download_started = false;
 		download_pause = false;
 		download_stop = false;
