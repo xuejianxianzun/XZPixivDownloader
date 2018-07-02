@@ -385,3 +385,17 @@ https://i.pximg.net/c/240x240/img-master/img/2018/06/17/00/10/40/69264102_p4_mas
 优化了看图体验。
 
 原本在全屏模式（100%比例）中看图时，如果图片是之前尚未加载的图片，那么加载后显示的比例不是100%。现在手动给它设置一次宽高，成为100%。
+
+#### pixiv网址的缩写：
+
+最近发现画师页面和作品页面的网址都可以使用缩写，如：
+
+```
+https://www.pixiv.net/member.php?id=212801
+缩写为：
+https://www.pixiv.net/u/212801
+
+https://www.pixiv.net/member_illust.php?mode=medium&illust_id=66509867
+缩写为：
+https://www.pixiv.net/i/66509867
+```
