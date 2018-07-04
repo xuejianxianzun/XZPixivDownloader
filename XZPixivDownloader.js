@@ -32,7 +32,7 @@
 
 'use strict';
 
-if (typeof jQuery === 'undefined') { // 新版作品页没有jQuery了，所以引入jQuery。
+if (typeof jQuery === 'undefined') { // 新版作品页没有jQuery了，所以引入jQuery
 	fetch('https://code.jquery.com/jquery-2.0.3.min.js', {
 			method: 'get'
 		})
