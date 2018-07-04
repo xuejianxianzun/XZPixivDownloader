@@ -26,6 +26,7 @@
 /* author:  xuejianxianzun 雪见仙尊
  * E-mail:  xuejianxianzun@gmail.com
  * Github： https://github.com/xuejianxianzun/XZPixivDownloader
+ * blog:    https://saber.love/pixiv
  * QQ群:    499873152
  */
 

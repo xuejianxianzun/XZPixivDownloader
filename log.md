@@ -265,9 +265,9 @@ https://www.pixiv.net/ajax/illust/68437318/ugoira_meta
 
 - pixivision 预计以后不再维护。
 
-首先它和pixiv主站是跨域的，使得同步下载流程比较麻烦。（比如我计划在pixiv特辑里也去获取作品信息api，这样在pixiv特辑里下载时，可以使用更多的命名规则了。但是jQuery的ajax无法设置跨域，用GM_xmlhttpRequest的话改动成本又太高）。
+首先它和pixiv主站是跨域的，使得同步下载流程比较麻烦。（比如我计划在 pixivision 里也去获取作品信息api，这样在 pixivision 里下载时，可以使用更多的命名规则了。但是jQuery的ajax无法设置跨域，用GM_xmlhttpRequest的话改动成本又太高）。
 
-其次pixivision上面的很多板块都已经停止更新了，插画没有停止更新，但是插画是和showcase 特辑同步的，所以从showcase 特辑下载就行了。
+其次pixivision上面的很多板块都已经停止更新了，插画没有停止更新，但是插画是和 showcase 特辑同步的，所以从 showcase 特辑下载就行了。
 
 ### 5.6.1
 
