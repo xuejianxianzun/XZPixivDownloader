@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.7.2
+// @version     5.7.3
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设置筛选条件和文件命名规则；一键收藏（自动添加tag）；在当前页面查看多图；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -127,7 +127,6 @@ function XZDownloader() {
 		click_time = 0, // 点击下载按钮的时间戳
 		time_delay = 0, // 延迟点击的时间
 		time_interval = 400, // 为了不会漏下图，设置的两次点击之间的间隔时间。下载图片的速度越快，此处的值就需要越大。默认的400是比较大的，如果下载速度慢，可以尝试改成300/200。
-		quickBookmark_timer,
 		down_xiangguan = false, // 下载相关作品（作品页内的）
 		viewerELCreated = false, // 是否已经创建了图片列表元素
 		viewerWarpper, // 图片列表的容器
@@ -981,7 +980,7 @@ function XZDownloader() {
 	}
 
 	// 去除广告
-	let block_ad_css = '<style>section.ad,._3M6FtEB,._2vNejsc,[name=header],.ads_anchor,.ad-bigbanner,.ad-footer,._premium-lead-tag-search-bar,#header-banner.ad,.popular-introduction-overlay,.ad-bigbanner,.adsbygoogle,.ui-fixed-container aside,.ad-multiple_illust_viewer,.ads_area{display: none!important;z-index: -999!important;width: 0!important;height: 0!important;opacity: 0!important;}</style>';
+	let block_ad_css = '<style>section.ad,._3M6FtEB,[name=header],.ads_anchor,.ad-bigbanner,.ad-footer,._premium-lead-tag-search-bar,#header-banner.ad,.popular-introduction-overlay,.ad-bigbanner,.adsbygoogle,.ui-fixed-container aside,.ad-multiple_illust_viewer,.ads_area{display: none!important;z-index: -999!important;width: 0!important;height: 0!important;opacity: 0!important;}</style>';
 	document.body.insertAdjacentHTML('beforeend', block_ad_css);
 
 	let parser = new DOMParser(); // DOMParser，将字符串形式的html代码解析为DOM结构
@@ -1009,8 +1008,7 @@ function XZDownloader() {
 	// 快速收藏
 	function quickBookmark() {
 		// 本函数一直运行。因为切换作品（pushstate）时，不能准确的知道 toolbar 何时更新，所以只能不断检测，这样在切换作品时才不会出问题
-		// 启动定时器
-		quickBookmark_timer = setTimeout(() => {
+		setTimeout(() => {
 			quickBookmark();
 		}, 300);
 
@@ -1074,8 +1072,6 @@ function XZDownloader() {
 								});
 						});
 				});
-				// 添加完毕后，不要清除定时器，在外部调用本函数之前再清除
-				// clearInterval(quickBookmark_timer);
 				// 刚添加之后是隐藏的，之后检测一下，如果没有收藏再显示
 				setTimeout(() => {
 					if (!heartA.classList.contains(pinkClass)) {
@@ -3278,16 +3274,10 @@ function XZDownloader() {
 
 		window.addEventListener('pushState', () => {
 			$(outputInfo).html(''); // 切换页面时，清空输出区域
-
-			clearInterval(quickBookmark_timer);
-			quickBookmark();
-
 			initViewer();
 		});
 
-		clearInterval(quickBookmark_timer);
 		quickBookmark();
-
 		initViewer();
 
 	} else if ((loc_url.indexOf('member_illust.php?id=') > -1 || loc_url.indexOf('&id=') > -1) && (loc_url.indexOf('&tag') == -1 && loc_url.indexOf('?tag') == -1) && loc_url.indexOf('response.php') == -1) { //2.on_illust_list
