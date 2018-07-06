@@ -6,6 +6,10 @@ This is a Pixiv image downloader written in JavaScript, which is essentially a U
 
 Some auxiliary functions have also been added, such as removing ads, quick collections, and viewing pictures.
 
+**This tool now has a Chrome extension:**
+
+[Chrome webstore page](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl)
+
 ### Recommended Use:
 
 Browser: **Chrome** [(download Chrome browser)](http://www.google.com/chrome/browser/desktop/)

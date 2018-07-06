@@ -1,4 +1,4 @@
-[View English introduction](https://github.com/xuejiansaber/XZPixivDownloader/blob/master/README-EN.md)
+[View English introduction](https://github.com/xuejianxianzun/XZPixivDownloader/blob/master/README-EN.md)
 
 ![仙尊 pixiv 下载器 中文截图](https://wx3.sinaimg.cn/large/640defebgy1fsndo9dwvcj20zm0wv0xj.jpg)
 
@@ -7,6 +7,10 @@
 这是一个使用 JavaScript 编写的 Pixiv 图片下载器，它实质上是一个用户脚本（UserScript），必须使用用户脚本管理器来安装。
 
 现在也增加了一些辅助功能，如去除广告、快速收藏、看图模式等。
+
+**工具现已推出 Chrome 扩展：**
+
+[Chrome webstore 页面](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl)
 
 ## 推荐环境：
 
