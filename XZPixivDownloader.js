@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.7.3
+// @version     5.7.4
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设置筛选条件和文件命名规则；一键收藏（自动添加tag）；在当前页面查看多图；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -1012,7 +1012,7 @@ function XZDownloader() {
 			quickBookmark();
 		}, 300);
 
-		let toolbar = document.querySelector('._1OvFbUk');
+		let toolbar = document.querySelector('._2g7Dix7');
 		if (!toolbar) { // 如果没有 toolbar
 			return false;
 		} else { // 如果有 toolbar
@@ -1020,7 +1020,7 @@ function XZDownloader() {
 			let quickBookmarkElement = document.querySelector(`#${quickBookmarkId}`);
 			if (!quickBookmarkElement) { // 如果没有 quick 元素则添加
 				let pinkClass = '_20nOYr7';
-				let heartA = toolbar.querySelector('._2B0vXTj a svg');
+				let heartA = toolbar.childNodes[2].querySelector('svg');
 
 				let quickBookmarkElement = document.createElement('div');
 				quickBookmarkElement.id = quickBookmarkId;
@@ -1035,13 +1035,16 @@ function XZDownloader() {
 				quickBookmarkElement.addEventListener('click', () => {
 					let now_id = location.search.match(/illust_id=.*\d?/)[0].split('=')[1];
 					let tagArray = [];
-					let tagElements = document.querySelectorAll('._1tTPwGC');
+					let tagElements = document.querySelectorAll('._3SAblVQ li');
 					for (const element of tagElements) {
-						tagArray.push(element.querySelector('span a').innerHTML); // 储存 tag
+						let now_a = element.querySelector('a');
+						if (now_a) {
+							tagArray.push(now_a.innerHTML); // 储存 tag
+						}
 					}
-					let original = document.querySelector('._2XmoSW7 a'); // "原创" tag 是一个单独的元素
-					if (original) {
-						tagArray.push(original.innerHTML);
+					// 对于原创作品，非日文的页面上只显示了用户语言的“原创”，其实有个隐藏的日文 tag “オリジナル”，所以要添加上。
+					if (tagArray[0] === '原创' || tagArray[0] === 'Original' || tagArray[0] === '창작') {
+						tagArray.push('オリジナル');
 					}
 					let tagString = encodeURI(tagArray.join(' '));
 					let tt = unsafeWindow.globalInitData.token;
@@ -2895,7 +2898,7 @@ function XZDownloader() {
 		}
 		// 当用户改变了命名规则时保存
 		fileNameRule_input.addEventListener('change', function () {
-			if (this.value === '') {	//用户清空时，恢复成默认值
+			if (this.value === '') { //用户清空时，恢复成默认值
 				this.value = '{id}';
 			}
 			localStorage.setItem('user_name_rule', this.value);
