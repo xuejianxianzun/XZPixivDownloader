@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.7.4
+// @version     5.7.5
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设置筛选条件和文件命名规则；一键收藏（自动添加tag）；在当前页面查看多图；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -980,7 +980,7 @@ function XZDownloader() {
 	}
 
 	// 去除广告
-	let block_ad_css = '<style>section.ad,._3M6FtEB,[name=header],.ads_anchor,.ad-bigbanner,.ad-footer,._premium-lead-tag-search-bar,#header-banner.ad,.popular-introduction-overlay,.ad-bigbanner,.adsbygoogle,.ui-fixed-container aside,.ad-multiple_illust_viewer,.ads_area{display: none!important;z-index: -999!important;width: 0!important;height: 0!important;opacity: 0!important;}</style>';
+	let block_ad_css = '<style>section.ad,._3M6FtEB,._2vNejsc,[name=header],.ads_anchor,.ad-bigbanner,.ad-footer,._premium-lead-tag-search-bar,#header-banner.ad,.popular-introduction-overlay,.ad-bigbanner,.adsbygoogle,.ui-fixed-container aside,.ad-multiple_illust_viewer,.ads_area{display: none!important;z-index: -999!important;width: 0!important;height: 0!important;opacity: 0!important;}</style>';
 	document.body.insertAdjacentHTML('beforeend', block_ad_css);
 
 	let parser = new DOMParser(); // DOMParser，将字符串形式的html代码解析为DOM结构
@@ -1044,7 +1044,7 @@ function XZDownloader() {
 					}
 					// 对于原创作品，非日文的页面上只显示了用户语言的“原创”，其实有个隐藏的日文 tag “オリジナル”，所以要添加上。
 					if (tagArray[0] === '原创' || tagArray[0] === 'Original' || tagArray[0] === '창작') {
-						tagArray.push('オリジナル');
+						tagArray[0] = 'オリジナル';
 					}
 					let tagString = encodeURI(tagArray.join(' '));
 					let tt = unsafeWindow.globalInitData.token;
@@ -1552,7 +1552,7 @@ function XZDownloader() {
 		let nottaginput = document.createElement('textarea');
 		nottaginput.id = 'nottaginput';
 		nottaginput.style.cssText = 'width: 600px;height: 40px;font-size: 12px;margin:6px auto;background:#fff;colir:#bbb;padding:7px;display:none;border:1px solid #e42a2a;';
-		$('header').eq(0).before(nottaginput);
+		$('#root').children().eq(0).before(nottaginput);
 		notNeed_tag_tip = xzlt('_排除tag的提示文字');
 		$('#nottaginput').val(notNeed_tag_tip);
 		$.focusblur($('#nottaginput'), '#bbb', '#333');
@@ -1592,7 +1592,7 @@ function XZDownloader() {
 		let needtaginput = document.createElement('textarea');
 		needtaginput.id = 'needtaginput';
 		needtaginput.style.cssText = 'width: 600px;height: 40px;font-size: 12px;margin:6px auto;background:#fff;colir:#bbb;padding:7px;display:none;border:1px solid #00A514;';
-		$('header').eq(0).before(needtaginput);
+		$('#root').children().eq(0).before(needtaginput);
 		need_tag_tip = xzlt('_必须tag的提示文字');
 		$('#needtaginput').val(need_tag_tip);
 		$.focusblur($('#needtaginput'), '#bbb', '#333');
@@ -1630,6 +1630,9 @@ function XZDownloader() {
 
 		filterWHBotton.addEventListener('click', function () {
 			let inputWH = prompt(xzlt('_筛选宽高的提示文字'), filterWH.width + filterWH.and_or + filterWH.height);
+			if (inputWH === null) {
+				return false;
+			}
 			if (inputWH === '' || (inputWH.indexOf('|') === -1 && inputWH.indexOf('&') === -1) || (inputWH.indexOf('|') > -1 && inputWH.indexOf('&') > -1)) { //如果为空值，或没有输入任意一个分隔符号，或者同时输入了两个分隔符
 				alert(xzlt('_本次输入的数值无效'));
 				return false;
@@ -3063,6 +3066,9 @@ function XZDownloader() {
 						click_doanload_a(blobURL, fullFileName, donwloadBar_no);
 					}, time_delay);
 				}
+			},
+			ontimeout:function () {		// 当超时时重发请求，目前此功能未测试
+				startDownload(downloadNo, donwloadBar_no);
 			}
 		});
 	}
