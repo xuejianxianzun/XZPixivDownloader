@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.7.5
+// @version     5.7.6
 // @description 在多种情景下批量下载pixiv上的图片。可下载单图、多图、动图的原图；自动翻页下载所有排行榜/收藏夹/画师作品；下载pixiv特辑；设置筛选条件和文件命名规则；一键收藏（自动添加tag）；在当前页面查看多图；屏蔽广告；非会员查看热门作品、快速搜索。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -1042,7 +1042,7 @@ function XZDownloader() {
 							tagArray.push(now_a.innerHTML); // 储存 tag
 						}
 					}
-					// 对于原创作品，非日文的页面上只显示了用户语言的“原创”，其实有个隐藏的日文 tag “オリジナル”，所以要添加上。
+					// 对于原创作品，非日文的页面上只显示了用户语言的“原创”，替换成日文 tag “オリジナル”。
 					if (tagArray[0] === '原创' || tagArray[0] === 'Original' || tagArray[0] === '창작') {
 						tagArray[0] = 'オリジナル';
 					}
@@ -1534,12 +1534,23 @@ function XZDownloader() {
 			}
 		}
 	}
+
 	// 检查是否设置了多图作品的张数限制
 	function check_multiple_down_number_tips() {
 		if (multiple_down_number > 0) {
 			$('#outputInfo').html($('#outputInfo').html() + '<br>' + xzlt('_多图作品下载张数', multiple_down_number));
 		}
 	}
+
+	// 插入到页面顶部，大部分页面使用 header，文章页使用 root。因为在文章页执行脚本时，可能获取不到 header。
+	function insertToHead(el) {
+		if ($('header').eq(0).length === 1) {
+			$('header').eq(0).before(el);
+		} else if ($('#root').children().eq(0).length === 1) {
+			$('#root').children().eq(0).before(el);
+		}
+	}
+
 	//添加过滤tag的按钮
 	function setFilterTag_notNeed(no) {
 		let nottag = document.createElement('div');
@@ -1552,7 +1563,7 @@ function XZDownloader() {
 		let nottaginput = document.createElement('textarea');
 		nottaginput.id = 'nottaginput';
 		nottaginput.style.cssText = 'width: 600px;height: 40px;font-size: 12px;margin:6px auto;background:#fff;colir:#bbb;padding:7px;display:none;border:1px solid #e42a2a;';
-		$('#root').children().eq(0).before(nottaginput);
+		insertToHead(nottaginput);
 		notNeed_tag_tip = xzlt('_排除tag的提示文字');
 		$('#nottaginput').val(notNeed_tag_tip);
 		$.focusblur($('#nottaginput'), '#bbb', '#333');
@@ -1592,7 +1603,7 @@ function XZDownloader() {
 		let needtaginput = document.createElement('textarea');
 		needtaginput.id = 'needtaginput';
 		needtaginput.style.cssText = 'width: 600px;height: 40px;font-size: 12px;margin:6px auto;background:#fff;colir:#bbb;padding:7px;display:none;border:1px solid #00A514;';
-		$('#root').children().eq(0).before(needtaginput);
+		insertToHead(needtaginput);
 		need_tag_tip = xzlt('_必须tag的提示文字');
 		$('#needtaginput').val(need_tag_tip);
 		$.focusblur($('#needtaginput'), '#bbb', '#333');
@@ -1679,8 +1690,12 @@ function XZDownloader() {
 		setButtonStyle(filterBMKBotton, no, '#179FDD');
 
 		filterBMKBotton.addEventListener('click', function () {
-			let inputBMK = parseInt(prompt(xzlt('_筛选收藏数的提示文字'), '0'));
-			if (inputBMK === '' || isNaN(inputBMK) || inputBMK < 0) { //如果为空值，或者不为数字
+			let inputBMK = prompt(xzlt('_筛选收藏数的提示文字'), '0');
+			if (inputBMK === null || inputBMK === '') {
+				return false;
+			}
+			inputBMK = parseInt(inputBMK);
+			if (isNaN(inputBMK) || inputBMK < 0) { //如果为空值，或者不为数字
 				alert(xzlt('_本次输入的数值无效'));
 				return false;
 			} else {
@@ -2643,7 +2658,7 @@ function XZDownloader() {
 			if (location.hostname === 'www.pixivision.net') {
 				$('._header-container').eq(0).before(outputInfo);
 			} else {
-				$('header').eq(0).before(outputInfo);
+				insertToHead(outputInfo);
 			}
 		}
 	}
@@ -3067,7 +3082,7 @@ function XZDownloader() {
 					}, time_delay);
 				}
 			},
-			ontimeout:function () {		// 当超时时重发请求，目前此功能未测试
+			ontimeout: function () { // 当超时时重发请求，目前此功能未测试
 				startDownload(downloadNo, donwloadBar_no);
 			}
 		});
@@ -3212,7 +3227,7 @@ function XZDownloader() {
 		down_id_input = document.createElement('textarea');
 		down_id_input.id = 'down_id_input';
 		down_id_input.style.cssText = 'width: 600px;height: 80px;font-size: 12px;margin:6px auto;background:#fff;colir:#bbb;padding:7px;display:none;border:1px solid #179FDD;';
-		$('header').eq(0).before(down_id_input);
+		insertToHead(down_id_input);
 		down_id_input = $(down_id_input);
 		down_id_tip = xzlt('_输入id进行下载的提示文字');
 		down_id_input.val(down_id_tip);
