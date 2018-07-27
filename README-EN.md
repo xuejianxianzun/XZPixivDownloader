@@ -28,6 +28,28 @@ You can install it at greasyfork.org:
 
 The downloaded file will be saved in your browser's download directory.
 
+# Supported languages:
+
+Simplified Chinese (also used under Traditional Chinese settings)
+
+English (machine translation, also used under Korean settings)
+
+日本語 (machine translation)
+
+You can also optimize the translation, thank you very much :)
+
+# Tips:
+
+- Chrome's resource limits
+
+When you download picture, this page uses more memory and cpu resources. If you switch to another page and the download page is not activated, Chrome will limit the resource usage of the download page, resulting in slow download.
+
+How to solve: Pull out the downloaded tabs individually and become a separate window. This page is the only one in the new window and it is always active. Downloads are not affected, we can use other pages too.
+
+- How to view the animation ( ugoira image ):
+
+The animated picture is suffixed with ugoira. Please install HoneyView software. Open the ugoira file with HoneyView to see the animation effect.
+
 # Available pages and test URL:
 
 - [Index page](https://www.pixiv.net/)
@@ -61,23 +83,3 @@ The downloaded file will be saved in your browser's download directory.
 - [Illustration, comics, cosplay page on pixivision](https://www.pixivision.net/zh/a/3190)
 
 - [Image response](https://www.pixiv.net/response.php?mode=all&id=194231)
-
-# Supported languages:
-
-Simplified Chinese (also used under Traditional Chinese settings)
-
-English (machine translation, also used under Korean settings)
-
-日本語 (machine translation)
-
-You can also optimize the translation, thank you very much :)
-
-# Tips:
-
-- Chrome's resource limits
-
-When you download picture, this page uses more memory and cpu resources. If you switch to another page and the download page is not activated, Chrome will limit the resource usage of the download page, resulting in slow download.
-
-Option 1: Keep the download page active, do not switch to other pages, so the download will not slow down. But this will affect our use of other pages.
-
-Option 2: Pull out the downloaded tabs individually and become a separate window. This page is the only one in the new window and it is always active. Downloads are not affected, we can use other pages too.

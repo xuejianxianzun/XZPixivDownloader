@@ -423,3 +423,9 @@ ren 69052408_p0.png "bmk_8262-69052408_p0-tags_電撃文庫,ガーリー・エ�
 ```
 
 借助文本编辑器，用户可以批量的把本工具生成的图片名修改为 shell 命令。
+
+### 5.7.7
+
+p 站自己的收藏按钮添加了快速收藏功能，但是不带 tag，和我自己按钮的快速收藏功能冲突，现在我把原本的收藏按钮隐藏了，全部使用脚本的快速收藏。
+
+另外根据 [thelastfantasy 的建议](https://github.com/xuejianxianzun/XZPixivDownloader/issues/4)，把动图从 zip 后缀名改为了 ugoira 后缀名，请用 HoneyView 打开查看。
