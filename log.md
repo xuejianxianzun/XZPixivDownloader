@@ -429,3 +429,158 @@ ren 69052408_p0.png "bmk_8262-69052408_p0-tags_電撃文庫,ガーリー・エ�
 p 站自己的收藏按钮添加了快速收藏功能，但是不带 tag，和我自己按钮的快速收藏功能冲突，现在我把原本的收藏按钮隐藏了，全部使用脚本的快速收藏。
 
 另外根据 [thelastfantasy 的建议](https://github.com/xuejianxianzun/XZPixivDownloader/issues/4)，把动图从 zip 后缀名改为了 ugoira 后缀名，请用 HoneyView 打开查看。
+
+### 5.8.0
+
+- pixiv 的改版
+
+p 站在完成了作品页的改版后，又要进行新改版： [pixiv的个人资料页面将全新改版](https://www.pixiv.net/info.php?id=4704)。
+
+受此影响的页面有：
+
+画师（或自己）的主页、插画分类列表、漫画分类列表、收藏页面，以及上述页面里的 tag 列表页。
+
+旧版的个人主页里有“动图”作品的列表页（第一行），新版里面已经没有这个分类了，这个 url 会跳转到**插画**作品列表页：
+
+```https://www.pixiv.net/member_illust.php?id=4693961&type=ugoira```
+
+```https://www.pixiv.net/member_illust.php?id=4693961&type=illust```
+
+pixiv 的新版都不再使用 jQuery 了。
+
+从个人资料页面进入插画页，是无刷新的（pushState），无刷新的地方越来越多了，体验好一些，不过下载工具需要修改更多地方。
+
+- 本工具的修改
+
+之前的 page_type:
+
+2: 画师列表页（插画、漫画）
+
+3：画师的 tag 列表页 和 收藏的 tag 列表页；
+
+4：收藏页面。
+
+新版里这 3 种都改了。而且使用的无刷新加载技术，需要动态监控 url，对应改变 page_type。
+
+我把这 3 个 page_type 全部整合到了 2 里。
+
+本工具以新版为准，旧版功能可以用新版实现的，就按新版处理。
+
+- 其他修改：
+
+1. 本来，进入自己的收藏页面时，没带自己的 id（第一行）：
+
+```
+https://www.pixiv.net/bookmark.php
+https://www.pixiv.net/bookmark.php?id=9460149
+```
+
+不带 id 的话，还是旧版的界面，带了 id 才是新版的。所以这里添加了个修改，如果不带 id 自动跳转到带 id 的。
+
+2. 无刷新加载对 page_type 1 和 2 的影响
+
+从新版个人资料页可以无刷新进入作品页，这种情况下，作品页也可以通过浏览器的后退功能，无刷新返回个人资料页。这就造成了两种页面类型可以无刷新切换。（不过必须是先打开 2，然后进入1, 1才能通过返回按钮来无刷新回到 2。如果一开始打开的是 1，那么 1 无法不刷新进入 2）
+
+为了能让脚本适根据 page_type 动态切换，对代码做了不少修改。
+
+需要记住的是，无刷新切换时，两种类型共用一个页面，所以绑定全局事件时需要注意这一点，避免冲突或者重复绑定。
+
+- 新版使用的 api 分析：
+
+[画师主页](https://www.pixiv.net/member.php?id=27517)：
+
+**1** ```https://www.pixiv.net/ajax/user/27517/profile/all```
+
+这个 api 包含了该画师所有作品的 id。包含插画和漫画，但分别只有最近的 12 个作品有详细信息。因为个人主页只展示12个插画和12个漫画。
+
+先在这里获取所有作品 id ，之后再获取作品详细信息。
+
+[画师的所有作品列表页](https://www.pixiv.net/member_illust.php?id=27517) ，是把插画和漫画合在一起的列表页。api 不用变。
+
+[画师的插画列表页](https://www.pixiv.net/member_illust.php?id=27517&type=illust)：（可以跟很多 ids）
+
+```https://www.pixiv.net/ajax/user/27517/illusts?ids%5B0%5D=66979373```
+
+这是 pixiv 加载插画列表里的作品用的，包含有作品详细信息，但不全面，比如没有画师名和收藏数。所以不使用这个 api，先用上面的 **1** api 获取 id 列表，最后获取作品详细信息。
+
+[画师的漫画列表页](https://www.pixiv.net/member_illust.php?id=27517&type=manga)：（可以跟很多 ids）
+
+```https://www.pixiv.net/ajax/tags/frequent/illust?ids%5B0%5D=20830181```
+
+不使用这个 api，理由同上。
+
+[画师的插画 tag 列表页](https://www.pixiv.net/member_illust.php?id=27517&type=illust&tag=%E5%A5%B3%E3%81%AE%E5%AD%90)：
+
+```https://www.pixiv.net/ajax/user/27517/illusts/tag/%E5%A5%B3%E3%81%AE%E5%AD%90?offset=0&limit=24```
+
+把 limit 设置为 999999 来获取所有列表，然后取出 id 列表，最后获取作品详细信息。
+
+[画师的漫画 tag 列表页](https://www.pixiv.net/member_illust.php?id=27517&type=manga&tag=%E5%A5%B3%E3%81%AE%E5%AD%90)：（和插画 tag 的区别在于中间字段不同）
+
+```https://www.pixiv.net/ajax/user/27517/manga/tag/%E3%82%AA%E3%83%AA%E3%82%B8%E3%83%8A%E3%83%AB?offset=0&limit=24```
+
+[画师的漫画和插画 tag 列表页](https://www.pixiv.net/member_illust.php?id=27517&tag=%E5%A5%B3%E3%81%AE%E5%AD%90)
+
+处理同上。
+
+[书签主页](https://www.pixiv.net/bookmark.php?id=9460149):
+
+```https://www.pixiv.net/ajax/user/9460149/illusts/bookmarks?tag=&offset=0&limit=24&rest=show```
+
+[书签的 tag 列表页](https://www.pixiv.net/bookmark.php?id=9460149&tag=C94&rest=show)：（和主页的区别是带了 tag）
+
+```https://www.pixiv.net/ajax/user/9460149/illusts/bookmarks?tag=R-18&offset=0&limit=24&rest=show```
+
+- api 总结
+
+1. 获取画师所有作品列表：
+
+```https://www.pixiv.net/ajax/user/27517/profile/all```
+
+2. 获取画师某个 tag 的作品列表：（区分 illusts 和 manga）
+
+```https://www.pixiv.net/ajax/user/27517/illusts/tag/%E5%A5%B3%E3%81%AE%E5%AD%90?offset=0&limit=24```
+```https://www.pixiv.net/ajax/user/27517/manga/tag/%E3%82%AA%E3%83%AA%E3%82%B8%E3%83%8A%E3%83%AB?offset=0&limit=24```
+
+3. 获取书签或书签的 tag 列表：（区别带不带 tag）
+
+```https://www.pixiv.net/ajax/user/9460149/illusts/bookmarks?tag=&offset=0&limit=24&rest=show```
+```https://www.pixiv.net/ajax/user/9460149/illusts/bookmarks?tag=R-18&offset=0&limit=24&rest=show```
+
+## 5.8.3
+
+p 站书签页，获取收藏数据的 api 改了，limit 每次只能获取100，不能99999了。不知道以后其他能 99999 的会不会也改成100，好烦啊。
+
+## 5.9.0
+
+- 可以将动图转换为 gif
+
+获取动图的信息 API 如：
+
+```https://www.pixiv.net/ajax/illust/69979772/ugoira_meta```
+
+包含原文件（zip）的url和帧率信息。
+
+静态图片网址可以从源文件网址替换得出。源文件网址如：
+
+```https://i.pximg.net/img-zip-ugoira/img/2018/08/02/14/08/01/69979772_ugoira1920x1080.zip```
+
+压缩包里的静态图片网址如：
+
+```https://i.pximg.net/img-original/img/2018/08/02/14/08/01/69979772_ugoira0.jpg```
+
+最后的序号从 0 开始，依次增加。
+
+我本来想直接用静态图片来生成 gif，但是在转换成 gif 时会遇到跨域问题。最后还是只能先加载 zip 文件，再从 zip 文件里提取静态图片。
+
+- 使用的库：
+
+[zip.js](https://github.com/gildas-lormeau/zip.js)
+
+[gif.js](https://github.com/jnordberg/gif.js)
+
+用户脚本使用库太麻烦了，只能引用外部网址的库，不能像浏览器扩展那样，把库包含到自己的文件夹。
+
+## 5.9.1
+
+p站作品页面一些结构变了，导致多图作品的缩略图列表位置变得靠下了，现在修复。

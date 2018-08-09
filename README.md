@@ -20,7 +20,7 @@
 
 - 请关闭浏览器设置中的“下载前询问每个文件的保存位置”选项，以免在下载时出现弹窗。
 
-- 如果你使用其他浏览器，本工具可能不能正常使用。有些浏览器会出现内存占用过高的问题（如Firefox），有些浏览器会出现下载后无法保存文件的问题（常见于各种chromium内核的套壳浏览器）。
+- 推荐使用 Chrome。如果你使用其他浏览器，可能会出现内存占用过高、或者下载后无法保存文件的问题（常见于各种国产套壳浏览器）。
 
 # 安装：
 
@@ -54,7 +54,9 @@ English （机翻，韩语设置下也使用英语文本）
 
 - 如何查看动图：
 
-动画图片下载之后，后缀名是 ugoira，请安装 HoneyView 软件。用 HoneyView 打开 ugoira 文件查看动图效果。
+动画图片下载之后，后缀名是 ugoira，请安装看图软件 HoneyView，之后用 HoneyView 打开 ugoira 文件可以查看动图效果。（但是文件体积大了，HoneyView 播放的帧率会变慢）
+
+现在对单个动图可以直接下载 gif 图片。
 
 - 如有问题或建议，欢迎加 QQ 群 499873152 进行交流。
 
@@ -95,3 +97,11 @@ English （机翻，韩语设置下也使用英语文本）
 12 [pixiv特辑上的插画](https://www.pixiv.net/showcase/a/3190/)
 
 13 [响应关联作品](https://www.pixiv.net/response.php?mode=all&id=194231)
+
+## 使用的库：
+
+[Viewer.js](https://github.com/fengyuanchen/viewerjs)
+
+[zip.js](https://github.com/gildas-lormeau/zip.js)
+
+[gif.js](https://github.com/jnordberg/gif.js)

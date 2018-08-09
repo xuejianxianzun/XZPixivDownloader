@@ -50,6 +50,8 @@ How to solve: Pull out the downloaded tabs individually and become a separate wi
 
 The animated picture is suffixed with ugoira. Please install HoneyView software. Open the ugoira file with HoneyView to see the animation effect.
 
+Now you can download the gif image directly for a single animation.
+
 # Available pages and test URL:
 
 - [Index page](https://www.pixiv.net/)
@@ -72,8 +74,6 @@ The animated picture is suffixed with ugoira. Please install HoneyView software.
 
 - [Discovery page](https://www.pixiv.net/discovery)
 
-- Recommended works (now, recommended works is the same as discovery page)
-
 - [New work: everyone](https://www.pixiv.net/new_illust.php)
 
 - [New work: following](https://www.pixiv.net/bookmark_new_illust.php)
@@ -83,3 +83,11 @@ The animated picture is suffixed with ugoira. Please install HoneyView software.
 - [Illustration, comics, cosplay page on pixivision](https://www.pixivision.net/zh/a/3190)
 
 - [Image response](https://www.pixiv.net/response.php?mode=all&id=194231)
+
+## Library used：
+
+[Viewer.js](https://github.com/fengyuanchen/viewerjs)
+
+[zip.js](https://github.com/gildas-lormeau/zip.js)
+
+[gif.js](https://github.com/jnordberg/gif.js)
