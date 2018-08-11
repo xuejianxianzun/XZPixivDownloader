@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Downloader
 // @name:en     XZ Pixiv Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.9.1
+// @version     5.9.3
 // @description 在多种情景下批量下载pixiv上的图片，已适配新版页面。可下载单图、多图、动图的原图；转换动图为 gif；批量下载所有画师作品/收藏夹/排行榜；查看热门作品；快速收藏作品（自动添加tag）；在当前页面查看多 p 作品；屏蔽广告；按收藏数快速搜索 tag。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -1358,11 +1358,10 @@ function XZDownloader() {
 						addImgList(data_url); // 输出图片列表
 					});
 				});
-
 			});
 		}, function (message) {
-			console.log('readZIP error: '+message);
-
+			console.log('readZIP error: ' + message);
+			alert('error: convert to gif failed.');
 		});
 	}
 
@@ -2613,6 +2612,7 @@ function XZDownloader() {
 		// 4	插画和漫画全都要，带 tag
 		// 1	只要插画
 		// 2	只要漫画
+		// 5	只要动图（这个只在旧版存在，在新版里没有）
 		// 3	书签作品
 		tag_mode = getQuery(loc_url, 'tag') ? true : false; // 是否是 tag 模式
 
@@ -2659,6 +2659,16 @@ function XZDownloader() {
 				if (tag_mode) { // 带 tag
 					api_url = `https://www.pixiv.net/ajax/user/${getUserId()}/manga/tag/${getQuery(loc_url, 'tag')}?offset=${offset_number}&limit=${requset_number}`;
 				}
+			} else if (getQuery(loc_url, 'type') === 'ugoira') { // 动图分类
+				works_type = 5; // 因为没有单独获取动图的 api，需要特殊处理
+				offset_number = 0; // 不设置要去除的数量
+				requset_number = 9999999; // 下载所有作品（效果是动图列表里，总是下载全部作品，用户输入的页数无效）
+				notdown_type = '12'; // 不下载单图、多图，下载动图
+				checkNotDownType_tips();
+				if (tag_mode) { // 带 tag，把 tag 设置为必须包含的 tag
+					$('#needtaginput').val(decodeURI(getQuery(loc_url, 'tag')));
+					get_Need_Tag();
+				}
 			} else if (tag_mode) { // url 里没有插画也没有漫画，但是有 tag，则是在资料页首页点击了 tag，需要同时获取插画和漫画
 				works_type = 4;
 				api_url = `https://www.pixiv.net/ajax/user/${getUserId()}/illustmanga/tag/${getQuery(loc_url, 'tag')}?offset=${offset_number}&limit=${requset_number}`;
@@ -2702,7 +2712,7 @@ function XZDownloader() {
 						// https://www.pixiv.net/ajax/user/27517/profile/all
 						if (works_type === 0) { // 获取全部插画和漫画
 							type2_id_list = type2_id_list.concat(getJSONKey(data.body.illusts)).concat(getJSONKey(data.body.manga));
-						} else if (works_type === 1) { // 插画
+						} else if (works_type === 1 || works_type === 5) { // 插画 或 动图
 							type2_id_list = type2_id_list.concat(getJSONKey(data.body.illusts));
 						} else if (works_type === 2) { // 漫画
 							type2_id_list = type2_id_list.concat(getJSONKey(data.body.manga));
@@ -2716,6 +2726,8 @@ function XZDownloader() {
 							works.forEach(element => {
 								type2_id_list.push(element.id);
 							});
+						} else if (works_type === 5) { // 动图
+							type2_id_list = type2_id_list.concat(getJSONKey(data.body.illusts));
 						}
 					}
 				} else { // 书签页面，数据结构和 works_type 1、2 基本一样
@@ -3743,6 +3755,7 @@ function XZDownloader() {
 				// 当新旧页面的 page_type 不相同的时候
 				if (old_page_type !== page_type) {
 					clearBtnsCon(); // 清空右侧按钮，之后重新添加
+					want_page = undefined; // 重置页数/个数设置
 					if (page_type === 1) { // 从 2 进入 1
 						PageType1();
 					} else if (page_type === 2) { // 从 1 进入 2
