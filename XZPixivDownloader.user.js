@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name        仙尊Pixiv图片下载器
-// @name:ja     XZ Pixiv Downloader
-// @name:en     XZ Pixiv Downloader
+// @name        仙尊 Pixiv 图片批量下载器
+// @name:ja     XZ Pixiv Batch Downloader
+// @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.9.3
+// @version     5.9.5
 // @description 在多种情景下批量下载pixiv上的图片，已适配新版页面。可下载单图、多图、动图的原图；转换动图为 gif；批量下载所有画师作品/收藏夹/排行榜；查看热门作品；快速收藏作品（自动添加tag）；在当前页面查看多 p 作品；屏蔽广告；按收藏数快速搜索 tag。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -629,6 +629,11 @@ function XZDownloader() {
 			'预览文件名',
 			'ファイル名のプレビュー',
 			'Preview file name'
+		],
+		'_线程数字': [
+			'可以输入 1-10 之间的数字，设置同时下载的数量',
+			'同時ダウンロード数を設定するには、1〜10の数値を入力します',
+			'You can enter a number between 1-10 to set the number of concurrent downloads'
 		],
 		'_下载按钮1': [
 			'开始下载',
@@ -3124,27 +3129,7 @@ function XZDownloader() {
 			}
 			// 重置输出区域
 			$('.imgNum').text(img_info.length);
-			if (img_info.length < download_thread_deauflt) { // 检查下载线程数
-				download_thread = img_info.length;
-			} else {
-				download_thread = download_thread_deauflt; // 重设为默认值
-			}
-			let outputWrap_down_list = $('.outputWrap_down_list');
-			outputWrap_down_list.show(); // 显示下载队列
-			if ($('.donwloadBar').length < download_thread) { // 如果下载队列的显示数量小于线程数，则增加队列
-				let need_add = download_thread - $('.donwloadBar').length;
-				let donwloadBar = outputWrap_down_list.find('.donwloadBar').eq(0);
-				// 增加下载队列的数量
-				for (let i = 0; i < need_add; i++) {
-					outputWrap_down_list.append(donwloadBar.clone());
-				}
-			} else if ($('.donwloadBar').length > download_thread) { // 如果下载队列的显示数量大于线程数，则减少队列
-				let need_delete = $('.donwloadBar').length - download_thread;
-				// 减少下载队列的数量
-				for (let i = 0; i < need_delete; i++) {
-					outputWrap_down_list.find('.donwloadBar').eq(0).remove();
-				}
-			}
+
 			// 快速下载时点击下载按钮
 			if (quick || quiet_download) {
 				setTimeout(function () {
@@ -3306,6 +3291,11 @@ function XZDownloader() {
 		&nbsp;&nbsp;&nbsp;
 		<span class="blue showFileNameResult"> ${xzlt('_预览文件名')}</span>
 		</p>
+		<p>
+		<input type="text" name="setThread" class="setThread" value="${download_thread_deauflt}">
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<span class="blue"> ${xzlt('_线程数字')}</span>
+		</p>
 		<p class="fileNameTip tip">
 		<span class="blue">{id}</span>
 		${xzlt('_可用标记1')}
@@ -3385,7 +3375,8 @@ function XZDownloader() {
 		.outputWrap_title{display: block;line-height: 30px;text-align: center;font-size: 18px;}
 		.outputWrap_close{font-size: 18px;position: absolute;top: 0px;right: 0px;width: 30px;height: 30px;text-align: center;cursor: pointer;}
 		.outputWrap_close:hover{color:#4a9fff;}
-		.fileNameRule{min-width: 200px;line-height: 20px;font-size: 12px;height: 20px;text-indent: 4px;box-sizing:border-box;}
+		.fileNameRule,.setThread{min-width: 150px;line-height: 20px;font-size: 12px;height: 20px;text-indent: 4px;box-sizing:border-box;}
+		.setThread{width:50px;min-width:50px;}
 		.showFileNameTip,.showFileNameResult{cursor: pointer;}
 		.fileNameTip{display: none;padding-top: 5px;}
 		.outputWrap_btns{padding: 15px 0 8px;font-size: 0;}
@@ -3447,6 +3438,32 @@ function XZDownloader() {
 				return false;
 			}
 			// 重置一些条件
+			// 检查下载线程设置
+			let setThread = parseInt(document.querySelector('.setThread').value);
+			if (setThread < 1 || setThread > 10 || isNaN(setThread)) {
+				download_thread = download_thread_deauflt; // 重设为默认值
+			} else {
+				download_thread = setThread; // 设置为用户输入的值
+			}
+			if (img_info.length < download_thread) { // 检查下载线程数
+				download_thread = img_info.length;
+			}
+			let outputWrap_down_list = $('.outputWrap_down_list');
+			outputWrap_down_list.show(); // 显示下载队列
+			if ($('.donwloadBar').length < download_thread) { // 如果下载队列的显示数量小于线程数，则增加队列
+				let need_add = download_thread - $('.donwloadBar').length;
+				let donwloadBar = outputWrap_down_list.find('.donwloadBar').eq(0);
+				// 增加下载队列的数量
+				for (let i = 0; i < need_add; i++) {
+					outputWrap_down_list.append(donwloadBar.clone());
+				}
+			} else if ($('.donwloadBar').length > download_thread) { // 如果下载队列的显示数量大于线程数，则减少队列
+				let need_delete = $('.donwloadBar').length - download_thread;
+				// 减少下载队列的数量
+				for (let i = 0; i < need_delete; i++) {
+					outputWrap_down_list.find('.donwloadBar').eq(0).remove();
+				}
+			}
 			download_started = true;
 			if (!download_pause) { // 如果没有暂停，则重新下载，否则继续下载
 				downloaded = 0;
