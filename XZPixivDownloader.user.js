@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.9.6
+// @version     5.9.7
 // @description 在多种情景下批量下载pixiv上的图片，已适配新版页面。可下载单图、多图、动图的原图；转换动图为 gif；批量下载所有画师作品/收藏夹/排行榜；屏蔽广告；查看热门作品；快速收藏作品（自动添加tag）；在当前页面查看多 p 作品；按收藏数快速搜索 tag。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -34,20 +34,19 @@
 
 if (typeof jQuery === 'undefined') { // 新版的一些页面没有jQuery了，按需引入jQuery
 	fetch('https://code.jquery.com/jquery-2.0.3.min.js', {
-			method: 'get'
-		})
-		.then(function (response) {
-			response.text()
-				.then(function (data) {
-					let element = document.createElement('script');
-					element.setAttribute('type', 'text/javascript');
-					element.innerHTML = data;
-					document.head.appendChild(element);
-					if (typeof jQuery === 'function') {
-						XZDownloader();
-					}
-				});
-		});
+		method: 'get'
+	}).then(function (response) {
+		response.text()
+			.then(function (data) {
+				let element = document.createElement('script');
+				element.setAttribute('type', 'text/javascript');
+				element.innerHTML = data;
+				document.head.appendChild(element);
+				if (typeof jQuery === 'function') {
+					XZDownloader();
+				}
+			});
+	});
 } else if (typeof jQuery === 'function') {
 	XZDownloader();
 }
@@ -1115,25 +1114,24 @@ function XZDownloader() {
 						let tt = unsafeWindow.globalInitData.token;
 						// 调用添加收藏的 api
 						fetch('https://www.pixiv.net/rpc/index.php', {
-								method: 'post',
-								headers: {
-									'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-								},
-								credentials: 'include', // 附带 cookie
-								body: `mode=save_illust_bookmark&illust_id=${getIllustId()}&restrict=0&comment=&tags=${tagString}&tt=${tt}`
-							})
-							.then(function (response) {
-								response.text()
-									.then(function (data) {
-										if (response.ok) {
-											data = JSON.parse(data);
-											if (data.error !== undefined && data.error === false) {
-												quickBookmarkEnd();
-											}
-										} else { // 失败 如 403 404
+							method: 'post',
+							headers: {
+								'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+							},
+							credentials: 'include', // 附带 cookie
+							body: `mode=save_illust_bookmark&illust_id=${getIllustId()}&restrict=0&comment=&tags=${tagString}&tt=${tt}`
+						}).then(function (response) {
+							response.text()
+								.then(function (data) {
+									if (response.ok) {
+										data = JSON.parse(data);
+										if (data.error !== undefined && data.error === false) {
+											quickBookmarkEnd();
 										}
-									});
-							});
+									} else { // 失败 如 403 404
+									}
+								});
+						});
 					});
 				}
 			} else { // 如果有 quick 元素，什么都不做
@@ -1155,68 +1153,67 @@ function XZDownloader() {
 		download_gif_btn.style.display = 'none'; // 隐藏动图转换按钮
 		// 获取作品信息
 		fetch('https://www.pixiv.net/ajax/illust/' + getIllustId(), {
-				method: 'get',
-				credentials: 'include', // 附带 cookie
-			})
-			.then(function (response) {
-				response.text()
-					.then(function (data) {
-						let this_one_data = JSON.parse(data).body;
-						// 处理 图片查看器
-						if (this_one_data.illustType === 0 || this_one_data.illustType === 1) { // 单图或多图，0插画1漫画2动图（1的如68430279）
-							if (this_one_data.pageCount > 1) { // 多图
-								// 当作品类型为 插画或者漫画，并且是多图时，才会产生缩略图
-								let urls_thumb = this_one_data.urls.thumb;
-								// https://i.pximg.net/c/240x240/img-master/img/2017/11/28/00/23/44/66070515_p0_master1200.jpg
-								let urls_original = this_one_data.urls.original;
-								// https://i.pximg.net/img-original/img/2017/11/28/00/23/44/66070515_p0.png
-								let length = this_one_data.pageCount;
-								let viewerList = '';
-								for (let index = 0; index < length; index++) {
-									let pageNo = 'p' + index;
-									viewerList += `<li><img src="${urls_thumb.replace('p0',pageNo)}" data-src="${urls_original.replace('p0',pageNo)}"></li>`;
-								}
-								viewerUl.innerHTML = viewerList;
-								// 数据更新后，显示 viewerWarpper
-								viewerWarpper.style.display = 'block';
-								// 销毁看图组件
-								if (myViewer) {
-									myViewer.destroy();
-								}
-								// 重新配置看图组件
-								myViewer = new Viewer(viewerUl, {
-									toolbar: {
-										zoomIn: 0,
-										zoomOut: 0,
-										oneToOne: 1,
-										reset: 0,
-										prev: 1,
-										play: {
-											show: 0,
-											size: 'large',
-										},
-										next: 1,
-										rotateLeft: 0,
-										rotateRight: 0,
-										flipHorizontal: 0,
-										flipVertical: 0,
-									},
-									url(image) {
-										return image.getAttribute('data-src');
-									},
-									transition: false, // 取消一些动画，比如切换图片时，图片从小变大出现的动画
-									keyboard: false, // 取消键盘支持，主要是用键盘左右方向键切换的话，会和 pixiv 页面产生冲突。（pixiv 页面上，左右方向键会切换作品）
-									title: false, // 不显示 title（图片名和宽高信息）
-									tooltip: false, // 不显示缩放比例
-								});
+			method: 'get',
+			credentials: 'include', // 附带 cookie
+		}).then(function (response) {
+			response.text()
+				.then(function (data) {
+					let this_one_data = JSON.parse(data).body;
+					// 处理 图片查看器
+					if (this_one_data.illustType === 0 || this_one_data.illustType === 1) { // 单图或多图，0插画1漫画2动图（1的如68430279）
+						if (this_one_data.pageCount > 1) { // 多图
+							// 当作品类型为 插画或者漫画，并且是多图时，才会产生缩略图
+							let urls_thumb = this_one_data.urls.thumb;
+							// https://i.pximg.net/c/240x240/img-master/img/2017/11/28/00/23/44/66070515_p0_master1200.jpg
+							let urls_original = this_one_data.urls.original;
+							// https://i.pximg.net/img-original/img/2017/11/28/00/23/44/66070515_p0.png
+							let length = this_one_data.pageCount;
+							let viewerList = '';
+							for (let index = 0; index < length; index++) {
+								let pageNo = 'p' + index;
+								viewerList += `<li><img src="${urls_thumb.replace('p0',pageNo)}" data-src="${urls_original.replace('p0',pageNo)}"></li>`;
 							}
+							viewerUl.innerHTML = viewerList;
+							// 数据更新后，显示 viewerWarpper
+							viewerWarpper.style.display = 'block';
+							// 销毁看图组件
+							if (myViewer) {
+								myViewer.destroy();
+							}
+							// 重新配置看图组件
+							myViewer = new Viewer(viewerUl, {
+								toolbar: {
+									zoomIn: 0,
+									zoomOut: 0,
+									oneToOne: 1,
+									reset: 0,
+									prev: 1,
+									play: {
+										show: 0,
+										size: 'large',
+									},
+									next: 1,
+									rotateLeft: 0,
+									rotateRight: 0,
+									flipHorizontal: 0,
+									flipVertical: 0,
+								},
+								url(image) {
+									return image.getAttribute('data-src');
+								},
+								transition: false, // 取消一些动画，比如切换图片时，图片从小变大出现的动画
+								keyboard: false, // 取消键盘支持，主要是用键盘左右方向键切换的话，会和 pixiv 页面产生冲突。（pixiv 页面上，左右方向键会切换作品）
+								title: false, // 不显示 title（图片名和宽高信息）
+								tooltip: false, // 不显示缩放比例
+							});
 						}
-						// 处理 动图
-						if (this_one_data.illustType === 2) {
-							initGIF();
-						}
-					});
-			});
+					}
+					// 处理 动图
+					if (this_one_data.illustType === 2) {
+						initGIF();
+					}
+				});
+		});
 	}
 
 	// 初始化动图
@@ -1245,20 +1242,19 @@ function XZDownloader() {
 	// 获取 gif 信息
 	function getGIFInfo() {
 		fetch('https://www.pixiv.net/ajax/illust/' + getIllustId() + '/ugoira_meta', {
-				method: 'get',
-				credentials: 'include', // 附带 cookie
-			})
-			.then(function (response) {
-				response.text()
-					.then(function (data) {
-						let this_one_data = JSON.parse(data).body;
-						gif_src = this_one_data.originalSrc;
-						file_number = this_one_data.frames.length;
-						gif_delay = this_one_data.frames[0].delay;
-						gif_mime_type = this_one_data.mime_type;
-						console.log('getGIFInfo end');
-					});
-			});
+			method: 'get',
+			credentials: 'include', // 附带 cookie
+		}).then(function (response) {
+			response.text()
+				.then(function (data) {
+					let this_one_data = JSON.parse(data).body;
+					gif_src = this_one_data.originalSrc;
+					file_number = this_one_data.frames.length;
+					gif_delay = this_one_data.frames[0].delay;
+					gif_mime_type = this_one_data.mime_type;
+					console.log('getGIFInfo end');
+				});
+		});
 	}
 
 	// 加载 js 文件
@@ -2634,7 +2630,7 @@ function XZDownloader() {
 		}
 
 		// 每页个数
-		let once_number = 24; // 新版每页 24 个作品（因为新版不显示无法访问的作品，所以有时候一页不足24个）
+		let once_number = 48; // 新版每页 48 个作品（因为新版不显示无法访问的作品，所以有时候一页不足这个数量）
 		if (!userPageIsNew()) { // 旧版每页 20 个作品
 			once_number = 20;
 		}
