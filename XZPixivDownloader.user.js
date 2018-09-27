@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.9.7
+// @version     5.9.8
 // @description 在多种情景下批量下载pixiv上的图片，已适配新版页面。可下载单图、多图、动图的原图；转换动图为 gif；批量下载所有画师作品/收藏夹/排行榜；屏蔽广告；查看热门作品；快速收藏作品（自动添加tag）；在当前页面查看多 p 作品；按收藏数快速搜索 tag。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -1092,7 +1092,7 @@ function XZDownloader() {
 				// 隐藏原来的收藏按钮并检测收藏状态
 				toolbar.childNodes[2].style.display = 'none';
 				let heart = toolbar.childNodes[2].querySelector('svg');
-				if (heart.classList.contains('_20nOYr7')) { // 如果已经收藏过了
+				if (getComputedStyle(heart)['fill'] === "rgb(255, 64, 96)") { // 如果已经收藏过了
 					quickBookmarkEnd();
 				} else {
 					quickBookmarkElement.addEventListener('click', () => {
@@ -1258,15 +1258,11 @@ function XZDownloader() {
 	}
 
 	// 加载 js 文件
-	function loadJS(name, url) {
-		fetch(url)
-			.then((res) => {
-				return res.blob();
-			})
-			.then((res) => {
-				let blob_url = URL.createObjectURL(res);
-				jsLoaded(name, blob_url);
-			});
+	async function loadJS(name, url) {
+		let js_file = await fetch(url);
+		let js_blob = await js_file.blob();
+		let blob_url = URL.createObjectURL(js_blob);
+		jsLoaded(name, blob_url);
 	}
 
 	// 把 js 文件插入到页面里
@@ -1321,11 +1317,11 @@ function XZDownloader() {
 	function downloadZip(url) {
 		fetch(url)
 			.then((res) => {
-				return res.blob();
-			})
-			.then((res) => {
-				zip_file = res;
-				console.log('zip loaded');
+				res.blob()
+					.then((res) => {
+						zip_file = res;
+						console.log('zip loaded');
+					})
 			});
 	}
 
