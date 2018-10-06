@@ -14,7 +14,7 @@
 
 ## 推荐环境：
 
-浏览器：**Chrome** [(下载Chrome浏览器，此链接需要翻墙)](http://www.google.cn/chrome/browser/desktop/)
+浏览器：**Chrome** [(下载Chrome浏览器，此链接需要翻墙)](https://www.google.com/chrome/)
 
 用户脚本管理器：**Tampermonkey** [(在Chrome网上商店查看，此链接需要翻墙)](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
 

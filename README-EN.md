@@ -12,7 +12,7 @@ Some auxiliary functions have also been added, such as removing ads, quick colle
 
 ### Recommended Use:
 
-Browser: **Chrome** [(download Chrome browser)](http://www.google.com/chrome/browser/desktop/)
+Browser: **Chrome** [(download Chrome browser)](https://www.google.com/chrome/)
 
 User Script Manager: **Tampermonkey** [(view in Chrome webstore)](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
 

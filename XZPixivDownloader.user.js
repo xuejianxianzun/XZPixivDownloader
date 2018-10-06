@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     5.9.8
+// @version     5.9.9
 // @description 在多种情景下批量下载pixiv上的图片，已适配新版页面。可下载单图、多图、动图的原图；转换动图为 gif；批量下载所有画师作品/收藏夹/排行榜；屏蔽广告；查看热门作品；快速收藏作品（自动添加tag）；在当前页面查看多 p 作品；按收藏数快速搜索 tag。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -54,7 +54,7 @@ if (typeof jQuery === 'undefined') { // 新版的一些页面没有jQuery了，�
 function XZDownloader() {
 	let quiet_download = false, // 是否静默下载，即下载时不弹窗提醒，并且自动开始下载（无需点击下载按钮）。目前新版本已经默认不弹窗了，这个参数的意义基本就是自动下载了
 		use_alert = false, // 是否使用弹窗提醒
-		download_thread_deauflt = 5, // 同时下载的线程数，可以修改。如果不想用加延迟 time_interval 的方法来防止漏图，那么可以把这里改成1，单线程下载不会漏图。此版本用的是加延迟的方法，可以支持多线程
+		download_thread_deauflt = 6, // 同时下载的线程数，可以修改。如果不想用加延迟 time_interval 的方法来防止漏图，那么可以把这里改成1，单线程下载不会漏图。此版本用的是加延迟的方法，可以支持多线程
 		multiple_down_number = 0, // 设置多图作品下载前几张图片。0为不限制，全部下载。改为1则只下载第一张。这是因为有时候多p作品会导致要下载的图片过多，此时可以设置只下载前几张，减少下载量
 		tag_search_show_img = true, //是否显示tag搜索页里面的封面图片。如果tag搜索页的图片数量太多，那么加载封面图可能要很久，并且可能因为占用大量带宽导致抓取中断。这种情况下可以将此参数改为false，不加载封面图。
 		fileName_length = 200, // 文件名的最大长度，超出将会截断。如果文件的保存路径过长可能会保存失败，此时可以把这个数值改小些。
@@ -2761,7 +2761,6 @@ function XZDownloader() {
 						});
 						// 删除后面的 id（删除不需要的近期作品）
 						type2_id_list.splice(type2_id_list.length - offset_number, type2_id_list.length);
-
 					}
 
 					// 获取完毕，不需要重复调用本函数的情况
@@ -3097,6 +3096,9 @@ function XZDownloader() {
 		if (test_suffix_finished) { // 检查网址的任务 是否都全部完成。
 			if (down_xiangguan) { // 如果是作品页内下载相关作品，到这里解除这个标识
 				down_xiangguan = false;
+			}
+			if (page_type === 2) { // 在画师的列表页里，把 url 倒序排列，可以先下载最新作品，后下载早期作品
+				img_info.sort(sortByProperty('id'));
 			}
 			$(outputInfo).html($(outputInfo).html() + '<br>' + xzlt('_获取图片网址完毕', img_info.length) + '<br>');
 			if (img_info.length === 0) {
@@ -3715,7 +3717,7 @@ function XZDownloader() {
 		download_stop = false;
 	}
 
-	// 判断 page_type，
+	// 判断 page_type
 	function checkPageType() {
 		old_page_type = page_type;
 		loc_url = location.href;
@@ -4020,7 +4022,6 @@ function XZDownloader() {
 		$('#js-react-search-mid').css('minHeight', 'auto'); //原来的最小高度是500，改成auto以免搜索时这部分空白
 
 		tagSearchDel();
-
 
 		// 添加快速筛选功能
 		let nowTag = $('.column-title a').text().split(' ')[0];
