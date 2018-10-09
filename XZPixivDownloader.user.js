@@ -3231,8 +3231,9 @@ function XZDownloader() {
 		}
 	}
 
-	// 添加输出url的区域
-	function addOutputWarp() {
+	// 添加下载面板
+	function addDownloadWarp() {
+		// 添加输出 url 列表、文件名列表的面板
 		let outputInfoWrap = document.createElement('div');
 		document.body.appendChild(outputInfoWrap);
 		outputInfoWrap.outerHTML = `
@@ -3754,7 +3755,7 @@ function XZDownloader() {
 
 	if (page_type !== undefined) {
 		addBtnsAreaCtrl();
-		addOutputWarp();
+		addDownloadWarp();
 	}
 
 	// 作品页无刷新进入其他作品页面时
