@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.0.2
+// @version     6.0.3
 // @description 在多种情景下批量下载pixiv上的图片，已适配新版页面。可下载单图、多图、动图的原图；转换动图为 gif；批量下载所有画师作品/收藏夹/排行榜；屏蔽广告；查看热门作品；快速收藏作品（自动添加tag）；在当前页面查看多 p 作品；按收藏数快速搜索 tag。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -3699,18 +3699,14 @@ function XZDownloader() {
 		setTagNeed_input.value = xz_setting.need_tag;
 		// 保存必须的 tag设置
 		setTagNeed_input.addEventListener('change', function () {
-			if (this.value !== '') {
 				saveXZSetting('need_tag', this.value);
-			}
 		});
 		// 设置排除的 tag
 		let setTagNotNeed_input = XZForm.setTagNotNeed;
 		setTagNotNeed_input.value = xz_setting.notNeed_tag;
 		// 保存排除的 tag设置
 		setTagNotNeed_input.addEventListener('change', function () {
-			if (this.value !== '') {
 				saveXZSetting('notNeed_tag', this.value);
-			}
 		});
 		// 设置封面选项
 		let setDisplayCover_input = XZForm.setDisplayCover;
@@ -3809,9 +3805,9 @@ function XZDownloader() {
 
 	// 开始下载 下载序号，要使用的显示队列的序号
 	function startDownload(downloadNo, donwloadBar_no) {
-		quick = false;
 		changeTitle('↓');
 		let fullFileName = getFileName(img_info[downloadNo]);
+		quick = false;
 		// 处理文件名长度 这里有个问题，因为无法预知浏览器下载文件夹的长度，所以只能预先设置一个预设值
 		fullFileName = fullFileName.substr(0, fileName_length) + '.' + img_info[downloadNo].ext;
 		donwloadBar_list.eq(donwloadBar_no).find('.download_fileName').html(fullFileName);
@@ -3822,7 +3818,7 @@ function XZDownloader() {
 				referer: 'https://www.pixiv.net/'
 			},
 			responseType: 'blob',
-			timeout: 12000,
+			timeout: 180000,
 			onprogress: function (xhr) {
 				// 显示下载进度
 				if (download_pause || download_stop) {
