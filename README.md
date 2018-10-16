@@ -1,6 +1,6 @@
 [View English introduction](https://github.com/xuejianxianzun/XZPixivDownloader/blob/master/README-EN.md)
 
-![仙尊 pixiv 下载器 中文截图](https://wx3.sinaimg.cn/large/640defebgy1fsndo9dwvcj20zm0wv0xj.jpg)
+![仙尊 pixiv 下载器 中文截图](https://wx3.sinaimg.cn/large/640defebly1fw91uy1qkoj20pd0ll419.jpg)
 
 # 简介：
 
