@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.0.3
+// @version     6.0.4
 // @description 在多种情景下批量下载pixiv上的图片，已适配新版页面。可下载单图、多图、动图的原图；转换动图为 gif；批量下载所有画师作品/收藏夹/排行榜；屏蔽广告；查看热门作品；快速收藏作品（自动添加tag）；在当前页面查看多 p 作品；按收藏数快速搜索 tag。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -638,6 +638,11 @@ function XZDownloader() {
 			'隐藏',
 			'隠された',
 			'hide'
+		],
+		'_快捷键切换显示隐藏': [
+			'使用 Alt + X，可以显示和隐藏下载面板',
+			'Alt + Xを使用してダウンロードパネルを表示および非表示にする',
+			'Use Alt + X to show and hide the download panel'
 		],
 		'_设置命名规则': [
 			'共抓取到{}个图片，请设置文件命名规则：',
@@ -3250,7 +3255,7 @@ function XZDownloader() {
 		rightButton = document.createElement('div');
 		rightButton.id = 'rightButton';
 		rightButton.innerHTML = '↓';
-		styleE.innerHTML += '#rightButton{position: fixed;top: 5%;right: 0;z-index: 1000;line-height:20px;font-size:14px;border-radius: 3px;color: #fff;text-align: center;cursor: pointer;padding:8px;box-sizing:content-box;background:#BECAD7;}';
+		styleE.innerHTML += '#rightButton{position: fixed;top: 15%;right: 0;z-index: 1000;line-height:20px;font-size:14px;border-radius: 3px;color: #fff;text-align: center;cursor: pointer;padding:8px;box-sizing:content-box;background:#BECAD7;}';
 		document.body.appendChild(rightButton);
 		// 绑定切换右侧按钮显示的事件
 		rightButton.addEventListener('click', function () {
@@ -3323,7 +3328,7 @@ function XZDownloader() {
 		<div class="centerWrap">
 		<div class="centerWrap_head">
 		<span class="centerWrap_title xz_blue"> ${xzlt('_下载设置')}</span>
-		<div class="centerWrap_close" title="${xzlt('_隐藏')}">X</div>
+		<div class="xztip centerWrap_close" data-tip="${xzlt('_快捷键切换显示隐藏')}">X</div>
 		</div>
 		<div class="centerWrap_con">
 		<form class="XZForm">
@@ -3657,6 +3662,19 @@ function XZDownloader() {
 		rightButton.style.display = 'block';
 	}
 
+	// 使用快捷键切换显示隐藏
+	window.addEventListener('keydown', function (event) {
+		let e2 = event || window.event;
+		if (e2.altKey && e2.keyCode === 88) {
+			let now_display = centerWrap.style.display;
+			if (now_display === 'block') {
+				centerWrapHide();
+			} else {
+				centerWrapShow();
+			}
+		}
+	}, false);
+
 	// 读取设置
 	function readXZSetting() {
 		xz_setting = localStorage.getItem('xz_setting');
@@ -3699,14 +3717,14 @@ function XZDownloader() {
 		setTagNeed_input.value = xz_setting.need_tag;
 		// 保存必须的 tag设置
 		setTagNeed_input.addEventListener('change', function () {
-				saveXZSetting('need_tag', this.value);
+			saveXZSetting('need_tag', this.value);
 		});
 		// 设置排除的 tag
 		let setTagNotNeed_input = XZForm.setTagNotNeed;
 		setTagNotNeed_input.value = xz_setting.notNeed_tag;
 		// 保存排除的 tag设置
 		setTagNotNeed_input.addEventListener('change', function () {
-				saveXZSetting('notNeed_tag', this.value);
+			saveXZSetting('notNeed_tag', this.value);
 		});
 		// 设置封面选项
 		let setDisplayCover_input = XZForm.setDisplayCover;
@@ -3807,7 +3825,6 @@ function XZDownloader() {
 	function startDownload(downloadNo, donwloadBar_no) {
 		changeTitle('↓');
 		let fullFileName = getFileName(img_info[downloadNo]);
-		quick = false;
 		// 处理文件名长度 这里有个问题，因为无法预知浏览器下载文件夹的长度，所以只能预先设置一个预设值
 		fullFileName = fullFileName.substr(0, fileName_length) + '.' + img_info[downloadNo].ext;
 		donwloadBar_list.eq(donwloadBar_no).find('.download_fileName').html(fullFileName);
@@ -3880,6 +3897,7 @@ function XZDownloader() {
 		$('.progress1').css('width', downloaded / img_info.length * 100 + '%');
 		if (downloaded === img_info.length) { // 如果所有文件都下载完毕
 			download_started = false;
+			quick = false;
 			download_stop = false;
 			download_pause = false;
 			downloaded = 0;
@@ -3890,6 +3908,7 @@ function XZDownloader() {
 			//如果已经暂停下载
 			if (download_pause) {
 				download_started = false;
+				quick = false;
 				changeTitle('║');
 				return false;
 			}
@@ -3897,6 +3916,7 @@ function XZDownloader() {
 			// 如果已经停止下载
 			if (download_stop) {
 				download_started = false;
+				quick = false;
 				changeTitle('■');
 				return false;
 			}
