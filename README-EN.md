@@ -1,14 +1,18 @@
-![仙尊 pixiv 下载器 英文截图](https://wx3.sinaimg.cn/large/640defebly1fw920pxevij20pf0h1q5b.jpg)
-
 # Introduction:
 
-This is a Pixiv image downloader written in JavaScript, which is essentially a UserScript. It must be installed using User Script Manager.
+This is a Pixiv image downloader written in JavaScript that supports many page types and filters.
 
-Some auxiliary functions have also been added, such as removing ads, quick collections, and viewing pictures.
+Some additional features have been added, such as removing ads, quick collections, and viewing patterns.
+
+It is essentially a user script (UserScript) that must be installed using the User Script Manager.
+
+![仙尊 pixiv 下载器 英文截图](https://wx3.sinaimg.cn/large/640defebly1fw920pxevij20pf0h1q5b.jpg)
 
 **This tool now has a Chrome extension:**
 
 [Chrome webstore page](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl)
+
+Chrome extensions can automatically create folders to store images, which is convenient.
 
 ### Recommended Use:
 
@@ -17,8 +21,6 @@ Browser: **Chrome** [(download Chrome browser)](https://www.google.com/chrome/)
 User Script Manager: **Tampermonkey** [(view in Chrome webstore)](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
 
 - Please turn off "Ask where to save each file before downloading" in browser settings.
-
-- I don't guarantee that this tool will work well in other configurations. If you use other browser, memory usage may be too large, or your browser can not save the file.
 
 # Install:
 

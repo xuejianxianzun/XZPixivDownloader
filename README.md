@@ -4,13 +4,17 @@
 
 # 简介：
 
-这是一个使用 JavaScript 编写的 Pixiv 图片下载器，它实质上是一个用户脚本（UserScript），必须使用用户脚本管理器来安装。
+这是一个使用 JavaScript 编写的 Pixiv 图片下载器，支持多种页面类型和筛选条件。
 
 现在也增加了一些辅助功能，如去除广告、快速收藏、看图模式等。
 
-**工具现已推出 Chrome 扩展：**
+它实质上是一个用户脚本（UserScript），必须使用用户脚本管理器来安装。
+
+**本工具现已推出 Chrome 扩展：**
 
 [Chrome webstore 页面](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl)
+
+这个页面的是脚本版，不能每次任务建立文件夹保存。Chrome 扩展可以自动建立文件夹，比较方便。
 
 ## 推荐环境：
 
@@ -41,10 +45,6 @@ English （机翻，韩语设置下也使用英语文本）
 欢迎您对翻译做出改进，谢谢~
 
 ## 提示：
-
-- 修改默认参数
-
-在 ```XZDownloader``` 函数里，可以按需要修改一些变量的默认值。当脚本更新后，需要再次进行修改。
 
 - Chrome 的资源限制问题
 
