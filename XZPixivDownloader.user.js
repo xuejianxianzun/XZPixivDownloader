@@ -3,8 +3,8 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.1.1
-// @description 在多种情景下批量下载pixiv上的图片，已适配新版页面。可下载单图、多图、动图的原图；转换动图为 gif；批量下载所有画师作品/收藏夹/排行榜；屏蔽广告；查看热门作品；快速收藏作品（自动添加tag）；在当前页面查看多 p 作品；按收藏数快速搜索 tag。根据你的p站语言设置，可自动切换到中、日、英三种语言。github: https://github.com/xuejianxianzun/XZPixivDownloader
+// @version     6.1.2
+// @description 批量下载画师、收藏夹、排行榜、搜索页等各种页面里的作品原图。查看热门作品；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持中、日、英三语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
 // @author      xuejianxianzun 雪见仙尊
@@ -2314,7 +2314,6 @@ function XZDownloader() {
 			}
 			// 这里直接获取收藏数，可能是非法的，下面再检查
 			addOutputInfo(xzlt('_tag搜索任务开始', parseInt(XZForm.setFavNum.value), want_page));
-			// 检查是否显示封面图
 			if (!listPage_finished) { //如果是首次抓取 则处理当前页面
 				$(tag_search_list_selector).remove(); // 移除当前列表内容
 				$('body').append('<div id="tag_search_temp_result" style="display:none"></div>');
@@ -3417,7 +3416,7 @@ function XZDownloader() {
 		</p>
 		<p class="XZFormP9" style="display:none;">
 		<span class="xztip settingNameStyle1" data-tip="${xzlt('_显示封面的提示')}">${xzlt('_是否显示封面')}<span class="gray1"> ? </span></span>
-		<input type="checkbox" name="setDisplayCover" checked> ${xzlt('_显示')}
+		<label for="setDisplayCover"><input type="checkbox" name="setDisplayCover" id="setDisplayCover" checked> ${xzlt('_显示')}</label>
 		</p>
 		<p class="XZFormP8">
 		<span class="xztip settingNameStyle1" data-tip="${xzlt('_快速下载的提示')}">${xzlt('_是否快速下载')}<span class="gray1"> ? </span></span>
