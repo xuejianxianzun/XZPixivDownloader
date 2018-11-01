@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.1.2
+// @version     6.1.3
 // @description 批量下载画师、收藏夹、排行榜、搜索页等各种页面里的作品原图。查看热门作品；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持中、日、英三语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -2273,6 +2273,7 @@ function XZDownloader() {
 		}
 
 		insertOutputInfo();
+		downloadPanelHide();
 		// 设置要获取的作品数或页数
 		if (page_type === 1) {
 			if (quick) { // 快速下载
@@ -3234,13 +3235,12 @@ function XZDownloader() {
 			$('.download_fileName').html('');
 			$('.loaded').html('0/0');
 			$('.progress').css('width', '0%');
-
+			$('.imgNum').text(img_info.length);
+			downloadPanelShow();
 			// 显示输出区域
 			if (!quick) {
 				centerWrapShow();
 			}
-			// 重置输出区域
-			$('.imgNum').text(img_info.length);
 
 			// 快速下载时点击下载按钮
 			if (quick || quiet_download) {
@@ -3469,6 +3469,7 @@ function XZDownloader() {
 		<br>
 		</p>
 		</form>
+		<div class="download_panel">
 		<div class="centerWrap_btns">
 		<div class="startDownload" style="background:${xz_blue};"> ${xzlt('_下载按钮1')}</div>
 		<div class="pauseDownload" style="background:#e49d00;"> ${xzlt('_下载按钮2')}</div>
@@ -3506,6 +3507,7 @@ function XZDownloader() {
 		</div>
 		</li>
 		</ul>
+		</div>
 		</div>
 		<a class="download_a" download=""></a>
 		<p class="gray1 showDownTip"> ${xzlt('_查看下载说明')}</p>
@@ -3555,6 +3557,7 @@ function XZDownloader() {
 		.fwb{font-weight: bold;}
 		.gray1{color:#999;}
 		.xz_blue{color:#0ea8ef !important;}
+		.download_panel{display: none;}
 		`;
 
 		center_btn_wrap = document.querySelector('.centerWrap_btns_free');
@@ -3715,6 +3718,16 @@ function XZDownloader() {
 		centerWrap.style.display = 'none';
 		rightButton.style.display = 'block';
 		$('.outputInfoWrap').hide(); // 隐藏中间的输出面板
+	}
+
+	// 显示下载面板
+	function downloadPanelShow() {
+		document.querySelector('.download_panel').style.display = 'block';
+	}
+
+	// 隐藏下载面板
+	function downloadPanelHide() {
+		document.querySelector('.download_panel').style.display = 'none';
 	}
 
 	// 收起展开设置项
