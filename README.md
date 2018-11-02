@@ -105,3 +105,15 @@ English （机翻，韩语设置下也使用英语文本）
 [zip.js](https://github.com/gildas-lormeau/zip.js)
 
 [gif.js](https://github.com/jnordberg/gif.js)
+
+## 友情链接：
+
+[PixivUserBatchDownload](https://github.com/Mapaler/PixivUserBatchDownload/)
+
+这是另一个工具——“P站画师个人作品批量下载工具”，简称PUBD。专注按画师下载作品，适合动手能力强的用户使用。
+
+- 专做按作者下载，适合有专情画师的粉丝。
+
+- 配合Aria2下载，可发送到本地或远端路由器。
+
+- 可使用程序语言高度自定义保存文件夹、重命名。
