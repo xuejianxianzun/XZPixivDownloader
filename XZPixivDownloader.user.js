@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.1.4
+// @version     6.1.5
 // @description 批量下载画师、收藏夹、排行榜、搜索页等各种页面里的作品原图。查看热门作品；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持中、日、英三语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -2936,7 +2936,7 @@ function XZDownloader() {
 			$(outputInfo).html($(outputInfo).html() + xzlt('_开始获取作品页面'));
 			now_tips = $(outputInfo).html();
 		}
-		url = 'https://www.pixiv.net/ajax/illust/' + getIllustId(); // 取出作品id，拼接出作品页api
+		url = 'https://www.pixiv.net/ajax/illust/' + url.match(/\d.*\d/)[0]; // 取出作品id，拼接出作品页api
 
 		$.ajax({
 			url: url,
