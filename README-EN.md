@@ -32,7 +32,9 @@ The downloaded file will be saved in your browser's download directory.
 
 # Supported languages:
 
-Simplified Chinese (also used under Traditional Chinese settings)
+Simplified Chinese
+
+Traditional Chinese (thanks [道满](https://zhtw.me/) for translation)
 
 English (machine translation, also used under Korean settings)
 
