@@ -667,3 +667,29 @@ p站作品页面一些结构变了，导致多图作品的缩略图列表位置�
 ## 6.1.6
 
 网友 [道滿](https://zhtw.me/) 翻译了繁體中文
+
+## 6.2.0
+
+可以设置文件夹名称
+
+重复文件只能加序号，不能直接覆盖。Chrome 扩展版可以直接覆盖。
+
+在右侧添加快速下载按钮
+
+快速下载不建立文件夹
+
+添加了设置文件夹的教程
+
+添加标记更快捷
+
+## 6.2.4
+
+Firefox 上我搞不出来怎么建立文件夹了，先在 Firefox 上把这个功能屏蔽吧。
+
+还是 chrome 好。
+
+相关作品很不“相关”，莫非是p站又改了
+
+https://www.pixiv.net/member_illust.php?mode=medium&illust_id=70666961
+
+https://www.pixiv.net/bookmark_detail.php?illust_id=71510766

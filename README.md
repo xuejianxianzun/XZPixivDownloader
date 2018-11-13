@@ -14,8 +14,6 @@
 
 [Chrome webstore 页面](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl)
 
-这个页面的是脚本版，不能每次任务建立文件夹保存。Chrome 扩展可以自动建立文件夹，比较方便。
-
 ## 推荐环境：
 
 浏览器：**Chrome** [(下载Chrome浏览器，此链接需要翻墙)](https://www.google.com/chrome/)

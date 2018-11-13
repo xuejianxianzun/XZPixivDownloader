@@ -3,8 +3,8 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.1.6
-// @description 批量下载画师、收藏夹、排行榜、搜索页等各种页面里的作品原图。查看热门作品；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
+// @version     6.2.4
+// @description 批量下载画师、收藏夹、排行榜、搜索页等页面里的作品原图，可以自动建立文件夹。查看热门作品；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
 // @author      xuejianxianzun 雪见仙尊
@@ -13,6 +13,7 @@
 // @license     GPL-3.0-or-later; http://www.gnu.org/licenses/gpl-3.0.txt
 // @icon        https://www.pixiv.net/favicon.ico
 // @grant       GM_xmlhttpRequest
+// @grant       GM_download
 // @connect     i.pximg.net
 // @connect     i1.pixiv.net
 // @connect     i2.pixiv.net
@@ -65,7 +66,6 @@ function XZDownloader() {
 		old_page_type, // 上一个页面类型
 		tag_mode, // page_type 2 里，是否带 tag
 		works_type, //	page_type 2 里的页面类型
-		is_bmk_page = false, // 是否是书签页面
 		offset_number = 0, // 要去掉的作品数量
 		once_request = 100, // 每次请求多少个数量
 		type2_id_list = [], // 储存 page_type 2 的 id 列表
@@ -126,7 +126,7 @@ function XZDownloader() {
 		downloaded = 0, // 已下载的文件
 		download_stop = false, // 是否停止下载
 		download_pause = false, // 是否暂停下载
-		old_title = document.title,
+		old_title = document.title, // 原始 title，需要加下载状态时使用
 		title_timer,
 		click_time = 0, // 点击下载按钮的时间戳
 		time_delay = 0, // 延迟点击的时间
@@ -155,6 +155,9 @@ function XZDownloader() {
 		gif_delay, // 动图帧延迟
 		XZForm,
 		XZTipEl,
+		folder_info = {}, // 文件夹可以使用的命名信息
+		folder_name_default = '', // 默认文件夹命名规则
+		folder_name = '', // 用户设置的文件夹命名规则
 		option_area_show = true,
 		only_down_bmk;
 
@@ -750,6 +753,18 @@ function XZDownloader() {
 			'Collapse/expand settings',
 			'摺疊/展開設定項目'
 		],
+		'_Github': [
+			'Github 页面，欢迎 star',
+			'Githubのページ、starをクリックしてください',
+			'Github page, if you like, please star it',
+			'Github 頁面，歡迎 star'
+		],
+		'_chrome 扩展': [
+			'查看本工具的 Chrome 扩展版。\n安装扩展版后，需要禁用脚本版。',
+			'このツールにはChrome拡張機能があります。\n 拡張機能をインストールしたら、このユーザースクリプトを無効にする必要があります。',
+			'Check out the Chrome extension for this tool. \nAfter installing the extension, you need to disable this user script.',
+			'查看本工具的 Chrome 擴展。\n安裝擴展版後，需要禁用這個用戶腳本。'
+		],
 		'_快捷键切换显示隐藏': [
 			'使用 Alt + X，可以显示和隐藏下载面板',
 			'Alt + Xを使用してダウンロードパネルを表示および非表示にする',
@@ -768,17 +783,17 @@ function XZDownloader() {
 			'Grab a total of {} pictures',
 			'共擷取到 {} 個圖片'
 		],
-		'_设置命名规则2': [
-			'设置命名规则',
-			'命名規則を設定する',
-			'Set naming rules',
-			'設定命名規則'
+		'_设置文件名': [
+			'设置文件名&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+			'ファイル名を設定する',
+			'Set file name',
+			'設定檔案名稱'
 		],
-		'_设置命名规则2提示': [
-			'设置图片的名字',
-			'画像の名前を設定する',
-			'Set the name of the picture',
-			'設定圖片名稱'
+		'_设置文件夹名': [
+			'设置文件夹名&nbsp;&nbsp;&nbsp;',
+			'フォルダ名を設定する',
+			'Set the folder name',
+			'設定資料夾名'
 		],
 		'_添加标记名称': [
 			'添加标记名称',
@@ -792,11 +807,23 @@ function XZDownloader() {
 			'Add the tag name to the file name',
 			'將標籤名稱加到檔名中'
 		],
-		'_查看可用的标记': [
-			'查看可用的标记',
-			'利用可能なタグを見る',
-			'See available tags',
-			'檢視可用的標記'
+		'_如何使用': [
+			'如何使用',
+			'使用方法',
+			'how to use',
+			'如何使用',
+		],
+		'_文件夹提示网址': [
+			'https://s1.ax1x.com/2018/11/13/iOcXDK.png',
+			'https://s1.ax1x.com/2018/11/13/iOcOu6.png',
+			'https://s1.ax1x.com/2018/11/13/iOcbg1.png',
+			'https://s1.ax1x.com/2018/11/13/iOcqjx.png',
+		],
+		'_查看标记的含义': [
+			'查看标记的含义',
+			'タグの意味を表示する',
+			'View the meaning of the tag',
+			'檢視標記的含義'
 		],
 		'_可用标记1': [
 			'作品id',
@@ -845,6 +872,36 @@ function XZDownloader() {
 			'複数のタグを使用することができ；異なるタグ間に別の文字を追加することができます。例：{id}-{userid}-{px}<br>* pixivisionでは、idのみが利用可能です',
 			'You can use multiple tags, and you can add a separate character between different tags. Example: {id}-{userid}-{px}<br>* On pixivision, only id is available',
 			'你可以使用多個標記；建議在不同標記之間加入分割用的字元。範例：{id}-{userid}-{px}<br>* 在pixivision裡，只有id標記會生效'
+		],
+		'_文件夹标记_user': [
+			'画师的名字',
+			'アーティスト名',
+			'Artist name',
+			'畫師的名字'
+		],
+		'_文件夹标记_userid': [
+			'画师的id',
+			'アーティストID',
+			'Artist id',
+			'畫師的id'
+		],
+		'_文件夹标记_tag': [
+			'当前页面的 tag',
+			'現在のタグ',
+			'Current tag',
+			'當前頁面的 tag'
+		],
+		'_文件夹标记_id': [
+			'作品id',
+			'作品ID',
+			'works id',
+			'作品id'
+		],
+		'_文件夹标记_ptitle': [
+			'网页的标题',
+			'ページのタイトル',
+			'The title of the page',
+			'網頁的標題'
 		],
 		'_预览文件名': [
 			'预览文件名',
@@ -919,10 +976,10 @@ function XZDownloader() {
 			'檢視下載說明'
 		],
 		'_下载说明': [
-			'下载的文件保存在浏览器的下载目录里。<br>本脚本不支持自动创建文件夹。<br>你可能会下载到 .ugoira 格式的文件，这是动态图的源文件。<br>请不要在浏览器的下载选项里选中\'总是询问每个文件的保存位置\'。<br>如果浏览器询问\'是否允许下载多个文件\'，请选择\'允许\'。<br>如果浏览器询问\'保存\'文件还是\'打开\'文件，请选择\'保存\'。<br>如果作品标题或tag里含有不能做文件名的字符，会被替换成下划线_。<br>如果任务下载缓慢或失败，可使用\'复制url\'功能，之后尝试使用其他下载软件进行下载。',
-			'ダウンロードしたファイルは、ブラウザのダウンロードディレクトリに保存されます。<br>このスクリプトは、フォルダの自動作成をサポートしていません。<br>ブラウザが\'複数のファイルをダウンロードできるようにするかどうか\'と尋ねる場合は、\'許可\'を選択します。<br>Chromeをお勧めします。',
-			'The downloaded file is saved in the browser`s download directory.<br>This script does not support the automatic creation of folders.<br>If the browser asks \'whether to allow multiple files to be downloaded \', select \'Allow \'.<br>Chrome is recommended.',
-			'下載的檔案儲存在瀏覽器的下載目錄裡。<br>本腳本不支援自動建立資料夾。<br>你可能會下載到 .ugoira 格式的檔案，這是動態圖的原始檔。<br>請不要在瀏覽器的下載選項裡選取\'總是詢問每個檔案的儲存位置\'。<br>如果瀏覽器詢問\'是否允許下載多個檔案\'，請選擇\'允許\'。<br>如果瀏覽器詢問\'儲存\'檔案還是\'開啟\'檔案，請選擇\'儲存\'。<br>如果作品標題或tag裡含有不能做檔名的字元，會被取代成下劃線_。<br>如果下載緩慢或失敗，可使用\'複製url\'功能，之後嘗試使用其他下載軟體進行下載。'
+			'下载的文件保存在浏览器的下载目录里。<br>.ugoira 后缀名的文件是动态图的源文件。<br>请不要在浏览器的下载选项里选中\'总是询问每个文件的保存位置\'。<br>如果作品标题或tag里含有不能做文件名的字符，会被替换成下划线_。<br>如果下载进度卡住不动了，你可以先点击“暂停下载”按钮，之后点击“开始下载”按钮，尝试继续下载。',
+			'ダウンロードしたファイルは、ブラウザのダウンロードディレクトリに保存されます。<br>.ugoiraサフィックスファイルは、動的グラフのソースファイルです。<br>ダウンロードの進行状況が継続できない場合は、[ダウンロードの一時停止]ボタンをクリックし、[ダウンロードの開始]ボタンをクリックしてダウンロードを続行します。',
+			'The downloaded file is saved in the browser`s download directory.<br>The .ugoira suffix file is the source file for the dynamic graph.<br>If the download progress is stuck, you can click the "Pause Download" button and then click the "Start Download" button to try to continue the download.',
+			'下載的檔案儲存在瀏覽器的下載目錄裡。<br>.ugoira 後綴的檔案是動態圖的原始檔。<br>請不要在瀏覽器的下載選項裡選取\'總是詢問每個檔案的儲存位置\'。<br>如果作品標題或tag裡含有不能做檔名的字元，會被取代成下劃線_。<br>如果下載進度卡住不動了，你可以先點擊“暫停下載”按鈕，之後點擊“開始下載”按鈕，嘗試繼續下載。'
 		],
 		'_正在下载中': [
 			'正在下载中',
@@ -1025,6 +1082,12 @@ function XZDownloader() {
 			'このページからダウンロードできます',
 			'Download works from this page',
 			'從本頁開始下載作品'
+		],
+		'_请留意文件夹命名': [
+			'请留意文件夹命名',
+			'フォルダの命名に注意してください',
+			'Please pay attention to folder naming',
+			'請留意資料夾命名'
 		],
 		'_下载相关作品': [
 			'下载相关作品',
@@ -2872,14 +2935,19 @@ function XZDownloader() {
 	// 获取用户id
 	function getUserId() {
 		let user_id = '';
-		if (location.search.match(/id=\d{1,9}/)) { // 首先尝试从 url 中取得
+		if (location.search.match(/\?id=\d{1,9}/)) { // 首先尝试从 url 中取得
 			user_id = location.search.match(/id=\d{1,9}/)[0].split('=')[1];
-		} else if (document.querySelector('.user-name')) { // 旧版收藏的用户头像区域
+		} else if (document.querySelector('.user-name')) { // 旧版收藏的用户头像区域，在书签页面还在使用
 			user_id = document.querySelector('.user-name').href.match(/id=\d{1,9}/)[0].split('=')[1];
 		} else if (document.querySelector('._2lyPnMP')) { // 新版收藏的用户头像区域
 			user_id = document.querySelector('._2lyPnMP').href.match(/id=\d{1,9}/)[0].split('=')[1];
 		}
 		return user_id;
+	}
+
+	// 获取用户名称
+	function getUserName() {
+		return (document.querySelector('._2VLnXNk') || document.querySelector('.sc-eNNmBn')).innerHTML;
 	}
 
 	// 从 url 中取出指定的查询条件
@@ -2913,15 +2981,6 @@ function XZDownloader() {
 		return key_list;
 	}
 
-	// 判断个人资料页是新版版式旧版，等到全部成为新版后，可以移除相关代码
-	function userPageIsNew() {
-		if (document.querySelector('.user-name')) { // 如果有旧版资料页的头像
-			return false;
-		} else {
-			return true;
-		}
-	}
-
 	// 在 page_type 2 使用，准备获取作品 id 列表
 	function readyGetListPage3() {
 		// 每次开始时重置一些条件
@@ -2933,18 +2992,12 @@ function XZDownloader() {
 		// 4	插画和漫画全都要，带 tag
 		// 1	只要插画
 		// 2	只要漫画
-		// 5	只要动图（这个只在旧版存在，在新版里没有）
 		// 3	书签作品
 		tag_mode = getQuery(loc_url, 'tag') ? true : false; // 是否是 tag 模式
 
-		// 判断是否是书签页，书签页需要多次循环获取
-		if (loc_url.indexOf('bookmark.php') > -1) {
-			is_bmk_page = true;
-		}
-
 		// 每页个数
 		let once_number = 48; // 新版每页 48 个作品（因为新版不显示无法访问的作品，所以有时候一页不足这个数量）
-		if (!userPageIsNew()) { // 旧版每页 20 个作品
+		if (document.querySelector('.user-name')) { // 旧版每页 20 个作品
 			once_number = 20;
 		}
 
@@ -2980,14 +3033,11 @@ function XZDownloader() {
 				if (tag_mode) { // 带 tag
 					api_url = `https://www.pixiv.net/ajax/user/${getUserId()}/manga/tag/${getQuery(loc_url, 'tag')}?offset=${offset_number}&limit=${requset_number}`;
 				}
-			} else if (getQuery(loc_url, 'type') === 'ugoira') { // 动图分类
-				// 因为没有动图分类了，此处代码不再执行，已经删掉。留下一条提示信息
-				alert('error, please contact me.');
 			} else if (tag_mode) { // url 里没有插画也没有漫画，但是有 tag，则是在资料页首页点击了 tag，需要同时获取插画和漫画
 				works_type = 4;
 				api_url = `https://www.pixiv.net/ajax/user/${getUserId()}/illustmanga/tag/${getQuery(loc_url, 'tag')}?offset=${offset_number}&limit=${requset_number}`;
 			}
-		} else if (is_bmk_page) { // 书签页面
+		} else if (loc_url.indexOf('bookmark.php') > -1) { // 书签页面，需要多次循环获取
 			works_type = 3;
 			let rest_mode = 'show'; // 公开或非公开
 			if (getQuery(loc_url, 'rest') === 'hide') {
@@ -3507,6 +3557,9 @@ function XZDownloader() {
 	// 显示提示
 	function XZTip(arg) {
 		let tip_text = this.dataset.tip;
+		if (!tip_text) {
+			return false;
+		}
 		if (arg.type === 1) {
 			XZTipEl.innerHTML = tip_text;
 			XZTipEl.style.left = arg.x + 30 + 'px';
@@ -3569,6 +3622,8 @@ function XZDownloader() {
 		<div class="centerWrap">
 		<div class="centerWrap_head">
 		<span class="centerWrap_title xz_blue"> ${xzlt('_下载设置')}</span>
+		<a class="xztip github_url" data-tip="${xzlt('_Github')}" href="https://github.com/xuejianxianzun/XZPixivDownloader" target="_blank"><img src="https://s1.ax1x.com/2018/11/12/iLeI4x.png" /></a>
+		<a class="xztip chrome_extension" data-tip="${xzlt('_chrome 扩展')}" href="https://chrome.google.com/webstore/detail/pixiv-batch-downloader/hfgoikdmppghehigkckknikdgdcjbfpl" target="_blank"><img src="https://s1.ax1x.com/2018/11/12/iLEY3F.png" /></a>
 		<div class="xztip centerWrap_toogle_option" data-tip="${xzlt('_收起展开设置项')}">▲</div>
 		<div class="xztip centerWrap_close" data-tip="${xzlt('_快捷键切换显示隐藏')}">X</div>
 		</div>
@@ -3621,7 +3676,7 @@ function XZDownloader() {
 		</p>
 		<p class="XZFormP8">
 		<span class="xztip settingNameStyle1" data-tip="${xzlt('_快速下载的提示')}">${xzlt('_是否快速下载')}<span class="gray1"> ? </span></span>
-		<label for="setQuietDownload"><input type="checkbox" name="setQuietDownload" id="setQuietDownload" checked> ${xzlt('_启用')}</label>
+		<label for="setQuietDownload"><input type="checkbox" name="setQuietDownload" id="setQuietDownload"> ${xzlt('_启用')}</label>
 		</p>
 		</div>
 		<div class="centerWrap_btns centerWrap_btns_free">
@@ -3632,17 +3687,49 @@ function XZDownloader() {
 		<span class="xztip settingNameStyle1" data-tip="${xzlt('_线程数字')}">${xzlt('_设置下载线程')}<span class="gray1"> ? </span></span>
 		<input type="text" name="setThread" class="setinput_style1 xz_blue" value="${download_thread_deauflt}">
 		</p>
-		<p>
-		<span class="xztip settingNameStyle1" data-tip="${xzlt('_设置命名规则2提示')}">${xzlt('_设置命名规则2')}<span class="gray1"> ? </span></span>
-		<input type="text" name="fileNameRule" class="setinput_style1 xz_blue fileNameRule" value="{id}">
+		<p class="XZFormP12">
+		<span class="xztip settingNameStyle1">${xzlt('_设置文件夹名')}</span>
+		<input type="text" name="folderNameRule" class="setinput_style1 xz_blue folderNameRule">
+		&nbsp;&nbsp;
+		<select name="folder_name_select">
+		</select>
 		&nbsp;&nbsp;&nbsp;&nbsp;
-		<span class="gray1 showFileNameTip"> ${xzlt('_查看可用的标记')}</span>
+		<span class="gray1 showFolderNameTip"> ${xzlt('_查看标记的含义')}</span>
+		&nbsp;&nbsp;
+		<a class="gray1 how_to_create_folder" href="${xzlt('_文件夹提示网址')}" target="_blank"> ${xzlt('_如何使用')}</a>
 		</p>
-		<p class="XZFormP10">
-		<span class="xztip settingNameStyle1" data-tip="${xzlt('_添加标记名称提示')}">${xzlt('_添加标记名称')}<span class="gray1"> ? </span></span>
-		<label for="setTagNameToFileName"><input type="checkbox" name="setTagNameToFileName" id="setTagNameToFileName" checked> ${xzlt('_启用')}</label>
-		&nbsp;&nbsp;&nbsp;
-		<span class="gray1 showFileNameResult"> ${xzlt('_预览文件名')}</span>
+		<p class="folderNameTip tip">
+		<span class="xz_blue">{user}</span>
+		${xzlt('_文件夹标记_user')}
+		<br>
+		<span class="xz_blue">{userid}</span>
+		${xzlt('_文件夹标记_userid')}
+		<br>
+		<span class="xz_blue">{id}</span>
+		${xzlt('_文件夹标记_id')}
+		<br>
+		<span class="xz_blue">{tag}</span>
+		${xzlt('_文件夹标记_tag')}
+		<br>
+		<span class="xz_blue">{ptitle}</span>
+		${xzlt('_文件夹标记_ptitle')}
+		</p>
+		<p>
+		<span class="xztip settingNameStyle1">${xzlt('_设置文件名')}</span>
+		<input type="text" name="fileNameRule" class="setinput_style1 xz_blue fileNameRule" value="{id}">
+		&nbsp;&nbsp;
+		<select name="file_name_select">
+			<option value="default">…</option>
+			<option value="{id}">{id}</option>
+			<option value="{title}">{title}</option>
+			<option value="{tags}">{tags}</option>
+			<option value="{user}">{user}</option>
+			<option value="{userid}">{userid}</option>
+			<option value="{px}">{px}</option>
+			<option value="{bmk}">{bmk}</option>
+		</select>
+		&nbsp;&nbsp;&nbsp;&nbsp;
+		<span class="gray1 showFileNameTip"> ${xzlt('_查看标记的含义')}</span>
 		</p>
 		<p class="fileNameTip tip">
 		<span class="xz_blue">{id}</span>
@@ -3667,7 +3754,12 @@ function XZDownloader() {
 		${xzlt('_可用标记8')}
 		<br>
 		${xzlt('_可用标记5')}
-		<br>
+		</p>
+		<p class="XZFormP10">
+		<span class="xztip settingNameStyle1" data-tip="${xzlt('_添加标记名称提示')}">${xzlt('_添加标记名称')}<span class="gray1"> ? </span></span>
+		<label for="setTagNameToFileName"><input type="checkbox" name="setTagNameToFileName" id="setTagNameToFileName" checked> ${xzlt('_启用')}</label>
+		&nbsp;&nbsp;&nbsp;
+		<span class="gray1 showFileNameResult"> ${xzlt('_预览文件名')}</span>
 		</p>
 		</form>
 		<div class="download_panel">
@@ -3721,16 +3813,20 @@ function XZDownloader() {
 		.centerWrap p{line-height: 24px;margin:0;}
 		.centerWrap .tip{color: #999;}
 		.centerWrap_head{height: 30px;position: relative;padding-bottom: 10px;}
+		.centerWrap_head *{vertical-align: middle;}
 		.centerWrap_title{display: block;line-height: 30px;text-align: center;font-size: 18px;}
-		.centerWrap_close,.centerWrap_toogle_option{font-size: 18px;position: absolute;top: 0px;right: 0px;width: 30px;height: 30px;text-align: center;cursor: pointer;color:#666;user-select: none;}
+		.centerWrap_close,.centerWrap_toogle_option,.chrome_extension,.github_url{font-size: 18px;position: absolute;top: 0px;right: 0px;width: 30px;height: 30px;text-align: center;cursor: pointer;color:#666;user-select: none;}
 		.centerWrap_close:hover,.centerWrap_toogle_option:hover{color:#0096fa;}
 		.centerWrap_toogle_option{right:40px;}
+		.chrome_extension{display:block;right:80px;}
+		.github_url{display:block;right:120px;}
+		.centerWrap_head img{max-width:100%;width:16px;}
 		.setinput_style1{width:50px;min-width:50px;line-height: 20px;font-size: 14px !important;height: 20px;text-indent: 4px;box-sizing:border-box;border:none !important;border-bottom: 1px solid #999 !important;outline:none;}
 		.setinput_style1:focus{border-bottom: 1px solid #0096fa !important;background:none !important;}
-		.fileNameRule{min-width: 150px;}
+		.fileNameRule,.folderNameRule{min-width: 150px;}
 		.setinput_tag{min-width: 300px;}
-		.showFileNameTip,.showFileNameResult{cursor: pointer;}
-		.fileNameTip{display: none;padding-top: 5px;}
+		.showFileNameTip,.showFileNameResult,.showFolderNameTip,.how_to_create_folder{cursor: pointer;}
+		.fileNameTip,.folderNameTip{display: none;padding-top: 5px;}
 		.centerWrap_btns{padding: 10px 0 0;font-size: 0;}
 		.centerWrap_btns div{display: inline-block;min-width: 100px;max-width: 105px;padding: 8px 10px;text-align: center;min-height: 20px;line-height: 20px;color: #fff;border-radius: 4px;margin-right: 35px;font-size: 14px;cursor: pointer;margin-bottom:10px;vertical-align: top;}
 		.centerWrap_btns_free div{max-width: 140px;margin-right:15px;}
@@ -3770,6 +3866,9 @@ function XZDownloader() {
 		$('.showFileNameTip').on('click', function () {
 			$('.fileNameTip').toggle();
 		});
+		$('.showFolderNameTip').on('click', function () {
+			$('.folderNameTip').toggle();
+		});
 		$('.showFileNameResult').on('click', function () {
 			showOutputInfoWrap('name');
 		});
@@ -3805,16 +3904,24 @@ function XZDownloader() {
 		XZForm = document.querySelector('.XZForm');
 		let center_inputs = XZForm.querySelectorAll('input[type=text]');
 		for (const el of center_inputs) {
-			el.addEventListener('focus', function () {
-				this.select();
-			});
+			// 文件夹名和文件名例外
+			if (el.name !== 'folderNameRule' && el.name !== 'fileNameRule') {
+				el.addEventListener('focus', function () {
+					this.select();
+				});
+			}
 		}
+
+		appendValueToText(XZForm.file_name_select, XZForm.fileNameRule);
+
 		// 开始下载按钮
 		$('.startDownload').on('click', function () { // 准备下载
 			if (download_started || img_info.length === 0) { // 如果正在下载中，或正在进行暂停任务，或正在进行停止任务，则不予处理
 				return false;
 			}
 			// 重置一些条件
+			// 设置文件夹名字
+			getFolderName();
 			// 检查下载线程设置
 			let setThread = parseInt(XZForm.setThread.value);
 			if (setThread < 1 || setThread > 10 || isNaN(setThread)) {
@@ -3851,7 +3958,7 @@ function XZDownloader() {
 			}
 			download_pause = false;
 			download_stop = false;
-			fileNameRule = $('.fileNameRule').val();
+			fileNameRule = XZForm.fileNameRule.value;
 
 			// 启动或继续 建立并发下载线程
 			$(outputInfo).html($(outputInfo).html() + '<br>' + xzlt('_正在下载中') + '<br>');
@@ -3906,6 +4013,25 @@ function XZDownloader() {
 		$('.copyUrl').on('click', function () { // 显示图片url列表
 			showOutputInfoWrap('url');
 		});
+	}
+
+	// 把下拉框的选择项插入到文本框里
+	function appendValueToText(form, to) {
+		form.addEventListener('change', function () {
+			if (this.value === 'default') {
+				return false;
+			} else {
+				to.value = to.value + this.value;
+				// 保存命名规则。区分文件夹名和文件名
+				if (form.name === 'folder_name_select') {
+					if (to.value !== '' && (page_type === 1 || page_type === 2) && loc_url.indexOf('bookmark.php') === -1) {
+						saveXZSetting('folder_name', to.value);
+					}
+				} else if (form.name === 'file_name_select') {
+					saveXZSetting('user_set_name', to.value);
+				}
+			}
+		})
 	}
 
 	// 显示中间区域
@@ -3969,6 +4095,7 @@ function XZDownloader() {
 				"quiet_download": true,
 				"download_thread": 6,
 				"user_set_name": "{id}",
+				"folder_name": "{userid}-{user}",
 				"tagName_to_fileName": true
 			};
 		} else {
@@ -3984,6 +4111,7 @@ function XZDownloader() {
 			}
 		});
 		// 设置排除类型
+		xz_setting.notdown_type = xz_setting.notdown_type.replace('4', ''); // 某次升级取消了4，但如果旧版本留下了4就会导致问题，所以手动去掉。
 		for (let index = 0; index < xz_setting.notdown_type.length; index++) {
 			XZForm['setWorkType' + xz_setting.notdown_type[index]].checked = false;
 		}
@@ -4030,19 +4158,36 @@ function XZDownloader() {
 				saveXZSetting('download_thread', this.value);
 			}
 		});
-		// 设置命名规则
+		// 设置文件夹命名规则，只在作品内页和画师列表页执行。因为其他页面已经设置了合适的默认命名规则了
+		if ((page_type === 1 || page_type === 2) && loc_url.indexOf('bookmark.php') === -1) {
+			let folderNameRule_input = XZForm.folderNameRule;
+			folderNameRule_input.value = xz_setting.folder_name;
+			// 保存文件夹命名规则
+			folderNameRule_input.addEventListener('change', function () {
+				if (this.value !== '') {
+					saveXZSetting('folder_name', this.value);
+				} else {
+					// 把下拉框恢复默认值
+					XZForm.folder_name_select.value = XZForm.folder_name_select.children[0].value
+				}
+			});
+		}
+
+		// 设置文件命名规则
 		let fileNameRule_input = XZForm.fileNameRule;
 		if (page_type === 8) {
 			fileNameRule_input.value = '{id}'; // pixivision里只有id可以使用
 		} else {
 			fileNameRule_input.value = xz_setting.user_set_name;
 		}
-		// 保存命名规则
+		// 保存文件命名规则
 		fileNameRule_input.addEventListener('change', function () {
-			if (this.value === '') { //用户清空时，恢复成默认值
-				this.value = '{id}';
+			if (this.value !== '') {
+				saveXZSetting('user_set_name', this.value);
+			} else {
+				// 把下拉框恢复默认值
+				XZForm.file_name_select.value = XZForm.file_name_select.children[0].value
 			}
-			saveXZSetting('user_set_name', this.value);
 		});
 		// 设置标记添加到文件名
 		let setTagNameToFileName_input = XZForm.setTagNameToFileName;
@@ -4095,6 +4240,10 @@ function XZDownloader() {
 	function getFileName(data) {
 		fileNameRule = XZForm.fileNameRule.value;
 		tagName_to_fileName = XZForm.setTagNameToFileName.checked;
+		// 为空时使用 {id}
+		if (fileNameRule === '') {
+			fileNameRule = '{id}';
+		}
 		// 处理宽高
 		let px = '';
 		if (fileNameRule.indexOf('{px}') > -1) {
@@ -4115,10 +4264,40 @@ function XZDownloader() {
 		return result;
 	}
 
+	// 获取文件夹名称
+	function getFolderName() {
+		folder_name = XZForm.folderNameRule.value;
+		if (folder_name === '') {
+			return false;
+		}
+		for (const key in folder_info) {
+			if (folder_info.hasOwnProperty(key)) {
+				if (key === 'user') {
+					folder_name = folder_name.replace(`{${key}}`, getUserName());
+				} else if (key === 'userid') {
+					folder_name = folder_name.replace(`{${key}}`, getUserId());
+				} else if (key === 'id') {
+					folder_name = folder_name.replace(`{${key}}`, getIllustId());
+				} else if (key === 'ptitle') { // 因为下载状态会显示在 title 上，所以要去掉
+					folder_name = folder_name.replace(`{${key}}`, document.title.replace(/\[(0|↑|→|▶|↓|║|■|√| )\] /, ''));
+				} else {
+					folder_name = folder_name.replace(`{${key}}`, folder_info[key]);
+				}
+			}
+		}
+		folder_name = folder_name.replace(safe_fileName_rule, '_');
+	}
+
 	// 开始下载 下载序号，要使用的显示队列的序号
 	function startDownload(downloadNo, donwloadBar_no) {
 		changeTitle('↓');
+		// 获取文件名
 		let fullFileName = getFileName(img_info[downloadNo]);
+		// 获取文件夹名字
+		// 如果是浏览器 API 模式，则加入文件夹名称
+		if (GM_info.downloadMode === 'browser' && !quick && folder_name !== '') {
+			fullFileName = folder_name + '/' + fullFileName;
+		}
 		// 处理文件名长度 这里有个问题，因为无法预知浏览器下载文件夹的长度，所以只能预先设置一个预设值
 		fullFileName = fullFileName.substr(0, fileName_length) + '.' + img_info[downloadNo].ext;
 		donwloadBar_list.eq(donwloadBar_no).find('.download_fileName').html(fullFileName);
@@ -4166,6 +4345,7 @@ function XZDownloader() {
 		});
 	}
 
+	// 下载到硬盘
 	function click_doanload_a(blobURL, fullFileName, donwloadBar_no) {
 		if (new Date().getTime() - click_time < time_interval) {
 			// console.count('+1s');	// 此句输出加时的次数
@@ -4175,16 +4355,29 @@ function XZDownloader() {
 			return false;
 		}
 		// console.log(new Date().getTime() - click_time); // 此句输出两次点击的实际间隔
-		download_a.href = blobURL;
-		download_a.setAttribute('download', fullFileName);
-		download_a.click();
+		if (GM_info.downloadMode === 'native' || navigator.userAgent.indexOf('Firefox') >= 0) { // 默认的下载，不能建立文件夹
+			download_a.href = blobURL;
+			download_a.setAttribute('download', fullFileName);
+			download_a.click();
+			window.URL.revokeObjectURL(blobURL);
+		} else if (GM_info.downloadMode === 'browser') { // 浏览器 API，可以建立文件夹
+			// 不能设置带 referer 的 headers，否则下载失败。所以还是没办法直接从原网址下载图片。
+			// conflictAction 目前也并不能生效，所以重复文件会有序号
+			GM_download({
+				url: blobURL,
+				name: fullFileName,
+				onload: function () {
+					window.URL.revokeObjectURL(blobURL);
+				}
+			});
+		}
+
 		click_time = new Date().getTime();
 		time_delay -= time_interval;
 
 		if (time_delay < 0) { // 因为有多个线程，所以有可能把time_delay减小到0以下，这里做限制
 			time_delay += time_interval;
 		}
-		window.URL.revokeObjectURL(blobURL);
 		// 下载之后
 		downloaded++;
 		$('.downloaded').html(downloaded);
@@ -4299,7 +4492,56 @@ function XZDownloader() {
 		}
 	}
 
-	// 判断 page_type
+	// 设置文件夹信息
+	function setFolderInfo() {
+		if (navigator.userAgent.indexOf('Firefox') >= 0) {
+			hideNotNeedOption([12]);
+			return false;
+		}
+		let folder_name_select = XZForm.folder_name_select;
+		// 添加文件夹可以使用的标记
+		folder_info = {};
+		folder_info.ptitle = ''; // 所有页面都可以使用 ptitle
+		if (page_type === 1) {
+			folder_info.id = '';
+		}
+		// 只有 1 和 2 可以使用画师信息
+		if (page_type === 1 || page_type === 2) {
+			// 一些信息可能需要从 dom 取得，在这里直接执行可能会出错，所以先留空
+			if (loc_url.indexOf('bookmark.php') === -1) { // 不是书签页
+				folder_info.user = '';
+				folder_info.userid = '';
+				folder_name_default = '{userid}-{user}';
+				// 如果有 tag 则追加 tag
+				if (getQuery(loc_url, 'tag')) {
+					folder_info.tag = decodeURIComponent(getQuery(loc_url, 'tag'));
+				}
+			} else { // 书签页
+				folder_info.tag = decodeURIComponent(getQuery(loc_url, 'tag'));
+				folder_name_default = '{tag}';
+			}
+		} else if (page_type === 5) {
+			folder_info.tag = decodeURIComponent(getQuery(loc_url, 'word'));
+			folder_name_default = '{tag}';
+		} else {
+			folder_name_default = '{ptitle}';
+		}
+		// 在一些时候设置成默认的命名规则
+		if ((page_type !== 1 && page_type !== 2) || loc_url.indexOf('bookmark.php') > -1) {
+			XZForm.folderNameRule.value = folder_name_default;
+		}
+		// 添加下拉选项
+		folder_name_select.innerHTML = '';
+		folder_name_select.insertAdjacentHTML('beforeend', '<option value="default">…</option>');
+		for (const key in folder_info) {
+			if (folder_info.hasOwnProperty(key)) {
+				let option_html = `<option value="{${key}}">{${key}}</option>`;
+				folder_name_select.insertAdjacentHTML('beforeend', option_html);
+			}
+		}
+	}
+
+	// 判断 page_type，现在没有 3 、4 了
 	function checkPageType() {
 		old_page_type = page_type;
 		loc_url = location.href;
@@ -4339,6 +4581,9 @@ function XZDownloader() {
 		addCenterWarps();
 		changeWantPage();
 		readXZSetting();
+		setFolderInfo();
+		// setFolderInfo 在 1 和 2 里可能会多次执行，所以在这里绑定，只绑定一次
+		appendValueToText(XZForm.folder_name_select, XZForm.folderNameRule);
 	}
 
 	// 作品页无刷新进入其他作品页面时
@@ -4355,6 +4600,7 @@ function XZDownloader() {
 			window.addEventListener(item, () => {
 				checkPageType(); // 当页面切换时，判断新页面的类型
 				changeWantPage();
+				setFolderInfo();
 				// 当新旧页面的 page_type 不相同的时候
 				if (old_page_type !== page_type) {
 					center_btn_wrap.innerHTML = ''; // 清空原有的下载按钮
@@ -4373,15 +4619,17 @@ function XZDownloader() {
 	// 执行 page_type 1
 	function PageType1() {
 
-		(function () {
-			let startBotton = document.createElement('div');
-			$(startBotton).text(xzlt('_快速下载本页'));
-			addCenterButton(startBotton, xz_blue);
-			startBotton.addEventListener('click', function () {
-				quick = true;
-				startGet();
-			}, false);
-		})();
+		// 在右侧创建快速下载按钮
+		let quick_down_btn = document.createElement('div');
+		quick_down_btn.id = 'quick_down_btn';
+		quick_down_btn.setAttribute('title', xzlt('_快速下载本页'));
+		quick_down_btn.innerHTML = '↓';
+		styleE.innerHTML += '#quick_down_btn{position: fixed;top: 20%;right: 0;z-index: 1000;line-height:20px;font-size:14px;border-radius: 3px;color: #fff;text-align: center;cursor: pointer;padding:8px;box-sizing:content-box;background:#0096fa;}';
+		document.body.appendChild(quick_down_btn);
+		quick_down_btn.addEventListener('click', function () {
+			quick = true;
+			startGet();
+		}, false);
 
 		(function () {
 			let startBotton = document.createElement('div');
@@ -4403,6 +4651,13 @@ function XZDownloader() {
 					startGet();
 				}
 			}, false);
+			// 添加文件夹命名提醒
+			startBotton.addEventListener('mouseenter', function () {
+				this.innerHTML = xzlt('_请留意文件夹命名');
+			});
+			startBotton.addEventListener('mouseout', function () {
+				this.innerHTML = xzlt('_下载相关作品');
+			});
 		})();
 
 		(function () {
@@ -4449,6 +4704,12 @@ function XZDownloader() {
 		// 在书签页面隐藏只要书签选项
 		if (loc_url.indexOf('bookmark.php') > -1) {
 			hideNotNeedOption([11]);
+		}
+
+		// 删除快速下载按钮
+		let quick_down_btn = document.querySelector('#quick_down_btn');
+		if (quick_down_btn) {
+			quick_down_btn.parentNode.removeChild(quick_down_btn);
 		}
 	}
 

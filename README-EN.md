@@ -12,8 +12,6 @@ It is essentially a user script (UserScript) that must be installed using the Us
 
 [Chrome webstore page](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl)
 
-Chrome extensions can automatically create folders to store images, which is convenient.
-
 ### Recommended Use:
 
 Browser: **Chrome** [(download Chrome browser)](https://www.google.com/chrome/)
