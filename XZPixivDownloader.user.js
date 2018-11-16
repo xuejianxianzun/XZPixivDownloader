@@ -159,6 +159,7 @@ function XZDownloader() {
 		folder_name_default = '', // 默认文件夹命名规则
 		folder_name = '', // 用户设置的文件夹命名规则
 		option_area_show = true,
+		isLogin = /login: 'yes'/.test(document.body.innerHTML),
 		only_down_bmk;
 
 	// 多语言配置
@@ -2947,7 +2948,14 @@ function XZDownloader() {
 
 	// 获取用户名称
 	function getUserName() {
-		return (document.querySelector('._2VLnXNk') || document.querySelector('.sc-jvEmr')).innerHTML;
+		let titleContent = isLogin ? old_title : document.querySelector('meta[property="og:title"]').content;
+		let regexp = '「([^」]*)';
+		if (titleContent.split('「').length > 2) { // 判断是 member.php 还是 member_illust.php
+			regexp = `\/${regexp}`
+		}
+		regexp = new RegExp(regexp, 'i');
+		let [,username] = regexp.exec(titleContent);
+		return username;
 	}
 
 	// 从 url 中取出指定的查询条件
