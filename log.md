@@ -688,8 +688,24 @@ Firefox 上我搞不出来怎么建立文件夹了，先在 Firefox 上把这个
 
 还是 chrome 好。
 
-相关作品很不“相关”，莫非是p站又改了
+## 其他
 
-https://www.pixiv.net/member_illust.php?mode=medium&illust_id=70666961
+最近我发现相关作品很不“相关”，api 似乎没改，但是出来的结果和以前相比，相关度很差，基本不怎么相关。
 
-https://www.pixiv.net/bookmark_detail.php?illust_id=71510766
+对比一下：
+
+https://www.pixiv.net/member_illust.php?mode=medium&illust_id=71395570
+
+底部的相关作品
+
+https://www.pixiv.net/bookmark_detail.php?illust_id=71395570
+
+底部的相似作品
+
+以前这两部分出来的作品是一致的，但最近“相关作品”变得不怎么相关了。
+
+## 6.2.7
+
+以前从画师列表页进入作品页无刷新，从作品页进入画师列表页是要刷新的。现在不一样了，点击作品页的用户名，可以无刷新进入列表页。所以在作品业内也要监听 history 的变化了。
+
+另外作品页内的画师名的 class 最近变了两次，考虑找个别的办法来获取画师名。

@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.2.4
+// @version     6.2.7
 // @description 批量下载画师、收藏夹、排行榜、搜索页等页面里的作品原图，可以自动建立文件夹。查看热门作品；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -2947,7 +2947,7 @@ function XZDownloader() {
 
 	// 获取用户名称
 	function getUserName() {
-		return (document.querySelector('._2VLnXNk') || document.querySelector('.sc-eNNmBn')).innerHTML;
+		return (document.querySelector('._2VLnXNk') || document.querySelector('.sc-jvEmr')).innerHTML;
 	}
 
 	// 从 url 中取出指定的查询条件
@@ -4594,7 +4594,7 @@ function XZDownloader() {
 	}
 
 	// 虽然是绑定在 page_type 2 上面，但 2 和 1 其实是同一个页面
-	if (page_type === 2) {
+	if (page_type === 1 || page_type === 2) {
 		// pushState 判断从列表页进入作品页的情况，popstate 判断从作品页退回列表页的情况
 		['pushState', 'popstate'].forEach((item) => {
 			window.addEventListener(item, () => {
