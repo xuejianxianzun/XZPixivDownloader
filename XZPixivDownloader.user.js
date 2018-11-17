@@ -119,7 +119,7 @@ function XZDownloader() {
 		xz_blue = '#0ea8ef',
 		xz_green = '#14ad27',
 		xz_red = '#f33939',
-		donwloadBar_list, // 下载队列的dom元素
+		downloadBar_list, // 下载队列的dom元素
 		download_thread, // 下载线程
 		download_a, // 下载用的a标签
 		download_started = false, // 下载是否已经开始
@@ -3799,7 +3799,7 @@ function XZDownloader() {
 		<div class="centerWrap_down_list">
 		<p> ${xzlt('_下载线程：')}</p>
 		<ul>
-		<li class="donwloadBar">
+		<li class="downloadBar">
 		<div class="progressBar progressBar2">
 		<div class="progress progress2"></div>
 		</div>
@@ -3849,7 +3849,7 @@ function XZDownloader() {
 		.progressTip1{width: 500px;text-align: center;}
 		.centerWrap_down_list{display:none;}
 		.centerWrap_down_list ul{padding-top: 5px;margin:0;padding-left:0;}
-		.donwloadBar{position: relative;width: 100%;padding: 5px 0;height: 22px;box-sizing:content-box;}
+		.downloadBar{position: relative;width: 100%;padding: 5px 0;height: 22px;box-sizing:content-box;}
 		.progressBar2{width: 100%;}
 		.progress2{width:0%;}
 		.progressTip2{width: 100%;}
@@ -3942,18 +3942,18 @@ function XZDownloader() {
 			}
 			let centerWrap_down_list = $('.centerWrap_down_list');
 			centerWrap_down_list.show(); // 显示下载队列
-			if ($('.donwloadBar').length < download_thread) { // 如果下载队列的显示数量小于线程数，则增加队列
-				let need_add = download_thread - $('.donwloadBar').length;
-				let donwloadBar = centerWrap_down_list.find('.donwloadBar').eq(0);
+			if ($('.downloadBar').length < download_thread) { // 如果下载队列的显示数量小于线程数，则增加队列
+				let need_add = download_thread - $('.downloadBar').length;
+				let downloadBar = centerWrap_down_list.find('.downloadBar').eq(0);
 				// 增加下载队列的数量
 				for (let i = 0; i < need_add; i++) {
-					centerWrap_down_list.append(donwloadBar.clone());
+					centerWrap_down_list.append(downloadBar.clone());
 				}
-			} else if ($('.donwloadBar').length > download_thread) { // 如果下载队列的显示数量大于线程数，则减少队列
-				let need_delete = $('.donwloadBar').length - download_thread;
+			} else if ($('.downloadBar').length > download_thread) { // 如果下载队列的显示数量大于线程数，则减少队列
+				let need_delete = $('.downloadBar').length - download_thread;
 				// 减少下载队列的数量
 				for (let i = 0; i < need_delete; i++) {
-					centerWrap_down_list.find('.donwloadBar').eq(0).remove();
+					centerWrap_down_list.find('.downloadBar').eq(0).remove();
 				}
 			}
 			download_started = true;
@@ -3982,7 +3982,7 @@ function XZDownloader() {
 				}
 			}
 			$('.down_status').html(xzlt('_正在下载中'));
-			donwloadBar_list = $('.donwloadBar');
+			downloadBar_list = $('.downloadBar');
 			download_a = document.querySelector('.download_a');
 		});
 		// 暂停下载按钮
@@ -4297,7 +4297,7 @@ function XZDownloader() {
 	}
 
 	// 开始下载 下载序号，要使用的显示队列的序号
-	function startDownload(downloadNo, donwloadBar_no) {
+	function startDownload(downloadNo, downloadBar_no) {
 		changeTitle('↓');
 		// 获取文件名
 		let fullFileName = getFileName(img_info[downloadNo]);
@@ -4308,7 +4308,7 @@ function XZDownloader() {
 		}
 		// 处理文件名长度 这里有个问题，因为无法预知浏览器下载文件夹的长度，所以只能预先设置一个预设值
 		fullFileName = fullFileName.substr(0, fileName_length) + '.' + img_info[downloadNo].ext;
-		donwloadBar_list.eq(donwloadBar_no).find('.download_fileName').html(fullFileName);
+		downloadBar_list.eq(downloadBar_no).find('.download_fileName').html(fullFileName);
 		GM_xmlhttpRequest({
 			method: 'GET',
 			url: img_info[downloadNo].url,
@@ -4324,8 +4324,8 @@ function XZDownloader() {
 				}
 				let loaded = parseInt(xhr.loaded / 1000);
 				let total = parseInt(xhr.total / 1000);
-				donwloadBar_list.eq(donwloadBar_no).find('.loaded').html(loaded + '/' + total);
-				donwloadBar_list.eq(donwloadBar_no).find('.progress').css('width', loaded / total * 100 + '%');
+				downloadBar_list.eq(downloadBar_no).find('.loaded').html(loaded + '/' + total);
+				downloadBar_list.eq(downloadBar_no).find('.progress').css('width', loaded / total * 100 + '%');
 			},
 			onload: function (xhr) {
 				if (download_pause || download_stop) {
@@ -4335,11 +4335,11 @@ function XZDownloader() {
 				// 控制点击下载按钮的时间间隔大于0.5秒
 				if (new Date().getTime() - click_time > time_interval) {
 					click_time = new Date().getTime();
-					click_doanload_a(blobURL, fullFileName, donwloadBar_no);
+					click_download_a(blobURL, fullFileName, downloadBar_no);
 				} else {
 					time_delay += time_interval;
 					setTimeout(() => {
-						click_doanload_a(blobURL, fullFileName, donwloadBar_no);
+						click_download_a(blobURL, fullFileName, downloadBar_no);
 					}, time_delay);
 				}
 			},
@@ -4348,17 +4348,17 @@ function XZDownloader() {
 					return false;
 				}
 				console.log('timeout'); // 超时的话会进入到这里，但是下一步尚未测试
-				startDownload(downloadNo, donwloadBar_no);
+				startDownload(downloadNo, downloadBar_no);
 			}
 		});
 	}
 
 	// 下载到硬盘
-	function click_doanload_a(blobURL, fullFileName, donwloadBar_no) {
+	function click_download_a(blobURL, fullFileName, downloadBar_no) {
 		if (new Date().getTime() - click_time < time_interval) {
 			// console.count('+1s');	// 此句输出加时的次数
 			setTimeout(() => {
-				click_doanload_a(blobURL, fullFileName, donwloadBar_no);
+				click_download_a(blobURL, fullFileName, downloadBar_no);
 			}, time_interval); // 虽然设置了两次点击间隔不得小于time_interval，但实际执行过程中仍然有可能比time_interval小。间隔太小的话就会导致漏下。当间隔过小时补上延迟
 			return false;
 		}
@@ -4418,7 +4418,7 @@ function XZDownloader() {
 
 			// 继续添加任务
 			if (downloaded + download_thread - 1 < img_info.length) { // 如果已完成的数量 加上 线程中未完成的数量，仍然没有达到文件总数
-				startDownload(downloaded + download_thread - 1, donwloadBar_no); // 这里需要减一，就是downloaded本次自增的数字，否则会跳一个序号
+				startDownload(downloaded + download_thread - 1, downloadBar_no); // 这里需要减一，就是downloaded本次自增的数字，否则会跳一个序号
 			}
 		}
 	}
