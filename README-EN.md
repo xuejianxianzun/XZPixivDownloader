@@ -1,3 +1,5 @@
+![仙尊 pixiv 下载器 英文截图](https://wx3.sinaimg.cn/large/640defebly1fw920pxevij20pf0h1q5b.jpg)
+
 # Introduction:
 
 This is a Pixiv image downloader written in JavaScript that supports many page types and filters.
@@ -5,12 +7,6 @@ This is a Pixiv image downloader written in JavaScript that supports many page t
 Some additional features have been added, such as removing ads, quick collections, and viewing patterns.
 
 It is essentially a user script (UserScript) that must be installed using the User Script Manager.
-
-![仙尊 pixiv 下载器 英文截图](https://wx3.sinaimg.cn/large/640defebly1fw920pxevij20pf0h1q5b.jpg)
-
-**This tool now has a Chrome extension:**
-
-[Chrome webstore page](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl)
 
 ### Recommended Use:
 
@@ -28,6 +24,14 @@ You can install it at greasyfork.org:
 
 The downloaded file will be saved in your browser's download directory.
 
+# Browser extension:
+
+This tool has a browser extension. If you want to use a browser extension, you can uninstall the scripted version and install the browser extension.
+
+Chrome：[Chrome webstore](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl)
+
+Firefox：[Mozilla addons](https://addons.mozilla.org/zh-CN/firefox/addon/pixiv-batch-downloader/)
+
 # Supported languages:
 
 Simplified Chinese
@@ -42,9 +46,9 @@ You can also optimize the translation, thank you very much :)
 
 # Tips:
 
-- Chrome's resource limits
+- Browser's resource limits
 
-When you download picture, this page uses more memory and cpu resources. If you switch to another page and the download page is not activated, Chrome will limit the resource usage of the download page, resulting in slow download.
+When you download picture, this page uses more memory and cpu resources. If you switch to another page and the download page is not activated, Browser will limit the resource usage of the download page, resulting in slow download.
 
 How to solve: Pull out the downloaded tabs individually and become a separate window. This page is the only one in the new window and it is always active. Downloads are not affected, we can use other pages too.
 

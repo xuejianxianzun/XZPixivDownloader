@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.2.7
+// @version     6.2.9
 // @description 批量下载画师、收藏夹、排行榜、搜索页等页面里的作品原图，可以自动建立文件夹。查看热门作品；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -159,8 +159,8 @@ function XZDownloader() {
 		folder_name_default = '', // 默认文件夹命名规则
 		folder_name = '', // 用户设置的文件夹命名规则
 		option_area_show = true,
-		isLogin = /login: 'yes'/.test(document.body.innerHTML),
-		only_down_bmk;
+		only_down_bmk,
+		isFirefox = navigator.userAgent.indexOf('Firefox') >= 0;
 
 	// 多语言配置
 	let lang_type; // 语言类型
@@ -760,6 +760,12 @@ function XZDownloader() {
 			'Github page, if you like, please star it',
 			'Github 頁面，歡迎 star'
 		],
+		'_firefox 扩展': [
+			'查看本工具的 Firefox 扩展版。\n安装扩展版后，需要禁用脚本版。',
+			'このツールには Firefox 拡張機能があります。\n 拡張機能をインストールしたら、このユーザースクリプトを無効にする必要があります。',
+			'Check out the Firefox extension for this tool. \nAfter installing the extension, you need to disable this user script.',
+			'查看本工具的 Firefox 擴展。\n安裝擴展版後，需要禁用這個用戶腳本。'
+		],
 		'_chrome 扩展': [
 			'查看本工具的 Chrome 扩展版。\n安装扩展版后，需要禁用脚本版。',
 			'このツールにはChrome拡張機能があります。\n 拡張機能をインストールしたら、このユーザースクリプトを無効にする必要があります。',
@@ -977,10 +983,10 @@ function XZDownloader() {
 			'檢視下載說明'
 		],
 		'_下载说明': [
-			'下载的文件保存在浏览器的下载目录里。<br>.ugoira 后缀名的文件是动态图的源文件。<br>请不要在浏览器的下载选项里选中\'总是询问每个文件的保存位置\'。<br>如果作品标题或tag里含有不能做文件名的字符，会被替换成下划线_。<br>如果下载进度卡住不动了，你可以先点击“暂停下载”按钮，之后点击“开始下载”按钮，尝试继续下载。',
-			'ダウンロードしたファイルは、ブラウザのダウンロードディレクトリに保存されます。<br>.ugoiraサフィックスファイルは、動的グラフのソースファイルです。<br>ダウンロードの進行状況が継続できない場合は、[ダウンロードの一時停止]ボタンをクリックし、[ダウンロードの開始]ボタンをクリックしてダウンロードを続行します。',
-			'The downloaded file is saved in the browser`s download directory.<br>The .ugoira suffix file is the source file for the dynamic graph.<br>If the download progress is stuck, you can click the "Pause Download" button and then click the "Start Download" button to try to continue the download.',
-			'下載的檔案儲存在瀏覽器的下載目錄裡。<br>.ugoira 後綴的檔案是動態圖的原始檔。<br>請不要在瀏覽器的下載選項裡選取\'總是詢問每個檔案的儲存位置\'。<br>如果作品標題或tag裡含有不能做檔名的字元，會被取代成下劃線_。<br>如果下載進度卡住不動了，你可以先點擊“暫停下載”按鈕，之後點擊“開始下載”按鈕，嘗試繼續下載。'
+			'下载的文件保存在浏览器的下载目录里。<br>.ugoira 后缀名的文件是动态图的源文件，可以使用软件 <a href="https://en.bandisoft.com/honeyview/" target="_blank">HoneyView</a> 查看。<br>请不要在浏览器的下载选项里选中\'总是询问每个文件的保存位置\'。<br>如果作品标题或tag里含有不能做文件名的字符，会被替换成下划线_。<br>如果下载进度卡住不动了，你可以先点击“暂停下载”按钮，之后点击“开始下载”按钮，尝试继续下载。',
+			'ダウンロードしたファイルは、ブラウザのダウンロードディレクトリに保存されます。<br>.ugoiraサフィックスファイルは、動的グラフのソースファイルです，ソフトウェア <a href="https://en.bandisoft.com/honeyview/" target="_blank">HoneyView</a> を使用して表示することができます。<br>ダウンロードの進行状況が継続できない場合は、[ダウンロードの一時停止]ボタンをクリックし、[ダウンロードの開始]ボタンをクリックしてダウンロードを続行します。',
+			'The downloaded file is saved in the browser`s download directory.<br>The .ugoira suffix file is the source file for the dynamic graph, Can be viewed using the software <a href="https://en.bandisoft.com/honeyview/" target="_blank">HoneyView</a>.<br>If the download progress is stuck, you can click the "Pause Download" button and then click the "Start Download" button to try to continue the download.',
+			'下載的檔案儲存在瀏覽器的下載目錄裡。<br>.ugoira 後綴的檔案是動態圖的原始檔，可以使用軟體 <a href="https://en.bandisoft.com/honeyview/" target="_blank">HoneyView</a> 查看。<br>請不要在瀏覽器的下載選項裡選取\'總是詢問每個檔案的儲存位置\'。<br>如果作品標題或tag裡含有不能做檔名的字元，會被取代成下劃線_。<br>如果下載進度卡住不動了，你可以先點擊“暫停下載”按鈕，之後點擊“開始下載”按鈕，嘗試繼續下載。'
 		],
 		'_正在下载中': [
 			'正在下载中',
@@ -2948,13 +2954,19 @@ function XZDownloader() {
 
 	// 获取用户名称
 	function getUserName() {
+		let isLogin;
+		if (typeof dataLayer !== 'undefined') {
+			isLogin = dataLayer[0].login === 'yes' ? true : false;
+		} else {
+			isLogin = /login: 'yes'/.test(document.body.innerHTML);
+		}
 		let titleContent = isLogin ? old_title : document.querySelector('meta[property="og:title"]').content;
 		let regexp = '「([^」]*)';
 		if (titleContent.split('「').length > 2) { // 判断是 member.php 还是 member_illust.php
-			regexp = `\/${regexp}`
+			regexp = `\/${regexp}`;
 		}
 		regexp = new RegExp(regexp, 'i');
-		let [,username] = regexp.exec(titleContent);
+		let [, username] = regexp.exec(titleContent);
 		return username;
 	}
 
@@ -3631,6 +3643,7 @@ function XZDownloader() {
 		<div class="centerWrap_head">
 		<span class="centerWrap_title xz_blue"> ${xzlt('_下载设置')}</span>
 		<a class="xztip github_url" data-tip="${xzlt('_Github')}" href="https://github.com/xuejianxianzun/XZPixivDownloader" target="_blank"><img src="https://s1.ax1x.com/2018/11/12/iLeI4x.png" /></a>
+		<a class="xztip firefox_extension" data-tip="${xzlt('_firefox 扩展')}" href="https://addons.mozilla.org/zh-CN/firefox/addon/pixiv-batch-downloader/" target="_blank" style="display:none;">🦊</a>
 		<a class="xztip chrome_extension" data-tip="${xzlt('_chrome 扩展')}" href="https://chrome.google.com/webstore/detail/pixiv-batch-downloader/hfgoikdmppghehigkckknikdgdcjbfpl" target="_blank"><img src="https://s1.ax1x.com/2018/11/12/iLEY3F.png" /></a>
 		<div class="xztip centerWrap_toogle_option" data-tip="${xzlt('_收起展开设置项')}">▲</div>
 		<div class="xztip centerWrap_close" data-tip="${xzlt('_快捷键切换显示隐藏')}">X</div>
@@ -3823,10 +3836,10 @@ function XZDownloader() {
 		.centerWrap_head{height: 30px;position: relative;padding-bottom: 10px;}
 		.centerWrap_head *{vertical-align: middle;}
 		.centerWrap_title{display: block;line-height: 30px;text-align: center;font-size: 18px;}
-		.centerWrap_close,.centerWrap_toogle_option,.chrome_extension,.github_url{font-size: 18px;position: absolute;top: 0px;right: 0px;width: 30px;height: 30px;text-align: center;cursor: pointer;color:#666;user-select: none;}
+		.centerWrap_close,.centerWrap_toogle_option,.chrome_extension,.firefox_extension,.github_url{font-size: 18px;position: absolute;top: 0px;right: 0px;width: 30px;height: 30px;text-align: center;cursor: pointer;color:#666;user-select: none;}
 		.centerWrap_close:hover,.centerWrap_toogle_option:hover{color:#0096fa;}
 		.centerWrap_toogle_option{right:40px;}
-		.chrome_extension{display:block;right:80px;}
+		.chrome_extension,.firefox_extension{display:block;right:80px;text-decoration: none;}
 		.github_url{display:block;right:120px;}
 		.centerWrap_head img{max-width:100%;width:16px;}
 		.setinput_style1{width:50px;min-width:50px;line-height: 20px;font-size: 14px !important;height: 20px;text-indent: 4px;box-sizing:border-box;border:none !important;border-bottom: 1px solid #999 !important;outline:none;}
@@ -3866,6 +3879,13 @@ function XZDownloader() {
 		`;
 
 		center_btn_wrap = document.querySelector('.centerWrap_btns_free');
+
+		// 显示隐藏扩展提示
+		if (isFirefox) {
+			document.querySelector('.chrome_extension').style.display = 'none';
+			document.querySelector('.firefox_extension').style.display = 'block';
+		}
+
 		// 绑定下载区域的事件
 		centerWrap = document.querySelector('.centerWrap');
 		$('.centerWrap_close').on('click', function () {
@@ -4363,7 +4383,7 @@ function XZDownloader() {
 			return false;
 		}
 		// console.log(new Date().getTime() - click_time); // 此句输出两次点击的实际间隔
-		if (GM_info.downloadMode === 'native' || navigator.userAgent.indexOf('Firefox') >= 0) { // 默认的下载，不能建立文件夹
+		if (GM_info.downloadMode === 'native' || isFirefox) { // 默认的下载，不能建立文件夹
 			download_a.href = blobURL;
 			download_a.setAttribute('download', fullFileName);
 			download_a.click();
@@ -4502,7 +4522,7 @@ function XZDownloader() {
 
 	// 设置文件夹信息
 	function setFolderInfo() {
-		if (navigator.userAgent.indexOf('Firefox') >= 0) {
+		if (isFirefox) {
 			hideNotNeedOption([12]);
 			return false;
 		}
@@ -4524,9 +4544,14 @@ function XZDownloader() {
 				if (getQuery(loc_url, 'tag')) {
 					folder_info.tag = decodeURIComponent(getQuery(loc_url, 'tag'));
 				}
-			} else { // 书签页
-				folder_info.tag = decodeURIComponent(getQuery(loc_url, 'tag'));
-				folder_name_default = '{tag}';
+			} else { // 书签页，书签页首页可能没有tag，所以也要判断
+				if (getQuery(loc_url, 'tag')) {
+					folder_info.tag = decodeURIComponent(getQuery(loc_url, 'tag'));
+					folder_name_default = '{tag}';
+				} else {
+					folder_name_default = '{ptitle}';
+
+				}
 			}
 		} else if (page_type === 5) {
 			folder_info.tag = decodeURIComponent(getQuery(loc_url, 'word'));

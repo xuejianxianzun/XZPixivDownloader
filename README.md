@@ -10,10 +10,6 @@
 
 它实质上是一个用户脚本（UserScript），必须使用用户脚本管理器来安装。
 
-**本工具现已推出 Chrome 扩展：**
-
-[Chrome webstore 页面](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl)
-
 ## 推荐环境：
 
 浏览器：**Chrome** [(下载Chrome浏览器，此链接需要翻墙)](https://www.google.com/chrome/)
@@ -32,6 +28,14 @@
 
 下载的文件会保存在浏览器的下载目录里。
 
+# 浏览器扩展：
+
+本工具有浏览器扩展版本。如果你想使用浏览器扩展，可以卸载脚本版，然后安装浏览器扩展。
+
+Chrome：[Chrome webstore](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl)
+
+Firefox：[Mozilla addons](https://addons.mozilla.org/zh-CN/firefox/addon/pixiv-batch-downloader/)
+
 ## 支持的语言：
 
 简体中文
@@ -46,9 +50,9 @@ English （机翻，韩语设置下也使用英语文本）
 
 ## 提示：
 
-- Chrome 的资源限制问题
+- 浏览器的资源限制问题
 
-下载p站图片时，该页面会占用较多内存和cpu资源。如果切换到了其他页面，导致下载页面未激活，那么chrome就会限制下载页面的资源使用，导致下载缓慢。
+下载p站图片时，该页面会占用较多内存和cpu资源。如果切换到了其他页面，导致下载页面未激活，那么浏览器就会限制下载页面的资源使用，导致下载缓慢。
 
 解决办法：把下载的标签页单独拖出来，成为一个独立的窗口。新窗口里只有这一个页面，它始终是激活的。这样下载不受影响，我们也可以使用其他页面了。
 
