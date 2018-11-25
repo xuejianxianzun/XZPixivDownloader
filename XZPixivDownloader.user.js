@@ -1514,6 +1514,8 @@ function XZDownloader() {
 						// 对于原创作品，非日文的页面上只显示了用户语言的“原创”，替换成日文 tag “オリジナル”。
 						if (tagArray[0] === '原创' || tagArray[0] === 'Original' || tagArray[0] === '창작') {
 							tagArray[0] = 'オリジナル';
+						} else if (tagArray[1] === '原创' || tagArray[1] === 'Original' || tagArray[1] === '창작') {
+							tagArray[1] = 'オリジナル';
 						}
 						let tagString = encodeURI(tagArray.join(' '));
 						let tt = unsafeWindow.globalInitData.token;
