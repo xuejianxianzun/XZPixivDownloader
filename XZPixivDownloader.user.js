@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.3.1
+// @version     6.3.2
 // @description 批量下载画师、收藏夹、排行榜、搜索页等页面里的作品原图，可以自动建立文件夹。查看热门作品；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -2948,8 +2948,8 @@ function XZDownloader() {
 			user_id = location.search.match(/id=\d{1,9}/)[0].split('=')[1];
 		} else if (document.querySelector('.user-name')) { // 旧版收藏的用户头像区域，在书签页面还在使用
 			user_id = document.querySelector('.user-name').href.match(/id=\d{1,9}/)[0].split('=')[1];
-		} else if (document.querySelector('._2lyPnMP')) { // 新版收藏的用户头像区域
-			user_id = document.querySelector('._2lyPnMP').href.match(/id=\d{1,9}/)[0].split('=')[1];
+		} else if (document.querySelector('.sc-bdVaJa')) { // 新版收藏的用户头像区域
+			user_id = document.querySelector('.sc-bdVaJa').href.match(/id=\d{1,9}/)[0].split('=')[1];
 		}
 		return user_id;
 	}
@@ -4666,16 +4666,16 @@ function XZDownloader() {
 			startGet();
 		}, false);
 
-		(function () {
+		{
 			let startBotton = document.createElement('div');
 			startBotton.innerHTML = xzlt('_从本页开始下载');
 			addCenterButton(startBotton, xz_blue);
 			startBotton.addEventListener('click', function () {
 				startGet();
 			}, false);
-		})();
+		}
 
-		(function () {
+		{
 			let startBotton = document.createElement('div');
 			$(startBotton).text(xzlt('_下载相关作品'));
 			addCenterButton(startBotton, xz_blue);
@@ -4693,9 +4693,9 @@ function XZDownloader() {
 			startBotton.addEventListener('mouseout', function () {
 				this.innerHTML = xzlt('_下载相关作品');
 			});
-		})();
+		}
 
-		(function () {
+		{
 			download_gif_btn = document.createElement('div');
 			download_gif_btn.style.display = 'none';
 			$(download_gif_btn).text(xzlt('_转换为 GIF'));
@@ -4708,7 +4708,7 @@ function XZDownloader() {
 				addOutputInfo('<br>' + xzlt('_准备转换'));
 				checkCanConvert();
 			}, false);
-		})();
+		}
 
 		quickBookmark();
 		initViewer();
@@ -4726,7 +4726,7 @@ function XZDownloader() {
 	// 执行 page_type 2
 	function PageType2() {
 
-		(function () {
+		{
 			let downloadBotton = document.createElement('div');
 			$(downloadBotton).text(xzlt('_开始抓取'));
 			$(downloadBotton).attr('title', xzlt('_开始抓取') + xzlt('_默认下载多页'));
@@ -4734,7 +4734,7 @@ function XZDownloader() {
 			downloadBotton.addEventListener('click', function () {
 				startGet();
 			}, false);
-		})();
+		}
 
 		// 在书签页面隐藏只要书签选项
 		if (loc_url.indexOf('bookmark.php') > -1) {
@@ -4906,7 +4906,7 @@ function XZDownloader() {
 			fastScreenArea.innerHTML += `<a href="https://www.pixiv.net/search.php?s_mode=s_tag${search_mode}${order_mode}&word=${nowTag}%20${favNums[i]}">${favNums[i]}</a>`;
 		}
 
-		(function () {
+		{
 			let startBotton = document.createElement('div');
 			$(startBotton).text(xzlt('_按收藏数筛选'));
 			$(startBotton).attr('title', xzlt('_按收藏数筛选_title'));
@@ -4917,9 +4917,9 @@ function XZDownloader() {
 				}
 				startGet();
 			}, false);
-		})();
+		}
 
-		(function () {
+		{
 			let filterSelf = document.createElement('div');
 			$(filterSelf).text(xzlt('_在结果中筛选'));
 			$(filterSelf).attr('title', xzlt('_在结果中筛选_title'));
@@ -4945,9 +4945,9 @@ function XZDownloader() {
 				outputNowResult();
 				centerWrapHide();
 			}, false);
-		})();
+		}
 
-		(function () {
+		{
 			let stopFilter = document.createElement('div');
 			$(stopFilter).text(xzlt('_中断当前任务'));
 			$(stopFilter).attr('title', xzlt('_中断当前任务_title'));
@@ -4960,9 +4960,9 @@ function XZDownloader() {
 				}
 				centerWrapHide();
 			}, false);
-		})();
+		}
 
-		(function () {
+		{
 			let clearMultiple = document.createElement('div');
 			$(clearMultiple).text(xzlt('_清除多图作品'));
 			$(clearMultiple).attr('title', xzlt('_清除多图作品_title'));
@@ -4977,9 +4977,9 @@ function XZDownloader() {
 				}
 				outputNowResult();
 			}, false);
-		})();
+		}
 
-		(function () {
+		{
 			let clearUgoku = document.createElement('div');
 			$(clearUgoku).text(xzlt('_清除动图作品'));
 			$(clearUgoku).attr('title', xzlt('_清除动图作品_title'));
@@ -4994,9 +4994,9 @@ function XZDownloader() {
 				}
 				outputNowResult();
 			}, false);
-		})();
+		}
 
-		(function () {
+		{
 			let deleteBotton = document.createElement('div');
 			deleteBotton.id = 'deleteBotton';
 			$(deleteBotton).text(xzlt('_手动删除作品'));
@@ -5015,9 +5015,9 @@ function XZDownloader() {
 					$('#deleteBotton').text(xzlt('_手动删除作品'));
 				}
 			});
-		})();
+		}
 
-		(function () {
+		{
 			let downloadBotton = document.createElement('div');
 			$(downloadBotton).text(xzlt('_下载当前作品'));
 			$(downloadBotton).attr('title', xzlt('_下载当前作品_title'));
@@ -5025,11 +5025,11 @@ function XZDownloader() {
 			downloadBotton.addEventListener('click', function () {
 				getListPage2();
 			}, false);
-		})();
+		}
 
 	} else if (page_type === 6) { //6.ranking_area
 
-		(function () {
+		{
 			let downloadBotton = document.createElement('div');
 			$(downloadBotton).text(xzlt('_下载本页作品'));
 			$(downloadBotton).attr('title', xzlt('_下载本页作品_title'));
@@ -5037,7 +5037,7 @@ function XZDownloader() {
 			downloadBotton.addEventListener('click', function () {
 				startGet();
 			}, false);
-		})();
+		}
 
 
 	} else if (page_type === 7) { //7.ranking_else
@@ -5061,7 +5061,7 @@ function XZDownloader() {
 		}
 
 
-		(function () {
+		{
 			let downloadBotton = document.createElement('div');
 			$(downloadBotton).text(xzlt('_下载本排行榜作品'));
 			$(downloadBotton).attr('title', xzlt('_下载本排行榜作品_title'));
@@ -5069,7 +5069,7 @@ function XZDownloader() {
 			downloadBotton.addEventListener('click', function () {
 				startGet();
 			}, false);
-		})();
+		}
 
 
 	} else if (page_type === 8) { //8.pixivision
@@ -5078,7 +5078,7 @@ function XZDownloader() {
 		if (type == 'illustration' || type == 'manga' || type == 'cosplay') { //在插画、漫画、cosplay类型的页面上创建下载功能
 
 			// 创建下载按钮
-			(function () {
+			{
 				let downloadBotton = document.createElement('div');
 				$(downloadBotton).html(xzlt('_下载该页面的图片'));
 				addCenterButton(downloadBotton, xz_blue);
@@ -5129,7 +5129,7 @@ function XZDownloader() {
 						allWorkFinished();
 					}
 				}, false);
-			})();
+			}
 		}
 
 		hideNotNeedOption([1, 2, 3, 4, 5, 6, 7, 11]);
@@ -5138,7 +5138,7 @@ function XZDownloader() {
 		// bookmark_add的页面刷新就变成bookmark_detail了; recommended.php是首页的“为你推荐”栏目
 		// 在收藏后的相似图片页面，可以获得收藏数，如 https://www.pixiv.net/bookmark_detail.php?illust_id=63148723
 
-		(function () {
+		{
 			let downloadBotton = document.createElement('div');
 			if (loc_url.indexOf('recommended.php') > -1) {
 				$(downloadBotton).text(xzlt('_下载推荐图片'));
@@ -5153,7 +5153,7 @@ function XZDownloader() {
 					startGet();
 				}
 			}, false);
-		})();
+		}
 
 
 	} else if (page_type === 10) { //10.bookmark_new_illust and new_illust 关注的人的新作品 以及 大家的新作品
@@ -5182,7 +5182,7 @@ function XZDownloader() {
 		}
 		listPage_finished = 0;
 
-		(function () {
+		{
 			let downloadBotton = document.createElement('div');
 			$(downloadBotton).text(xzlt('_从本页开始下载'));
 			$(downloadBotton).attr('title', xzlt('_下载大家的新作品'));
@@ -5190,7 +5190,7 @@ function XZDownloader() {
 			downloadBotton.addEventListener('click', function () {
 				startGet();
 			}, false);
-		})();
+		}
 
 	} else if (page_type === 11) { //11.discover 发现
 		// 其实发现页面和9收藏后的推荐页面一样，先获取列表再下载。但是发现页面有个特点是每次获取的数据是不同的，如果再请求一次列表数据，那么下载到的图片和本次加载的图片就不一样了。所以这里改用直接下载左侧已有作品
@@ -5199,7 +5199,7 @@ function XZDownloader() {
 		tag_search_multiple_selector = '._1VJYUl1'; // 多图的选择器，借用tag搜索页的变量名，直接拿来用
 		tag_search_gif_selector = '._347Rtjn'; // 动图的选择器，借用tag搜索页的变量名，直接拿来用
 
-		(function () {
+		{
 			let downloadBotton = document.createElement('div');
 			$(downloadBotton).text(xzlt('_下载当前作品'));
 			$(downloadBotton).attr('title', xzlt('_下载当前作品_title'));
@@ -5207,9 +5207,9 @@ function XZDownloader() {
 			downloadBotton.addEventListener('click', function () {
 				startGet();
 			}, false);
-		})();
+		}
 
-		(function () {
+		{
 			let clearMultiple = document.createElement('div');
 			$(clearMultiple).text(xzlt('_清除多图作品'));
 			$(clearMultiple).attr('title', xzlt('_清除多图作品_title'));
@@ -5224,9 +5224,9 @@ function XZDownloader() {
 				centerWrapHide();
 				outputNowResult();
 			}, false);
-		})();
+		}
 
-		(function () {
+		{
 			let clearUgoku = document.createElement('div');
 			$(clearUgoku).text(xzlt('_清除动图作品'));
 			$(clearUgoku).attr('title', xzlt('_清除动图作品_title'));
@@ -5241,9 +5241,9 @@ function XZDownloader() {
 				outputNowResult();
 				centerWrapHide();
 			}, false);
-		})();
+		}
 
-		(function () {
+		{
 			let deleteBotton = document.createElement('div');
 			deleteBotton.id = 'deleteBotton';
 			$(deleteBotton).text(xzlt('_手动删除作品'));
@@ -5271,9 +5271,9 @@ function XZDownloader() {
 					$('#deleteBotton').text(xzlt('_手动删除作品'));
 				}
 			});
-		})();
+		}
 
-		(function () {
+		{
 			let clearBotton = document.createElement('div');
 			$(clearBotton).text(xzlt('_清空作品列表'));
 			$(clearBotton).attr('title', xzlt('_清空作品列表_title'));
@@ -5282,19 +5282,19 @@ function XZDownloader() {
 				$(tag_search_list_selector).remove();
 				centerWrapHide();
 			}, false);
-		})();
+		}
 	} else if (page_type === 12) { //12.showcase 特辑
 		// 这个类型的页面，不仅url是动态变化的，而且一个专辑页面里还会动态加载其他专辑，做的心好累啊
 
 		// 创建下载按钮
-		(function () {
+		{
 			let downloadBotton = document.createElement('div');
 			$(downloadBotton).html(xzlt('_下载该专辑的图片'));
 			addCenterButton(downloadBotton, xz_blue);
 			downloadBotton.addEventListener('click', function () {
 				is_show_downloader('download');
 			}, false);
-		})();
+		}
 
 		is_show_downloader();
 
@@ -5314,7 +5314,7 @@ function XZDownloader() {
 			startpage_no = 1;
 		}
 
-		(function () {
+		{
 			let downloadBotton = document.createElement('div');
 			$(downloadBotton).text(xzlt('_下载响应作品'));
 			$(downloadBotton).attr('title', xzlt('_下载响应作品'));
@@ -5322,6 +5322,6 @@ function XZDownloader() {
 			downloadBotton.addEventListener('click', function () {
 				startGet();
 			}, false);
-		})();
+		}
 	}
 }
