@@ -3516,9 +3516,15 @@ function XZDownloader() {
 	}
 
 	// 向中间面板添加按钮
-	function addCenterButton(e, bg) {
+	function addCenterButton(tag = 'div', bg = xz_blue, text = '', attr = []) {
+		let e = document.createElement(tag);
 		e.style.backgroundColor = bg;
+		e.textContent = text;
+		for (const [key, value] of new Map(attr).entries()) {
+			e.setAttribute(key, value);
+		}
 		center_btn_wrap.appendChild(e);
+		return e;
 	}
 
 	// 输出右侧按钮区域
@@ -4203,11 +4209,10 @@ function XZDownloader() {
 
 	// 清除多图
 	function clearMultiple() {
-		let els = document.createElement('div');
-		els.textContent = xzlt('_清除多图作品');
-		els.setAttribute('title', xzlt('_清除多图作品_title'));
-		addCenterButton(els, xz_red);
-		els.addEventListener('click', function () {
+		let e = addCenterButton('div', xz_red, xzlt('_清除多图作品'), [
+			['title', xzlt('_清除多图作品_title')]
+		]);
+		e.addEventListener('click', function () {
 			centerWrapHide();
 			let allPicArea = document.querySelectorAll(tag_search_list_selector);
 			allPicArea.forEach((el) => {
@@ -4220,11 +4225,10 @@ function XZDownloader() {
 	}
 	// 清除动图
 	function clearUgoku() {
-		let els = document.createElement('div');
-		els.textContent = xzlt('_清除动图作品');
-		els.setAttribute('title', xzlt('_清除动图作品_title'));
-		addCenterButton(els, xz_red);
-		els.addEventListener('click', function () {
+		let e = addCenterButton('div', xz_red, xzlt('_清除动图作品'), [
+			['title', xzlt('_清除动图作品_title')]
+		]);
+		e.addEventListener('click', function () {
 			centerWrapHide();
 			let allPicArea = document.querySelectorAll(tag_search_list_selector);
 			allPicArea.forEach((el) => {
@@ -4655,9 +4659,7 @@ function XZDownloader() {
 		}, false);
 
 		{
-			let startBotton = document.createElement('div');
-			startBotton.textContent = xzlt('_从本页开始下载');
-			addCenterButton(startBotton, xz_blue);
+			let startBotton = addCenterButton('div', xz_red, xzlt('_从本页开始下载'));
 			startBotton.addEventListener('click', function () {
 				startGet();
 			}, false);
