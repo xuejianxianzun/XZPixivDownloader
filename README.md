@@ -84,13 +84,13 @@ English （机翻，韩语设置下也使用英语文本）
 
 5 [tag搜索页](https://www.pixiv.net/search.php?s_mode=s_tag&word=saber)
 
-6 [地区排行榜](https://www.pixiv.net/ranking_area.php?type=state&no=0)
+6 [地区排行榜](https://www.pixiv.net/ranking_area.php?type=state&no=0) 此板块已不再出现，只能通过网址进入
 
 7 [排行榜](https://www.pixiv.net/ranking.php)
 
 8 [pixivision上的插画、漫画、cosplay页面](https://www.pixivision.net/zh/a/3190)
 
-9 [相似作品](https://www.pixiv.net/bookmark_add.php?id=63148723)
+9 [相似作品](https://www.pixiv.net/bookmark_add.php?id=63148723) 此板块已不再出现，只能通过网址进入
 
 10 [大家的新作品](https://www.pixiv.net/new_illust.php)
 
@@ -98,9 +98,9 @@ English （机翻，韩语设置下也使用英语文本）
 
 11 [发现](https://www.pixiv.net/discovery)
 
-12 [pixiv特辑上的插画](https://www.pixiv.net/showcase/a/3190/)
+12 [pixiv特辑上的插画](https://www.pixiv.net/showcase/a/3190/) 此板块已被 P 站取消
 
-13 [响应关联作品](https://www.pixiv.net/response.php?mode=all&id=194231)
+13 [响应关联作品](https://www.pixiv.net/response.php?mode=all&id=194231) 此板块疑似被 P 站取消
 
 ## 使用的库：
 
