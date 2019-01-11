@@ -726,7 +726,7 @@ https://www.pixiv.net/member.php?id=2793583
 
 但在这种情况下，获取的画师名不包含它本身带的“」”符号，是不完整的。
 
-## 6.3.3
+## 6.3.6
 
 - 发现 pixiv 彻底取消了 showcase 页面，直接跳转到 pixivision 了。
 
@@ -734,18 +734,58 @@ https://www.pixiv.net/member.php?id=2793583
 
 - 获取用户 id 从直接获取头像改成了从父级获取头像的 a 标签。不知道这个父级 class 会不会随着改版变化。```._2e0p8Qb a```
 
+- 画师的插画和漫画分类列表页，url 多了一种新情况，适配之。
+
+- 修复反复跳转后图片缩略图列表小消失得问题
+
 - 优化代码。
 
-把一些 for 循环改成 forEach()、map()、reduce()。
+一些 for 循环改成 forEach()、map()、reduce()。
 
-把一些 for in 遍历对象，改成 for of 遍历 Object.keys()、Object.values()。
+一些 for in 遍历对象，改成 for of 遍历 Object.keys()、Object.values()。
 
-将 indexOf 改为 includes。
+把 indexOf 改为 includes。
 
 函数参数 rest。
 
+解构赋值
+
 部分 if 改成 switch。
 
-一些 jQuery 方法改成了原生方法(attr text html bind)。
+一些 jQuery 方法改成了原生方法(选择器 attr text html bind)。
 
-使 addCenterButton 的添加更方便。
+优化 addCenterButton 函数，添加按钮时减少了重复代码。
+
+去掉一些用作匿名函数的 { } 代码块标记。
+
+一些绑定事件时的匿名函数改成了箭头函数。
+
+一些 innerHTML 改成了 textContent。
+
+删除作品的标记从 DOM 标签上的属性改成了一个变量。
+
+所有 css 统一添加到同一个样式表里。
+
+优化操作 outputInfo 的代码
+
+精简手动删除作品的代码，并提升性能
+
+优化了看图器的一些代码。
+
+（发现 Chrome 71 已经支持 fullscreenchange 这个全屏 API 了，不能加前缀了）
+
+匹配字符串的正则方法从 match 改成 exec，使用分组
+
+其他改进。
+
+--------------------
+
+改 jq 的 选择器
+
+--------------------
+
+需要同步到扩展版的内容：
+
+fullscreenchange
+
+css 查看全部那个 pt0
