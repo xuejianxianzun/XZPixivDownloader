@@ -726,66 +726,70 @@ https://www.pixiv.net/member.php?id=2793583
 
 但在这种情况下，获取的画师名不包含它本身带的“」”符号，是不完整的。
 
-## 6.3.6
+## 6.4.0
 
-- 发现 pixiv 彻底取消了 showcase 页面，直接跳转到 pixivision 了。
+- 删除了 showcase 的相关代码
 
-- 怀疑 pixiv 已经取消了“响应关联作品”的功能。
+pixiv 彻底取消了 showcase 页面，直接跳转到 pixivision 了。 [查看公告](https://www.pixiv.help/hc/zh-tw/articles/360000226574)
 
-- 获取用户 id 从直接获取头像改成了从父级获取头像的 a 标签。不知道这个父级 class 会不会随着改版变化。```._2e0p8Qb a```
+- 删除了 响应关联作品 的相关代码
 
-- 画师的插画和漫画分类列表页，url 多了一种新情况，适配之。
+怀疑 pixiv 已经取消了以往的“响应关联作品”的功能。以前的响应网址打开没有内容了。
 
-- 修复反复跳转后图片缩略图列表小消失得问题
+- 修复反复跳转后图片缩略图失效的问题
+
+- 优化获取用户 id
+
+获取用户 id 从查找头像元素改成了从 html 源码匹配。这样应该不会那么频繁的修改了。
+
+- 适应改版
+
+画师的插画和漫画分类列表页，url 多了一种新情况，适配之。
+
+另外 p 站最近改版也修改了许多 classname
 
 - 优化代码。
 
-一些 for 循环改成 forEach()、map()、reduce()。
+-----------
 
-一些 for in 遍历对象，改成 for of 遍历 Object.keys()、Object.values()。
+### 优化代码内容：
 
-把 indexOf 改为 includes。
+- 解除对 jQuery 的依赖。
 
-函数参数 rest。
+- 一些 for 循环改成 forEach()、map()、reduce()、for of。
 
-解构赋值
+- 一些 for in 遍历对象，改成 for of 遍历 Object.keys()、Object.values()。
 
-部分 if 改成 switch。
+- 把 indexOf 改为 includes。
 
-一些 jQuery 方法改成了原生方法(选择器 attr text html bind)。
+- 函数参数 rest。
 
-优化 addCenterButton 函数，添加按钮时减少了重复代码。
+- 解构赋值
 
-去掉一些用作匿名函数的 { } 代码块标记。
+- 部分 if 改成 switch。
 
-一些绑定事件时的匿名函数改成了箭头函数。
+- 优化 addCenterButton 函数，添加按钮时减少了重复代码。
 
-一些 innerHTML 改成了 textContent。
+- 去掉一些用作匿名函数的 { } 代码块标记。
 
-删除作品的标记从 DOM 标签上的属性改成了一个变量。
+- 一些绑定事件时的匿名函数改成了箭头函数。
 
-所有 css 统一添加到同一个样式表里。
+- 一些 innerHTML 改成了 textContent。
 
-优化操作 outputInfo 的代码
+- 删除作品的标记从 DOM 标签上的属性改成了一个变量。
 
-精简手动删除作品的代码，并提升性能
+- 所有 css 统一添加到同一个样式表里。
 
-优化了看图器的一些代码。
+- 优化操作 outputInfo 的代码
+
+- 精简手动删除作品的代码，并提升性能
+
+- 优化了看图器的一些代码。
 
 （发现 Chrome 71 已经支持 fullscreenchange 这个全屏 API 了，不能加前缀了）
 
-匹配字符串的正则方法从 match 改成 exec，使用分组
+- 匹配字符串的正则方法从 match 改成 exec，使用分组
 
-其他改进。
+- fetch 代码优化
 
---------------------
-
-改 jq 的 选择器
-
---------------------
-
-需要同步到扩展版的内容：
-
-fullscreenchange
-
-css 查看全部那个 pt0
+- 其他改进。

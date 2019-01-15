@@ -84,11 +84,7 @@ Now you can download the gif image directly for a single animation.
 
 - [New work: following](https://www.pixiv.net/bookmark_new_illust.php)
 
-- [Illustration on Showcase](https://www.pixiv.net/showcase/a/3190/)
-
 - [Illustration, comics, cosplay page on pixivision](https://www.pixivision.net/zh/a/3190)
-
-- [Image response](https://www.pixiv.net/response.php?mode=all&id=194231)
 
 ## Library used：
 

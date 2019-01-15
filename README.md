@@ -98,10 +98,6 @@ English （机翻，韩语设置下也使用英语文本）
 
 11 [发现](https://www.pixiv.net/discovery)
 
-12 [pixiv特辑上的插画](https://www.pixiv.net/showcase/a/3190/) 此板块已被 P 站取消
-
-13 [响应关联作品](https://www.pixiv.net/response.php?mode=all&id=194231) 此板块疑似被 P 站取消
-
 ## 使用的库：
 
 [Viewer.js](https://github.com/fengyuanchen/viewerjs)
