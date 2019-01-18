@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.4.1
+// @version     6.4.2
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；自动建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -116,13 +116,9 @@ let quiet_download = true, // 是否快速下载。当可以下载时自动开�
 	myViewer, // 查看器
 	quickBookmarkElement, // 快速收藏的元素
 	download_gif_btn, // 下载 gif 的按钮
-	convert_lib_load = { // 动图组件加载情况
-		'zip_lib': null,
-		'zip_workerScript': null,
-		'zip_inflate': null,
-		'gif_lib': null,
-		'gif_workerScript': null,
-	},
+	gif_js_urls = ['https://cdn.jsdelivr.net/npm/@trigrou/zip-js@1.0.0/WebContent/zip.js', 'https://cdn.jsdelivr.net/npm/@trigrou/zip-js@1.0.0/WebContent/z-worker.js', 'https://cdn.jsdelivr.net/npm/@trigrou/zip-js@1.0.0/WebContent/inflate.js', 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js', 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'],
+	convert_lib_loaded = false, // 动图组件加载情况
+	convert_lib_urls = {}, // 动图组件 js 的 url,
 	check_convert_timer, // 检查动图是否可以转换时，使用的的定时器
 	gif_img_list, // 储存 gif 图片列表的元素
 	zip_file = null, // 获取的 zip 文件
@@ -1532,21 +1528,7 @@ function initGIF() {
 	file_number = undefined; // 动图压缩包里有多少个文件
 	gif_img_list.innerHTML = ''; // 清空图片列表
 	download_gif_btn.style.display = 'inline-block'; // 显示动图转换按钮
-
-	// 检查 gif 所需文件是否加载完成
-	if (!checkGIFLib()) { // 加载转换所需文件
-		loadJS('zip_lib', 'https://cdn.jsdelivr.net/npm/@trigrou/zip-js@1.0.0/WebContent/zip.js');
-		loadJS('zip_workerScript', 'https://cdn.jsdelivr.net/npm/@trigrou/zip-js@1.0.0/WebContent/z-worker.js');
-		loadJS('zip_inflate', 'https://cdn.jsdelivr.net/npm/@trigrou/zip-js@1.0.0/WebContent/inflate.js');
-		loadJS('gif_lib', 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js');
-		loadJS('gif_workerScript', 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js');
-	}
-
-	getGIFInfo();
-}
-
-// 获取 gif 信息
-function getGIFInfo() {
+	// 获取 gif 信息
 	fetch('https://www.pixiv.net/ajax/illust/' + getIllustId() + '/ugoira_meta', {
 			method: 'get',
 			credentials: 'include', // 附带 cookie
@@ -1559,66 +1541,40 @@ function getGIFInfo() {
 			gif_delay = this_one_data.frames[0].delay;
 			gif_mime_type = this_one_data.mime_type;
 		});
-}
 
-// 加载 js 文件
-async function loadJS(name, url) {
-	let js_file = await fetch(url);
-	let js_blob = await js_file.blob();
-	let blob_url = URL.createObjectURL(js_blob);
-	jsLoaded(name, blob_url);
-}
-
-// 把 js 文件插入到页面里
-function insertJS(url) {
-	let element = document.createElement('script');
-	element.setAttribute('type', 'text/javascript');
-	element.setAttribute('src', url);
-	document.head.appendChild(element);
-}
-
-// 处理加载完的 js
-function jsLoaded(name, blob_url) {
-	switch (name) {
-		case 'zip_lib':
-			convert_lib_load.zip_lib = blob_url;
-			insertJS(blob_url);
-			break;
-		case 'zip_workerScript':
-			convert_lib_load.zip_workerScript = blob_url;
-			break;
-		case 'zip_inflate':
-			convert_lib_load.zip_inflate = blob_url;
-			insertJS(blob_url);
-			break;
-		case 'gif_lib':
-			convert_lib_load.gif_lib = blob_url;
-			insertJS(blob_url);
-			break;
-		case 'gif_workerScript':
-			convert_lib_load.gif_workerScript = blob_url;
-			break;
-		default:
-			break;
+	if (!convert_lib_loaded) {
+		loadGifJS();
 	}
 }
 
-// 检查 gif 库是否加载完成
-function checkGIFLib() {
-	let pass = true;
-	for (const val of Object.values(convert_lib_load)) {
-		if (!val) {
-			pass = false;
-		}
-	}
-	return pass;
+// 加载转换所需文件
+function loadGifJS() {
+	let url = gif_js_urls.shift();
+	let filename = /.*\/(.*)\./.exec(url)[1];
+	fetch(url)
+		.then(res => res.blob())
+		.then(data => {
+			let blob_url = URL.createObjectURL(data);
+			convert_lib_urls[filename] = blob_url;
+			if (filename === 'zip' || filename === 'gif') {
+				let el = document.createElement('script');
+				el.setAttribute('type', 'text/javascript');
+				el.setAttribute('src', blob_url);
+				document.head.appendChild(el);
+			}
+			if (gif_js_urls.length === 0) {
+				convert_lib_loaded = true;
+			} else {
+				loadGifJS();
+			}
+		});
 }
 
 // 检查是否可以转换 gif
 function checkCanConvert() {
 	clearInterval(check_convert_timer);
 	// 如果库文件未加载完成，或者未获取到 gif 信息，或者 zip 文件未加载完成，过一会儿再检查
-	if (!checkGIFLib() || !gif_src || !zip_file) {
+	if (!convert_lib_loaded || !gif_src || !zip_file) {
 		setTimeout(() => {
 			checkCanConvert();
 		}, 1000);
@@ -1632,7 +1588,7 @@ function checkCanConvert() {
 function startconvert() {
 	addOutputInfo('<br>' + xzlt('_转换中请等待'));
 	zip.workerScripts = {
-		inflater: [convert_lib_load.zip_workerScript, convert_lib_load.zip_inflate]
+		inflater: [convert_lib_urls['z-worker'], convert_lib_urls['inflate']]
 	};
 	readZip();
 }
@@ -1678,7 +1634,7 @@ function renderGIF() {
 	var gif = new GIF({
 		workers: 4, // 如果 workers 大于1，合成的 gif 有可能会抖动
 		quality: 10,
-		workerScript: convert_lib_load.gif_workerScript
+		workerScript: convert_lib_urls['gif.worker']
 	});
 
 	// 添加图片
@@ -2762,8 +2718,8 @@ function getUserId() {
 // 获取用户名称
 function getUserName() {
 	let isLogin;
-	if (typeof dataLayer !== 'undefined') {
-		isLogin = dataLayer[0].login === 'yes' ? true : false;
+	if (typeof window.dataLayer !== 'undefined') {
+		isLogin = window.dataLayer[0].login === 'yes' ? true : false;
 	} else {
 		isLogin = /login: 'yes'/.test(document.body.innerHTML);
 	}
