@@ -4305,7 +4305,6 @@ if (page_type !== undefined) {
 	changeWantPage();
 	readXZSetting();
 	setFolderInfo();
-	// setFolderInfo 在 1 和 2 里可能会多次执行，所以在这里绑定，只绑定一次
 	appendValueToInput(XZForm.folder_name_select, XZForm.folderNameRule);
 }
 
