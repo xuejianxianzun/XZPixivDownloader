@@ -2839,7 +2839,9 @@ function readyGetListPage3() {
 // 获取 page_type 2 的作品 id 列表
 function getListPage3(url) {
 	let bmk_get_end = false; // 书签作品是否获取完毕
-	fetch(url)
+	fetch(url
+		,{credentials: "same-origin"}
+		)
 		.then(response => {
 			if (response.ok) {
 				return response.json();
