@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.5.1
+// @version     6.5.2
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -3118,11 +3118,13 @@ function getIllustPage(url) {
 			let fullHeight = parseInt(jsInfo.height); //原图高度
 			let title = jsInfo.illustTitle;
 			let userid = jsInfo.userId; //画师id
-			let user = ''; //画师名字
+			let user = jsInfo.userName; //画师名字，如果这里获取不到，下面从 tag 尝试获取
 			let nowAllTagInfo = jsInfo.tags.tags; // tag列表
 			let nowAllTag = [];
 			if (nowAllTagInfo.length > 0) {
-				user = nowAllTagInfo[0].userName; // 从第一个tag里取出画师名字，缺点是如果没有 tag 那就获取不到画师名
+				if (!user) {
+					user = nowAllTagInfo[0].userName ? nowAllTagInfo[0].userName : ''; // 这里从第一个tag里取出画师名字，如果没有 tag 那就获取不到画师名
+				}
 				nowAllTag = nowAllTagInfo.map(info => {
 					return info.tag;
 				});
