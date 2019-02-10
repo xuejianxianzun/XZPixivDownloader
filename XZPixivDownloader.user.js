@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.5.2
+// @version     6.5.3
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -1172,17 +1172,17 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'The adjustment is complete and now has {} works.',
 		'調整完畢，目前有{}張作品。'
 	],
-	'_按收藏数筛选': [
-		'按收藏数筛选',
-		'お気に入りからのフィルター',
-		'Filter by bookmarks',
-		'依收藏數篩選'
+	'_开始筛选': [
+		'开始筛选',
+		'スクリーニングを開始',
+		'Start screening',
+		'開始篩選'
 	],
-	'_按收藏数筛选_title': [
-		'按收藏数筛选当前tag里的作品。如果多次筛选，页码会一直累加。',
-		'現在のタグのエントリ数でフィルタリングします。多次过滤时，页码增加。',
-		'Filter by the number of entries in the current tag. If you filter multiple times, the page number will increase.',
-		'依收藏數篩選目前tag裡的作品。如果多次篩選，頁碼會一直累加。'
+	'_开始筛选_title': [
+		'按照设定来筛选当前tag里的作品。如果多次筛选，页码会一直累加。',
+		'現在のタグで作品をフィルタリングする。複数回フィルタリングすると、ページ番号は常に累積されます。',
+		'Filter the work in the current tag. If you filter multiple times, the page number will increase.',
+		'按照設定來篩選當前tag裡的作品。如果多次篩選，頁碼會一直累加。'
 	],
 	'_在结果中筛选': [
 		'在结果中筛选',
@@ -1806,7 +1806,6 @@ function createViewer() {
 	updateViewer();
 }
 
-//
 // 根据作品信息处理，也包含了对 gif 的处理
 function updateViewer() {
 	viewerWarpper.style.display = 'none'; // 先隐藏 viewerWarpper
@@ -1859,14 +1858,29 @@ function updateViewer() {
 						url(image) {
 							return image.getAttribute('data-src');
 						},
+						viewed(event) { // 当图片显示完成（加载完成）后，预加载下一张图片
+							let ev = event || window.event;
+							let index = ev.detail.index;
+							if (index < this_one_data.pageCount - 1) {
+								index++;
+							}
+							let next_img = original.replace('p0', 'p' + index);
+							let img = new Image();
+							img.src = next_img;
+						},
 						transition: false, // 取消一些动画，比如切换图片时，图片从小变大出现的动画
 						keyboard: false, // 取消键盘支持，主要是用键盘左右方向键切换的话，会和 pixiv 页面产生冲突。（pixiv 页面上，左右方向键会切换作品）
 						title: false, // 不显示 title（图片名和宽高信息）
 						tooltip: false, // 不显示缩放比例
 					});
+					// 预加载第一张图片
+					{
+						let img = new Image();
+						img.src = original;
+					}
 				}
 			}
-			// 处理 动图
+			// 处理动图
 			if (this_one_data.illustType === 2) {
 				initGIF();
 			}
@@ -4697,8 +4711,8 @@ if (page_type === 1) { //1. illust 作品页内页
 		return result += `<a href="https://www.pixiv.net/search.php?s_mode=s_tag${search_mode}${order_mode}&word=${nowTag}%20${cur}">${cur}</a>`;
 	}, '');
 
-	addCenterButton('div', xz_green, xzlt('_按收藏数筛选'), [
-		['title', xzlt('_按收藏数筛选_title')]
+	addCenterButton('div', xz_green, xzlt('_开始筛选'), [
+		['title', xzlt('_开始筛选_title')]
 	]).addEventListener('click', () => {
 		if (interrupt) {
 			interrupt = false;
