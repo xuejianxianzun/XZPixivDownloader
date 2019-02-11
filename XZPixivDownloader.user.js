@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.5.3
+// @version     6.5.4
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -32,6 +32,13 @@
  */
 
 'use strict';
+
+// 检测扩展版，使二者同时只运行一个
+if (sessionStorage.getItem('xz_pixiv_extension')) {
+	throw 'extension ver is running';
+} else { // 标注自己
+	sessionStorage.setItem('xz_pixiv_userscript', '1');
+}
 
 let quiet_download = true, // 是否快速下载。当可以下载时自动开始下载（无需点击下载按钮）
 	download_thread_deauflt = 6, // 同时下载的线程数，可以通过设置 download_thread 修改
@@ -1653,10 +1660,7 @@ function readZip() {
 			file_number = files.length;
 			files.forEach(file => {
 				// 获取每个文件的数据，在 BlobWriter 里设置 mime type，回调函数返回 blob 数据
-				file.getData(new zip.BlobWriter(gif_mime_type), data => {
-					let data_url = URL.createObjectURL(data);
-					addImgList(data_url); // 输出图片列表
-				});
+				file.getData(new zip.BlobWriter(gif_mime_type), data => addImgList(URL.createObjectURL(data)));
 			});
 		});
 	}, message => {
