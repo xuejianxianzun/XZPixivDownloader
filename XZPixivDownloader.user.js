@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.5.6
+// @version     6.5.7
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -1472,6 +1472,12 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'「ダウンロードを開始する」ステータスが利用可能になると、ダウンロードは自動的に開始され、ダウンロードボタンをクリックする必要はありません。',
 		'When the &quot;Start Downloa&quot; status is available, the download starts automatically and no need to click the download button.',
 		'當“開始下載”狀態可用時，自動開始下載，不需要點選下載按鈕。'
+	],
+	'_chrome72的提示': [
+		'XZPixivDownloader：\nChrome 的 72 版本会导致 Tampermonkey 的部分功能失效。如果你遇到了下载失败的情况，请将 Tampermonkey 升级到最新版（4.8 和以上）。\n此外，你也可以使用本工具的浏览器扩展版。（点击下载设置右上角的 Chrome 图标）',
+		'XZPixivDownloader：\nChromeの72バージョンはTampermonkeyの機能のいくつかを無効にするでしょう。 ダウンロードに失敗した場合は、Tampermonkeyを最新バージョン（4.8以上）にアップグレードしてください。 \nまた、このツールのブラウザ拡張機能も使用できます。 （ダウンロード設定の右上にあるChromeアイコンをクリックしてください）',
+		`XZPixivDownloader：\nThe 72 version of Chrome will disable some of Tampermonkey's features. If you are experiencing a download failure, upgrade Tampermonkey to the latest version (4.8 and above). \nIn addition, you can also use the browser extension of this tool. (Click the Chrome icon in the top right corner of the download settings)`,
+		'XZPixivDownloader：\nChrome 的 72 版本會導致 Tampermonkey 的部分功能失效。如果你遇到了下載失敗的情況，請將 Tampermonkey 升級到最新版（4.8 和以上）。\n此外，你也可以使用本工具的瀏覽器擴展版。 （點擊下載設置右上角的 Chrome 圖標）'
 	]
 };
 
@@ -1480,6 +1486,20 @@ function xzlt(name, ...arg) {
 	let content = xz_lang[name][lang_type];
 	arg.forEach(val => content = content.replace('{}', val));
 	return content;
+}
+
+// 检测脚本版因 Chrome 72 导致不能正常下载的情况
+let tip_chrome72 = localStorage.getItem('tip_chrome72');
+if (!tip_chrome72) {
+	let chrome_ver = /Chrome\/(.*)? /.exec(navigator.userAgent);
+	if (chrome_ver) {
+		chrome_ver = chrome_ver[1]; // 例如 '72.0.3626.109'
+	}
+	let GM_ver = GM_info.version; // 例如 '4.8'
+	if (chrome_ver >= '72' && GM_ver < '4.8') {
+		alert(xzlt('_chrome72的提示'));
+		localStorage.setItem('tip_chrome72', 1);
+	}
 }
 
 // 添加 css 样式
