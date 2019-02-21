@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.5.7
+// @version     6.6.1
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -96,7 +96,6 @@ let quiet_download = true, // 是否快速下载。当可以下载时自动开�
 	tag_search_new_html, // tag搜索页作品的html
 	xz_multiple_html, // tag搜索页作品的html中的多图标识
 	xz_gif_html, // tag搜索页作品的html中的动图标识
-	fileNameRule = '',
 	safe_fileName_rule = new RegExp(/\\|\/|:|\?|"|<|'|>|\*|\||\.$/g), // 安全的文件名
 	safe_folder_rule = new RegExp(/\\|:|\?|"|<|'|>|\*|\||\.$/g), // 文件夹名，允许斜线 /
 	rightButton, // 右侧按钮
@@ -136,9 +135,7 @@ let quiet_download = true, // 是否快速下载。当可以下载时自动开�
 	XZForm,
 	XZTipEl,
 	styleE,
-	folder_info = {}, // 文件夹可以使用的命名信息
-	folder_name_default = '', // 默认文件夹命名规则
-	folder_name = '', // 用户设置的文件夹命名规则
+	page_info = {}, // 文件夹可以使用的命名信息
 	option_area_show = true,
 	del_work = false, // 是否处于删除作品状态
 	only_down_bmk,
@@ -826,22 +823,16 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'共擷取到 {} 個圖片'
 	],
 	'_设置文件名': [
-		'设置文件名&nbsp;&nbsp;&nbsp;',
-		'ファイル名を設定する',
-		'Set file name',
-		'設定檔案名稱&nbsp;&nbsp;&nbsp;'
-	],
-	'_设置文件夹名': [
-		'设置文件夹名',
-		'フォルダ名を設定する',
-		'Set the folder name',
-		'設定資料夾名'
+		'设置命名规则',
+		'命名規則を設定する',
+		'Set naming rules',
+		'設置命名規則'
 	],
 	'_设置文件夹名的提示': [
 		`可以使用 '/' 建立文件夹`,
 		`フォルダは '/'で作成できます`,
 		`You can create a folder with '/'`,
-		`可以使用 '/' 建立資料`
+		`可以使用 '/' 建立資料夾`
 	],
 	'_添加标记名称': [
 		'添加标记名称',
@@ -855,17 +846,23 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'Add the tag name to the file name',
 		'將標籤名稱加到檔名中'
 	],
-	'_如何使用': [
-		'如何使用',
-		'使い方',
-		'how to use',
-		'如何使用',
+	'_如何建立文件夹': [
+		'允许 TM 创建文件夹',
+		'TMにフォルダの作成を許可する',
+		'Allow TM to create folders',
+		'設置 TM 以建立資料夾',
 	],
 	'_文件夹提示网址': [
 		'https://s1.ax1x.com/2018/11/13/iOcXDK.png',
 		'https://s1.ax1x.com/2018/11/13/iOcOu6.png',
 		'https://s1.ax1x.com/2018/11/13/iOcbg1.png',
 		'https://s1.ax1x.com/2018/11/13/iOcqjx.png',
+	],
+	'_ff不能建立文件夹': [
+		'要在 Firefox 上建立文件夹，请使用扩展版。',
+		'Firefoxでフォルダを作成するには、拡張バージョンを使用してください。',
+		'To create a folder on Firefox, use the extended version.',
+		'要在 Firefox 上建立文件夾，請使用擴展版。',
 	],
 	'_查看标记的含义': [
 		'查看标记的含义',
@@ -874,10 +871,10 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'檢視標記的含義'
 	],
 	'_可用标记1': [
-		'作品id',
-		'作品ID',
+		'作品 id',
+		'作品 ID',
 		'works id',
-		'作品id'
+		'作品 id'
 	],
 	'_可用标记2': [
 		'作品标题',
@@ -886,22 +883,22 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'作品標題'
 	],
 	'_可用标记3': [
-		'作品的tag列表',
-		'作品のtags',
+		'作品的 tag 列表',
+		'作品の tags',
 		'Tags of works',
-		'作品的tag清單'
+		'作品的 tag 清單'
 	],
 	'_可用标记4': [
-		'画师的名字',
+		'画师名字',
 		'アーティスト名',
 		'Artist name',
-		'畫師的名字'
+		'畫師名字'
 	],
 	'_可用标记6': [
-		'画师的id',
-		'アーティストID',
+		'画师 id',
+		'アーティスト ID',
 		'Artist id',
-		'畫師的id'
+		'畫師 id'
 	],
 	'_可用标记7': [
 		'宽度和高度',
@@ -921,32 +918,26 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'You can use multiple tags, and you can add a separate character between different tags. Example: {id}-{userid}-{px}<br>* On pixivision, only id is available',
 		'你可以使用多個標記；建議在不同標記之間加入分割用的字元。範例：{id}-{userid}-{px}<br>* 在pixivision裡，只有id標記會生效'
 	],
-	'_文件夹标记_user': [
-		'画师的名字',
+	'_文件夹标记_p_user': [
+		'当前页面的画师名字',
 		'アーティスト名',
 		'Artist name',
 		'畫師的名字'
 	],
-	'_文件夹标记_userid': [
-		'画师的id',
+	'_文件夹标记_p_uid': [
+		'当前页面的画师id',
 		'アーティストID',
 		'Artist id',
 		'畫師的id'
 	],
-	'_文件夹标记_tag': [
+	'_文件夹标记_p_tag': [
 		'当前页面的 tag',
 		'現在のタグ',
 		'Current tag',
 		'當前頁面的 tag'
 	],
-	'_文件夹标记_id': [
-		'作品id',
-		'作品ID',
-		'works id',
-		'作品id'
-	],
-	'_文件夹标记_ptitle': [
-		'网页的标题',
+	'_文件夹标记_p_title': [
+		'当前页面的标题',
 		'ページのタイトル',
 		'The title of the page',
 		'網頁的標題'
@@ -1518,8 +1509,8 @@ function quickBookmark() {
 		quickBookmark();
 	}, 300);
 
-	let toolbar; // 因为 p 站改版 class 经常变，所以从父元素查找，父元素的 class 变化没那么频繁
-	let toolbar_parent = document.querySelectorAll('._7-rfF29>div');
+	let toolbar; // 因为 p 站改版 class 经常变，所以从父元素查找，父元素的 class 变化没那么频繁. figure 元素
+	let toolbar_parent = document.querySelectorAll('figure>div');
 	for (const el of toolbar_parent) {
 		if (el.querySelector('div>section')) {
 			toolbar = el.querySelector('div>section');
@@ -1766,7 +1757,7 @@ function loadViewer() {
 
 // 创建图片查看器 html 元素，并绑定一些事件
 function createViewer() {
-	if (!document.querySelector('._7-rfF29')) { // 如果图片中间部分的元素还未生成，则过一会儿再检测
+	if (!document.querySelector('figure')) { // 如果图片中间部分的元素还未生成，则过一会儿再检测
 		setTimeout(() => {
 			createViewer();
 		}, 200);
@@ -1778,7 +1769,7 @@ function createViewer() {
 	viewerWarpper.id = 'viewerWarpper';
 	viewerUl = document.createElement('ul');
 	viewerWarpper.appendChild(viewerUl);
-	document.querySelector('._7-rfF29 figcaption').insertAdjacentElement('beforebegin', viewerWarpper);
+	document.querySelector('figure figcaption').insertAdjacentElement('beforebegin', viewerWarpper);
 
 	// 图片查看器显示之后
 	viewerUl.addEventListener('shown', () => {
@@ -3601,36 +3592,12 @@ function addCenterWarps() {
 		<span class="xztip settingNameStyle1" data-tip="${xzlt('_线程数字')}">${xzlt('_设置下载线程')}<span class="gray1"> ? </span></span>
 		<input type="text" name="setThread" class="setinput_style1 xz_blue" value="${download_thread_deauflt}">
 		</p>
-		<p class="XZFormP12">
-		<span class="xztip settingNameStyle1" data-tip="${xzlt('_设置文件夹名的提示')}">${xzlt('_设置文件夹名')}<span class="gray1"> ? </span></span>
-		<input type="text" name="folderNameRule" class="setinput_style1 xz_blue folderNameRule">
-		&nbsp;&nbsp;
-		<select name="folder_name_select">
-		</select>
-		&nbsp;&nbsp;&nbsp;&nbsp;
-		<span class="gray1 showFolderNameTip"> ${xzlt('_查看标记的含义')}</span>
-		&nbsp;&nbsp;
-		<a class="gray1 how_to_create_folder" href="${xzlt('_文件夹提示网址')}" target="_blank"> ${xzlt('_如何使用')}</a>
-		</p>
-		<p class="folderNameTip tip">
-		<span class="xz_blue">{user}</span>
-		${xzlt('_文件夹标记_user')}
-		<br>
-		<span class="xz_blue">{userid}</span>
-		${xzlt('_文件夹标记_userid')}
-		<br>
-		<span class="xz_blue">{id}</span>
-		${xzlt('_文件夹标记_id')}
-		<br>
-		<span class="xz_blue">{tag}</span>
-		${xzlt('_文件夹标记_tag')}
-		<br>
-		<span class="xz_blue">{ptitle}</span>
-		${xzlt('_文件夹标记_ptitle')}
-		</p>
 		<p>
-		<span class="xztip settingNameStyle1" data-tip="${allowFolder?xzlt('_设置文件夹名的提示'):''}">${xzlt('_设置文件名')}<span class="gray1"> ? </span></span>
+		<span class="xztip settingNameStyle1" data-tip="${xzlt('_设置文件夹名的提示')}">${xzlt('_设置文件名')}<span class="gray1"> ? </span></span>
 		<input type="text" name="fileNameRule" class="setinput_style1 xz_blue fileNameRule" value="{id}">
+		&nbsp;&nbsp;
+		<select name="page_info_select">
+		</select>
 		&nbsp;&nbsp;
 		<select name="file_name_select">
 			<option value="default">…</option>
@@ -3646,6 +3613,18 @@ function addCenterWarps() {
 		<span class="gray1 showFileNameTip"> ${xzlt('_查看标记的含义')}</span>
 		</p>
 		<p class="fileNameTip tip">
+		<span class="xz_blue">{p_user}</span>
+		${xzlt('_文件夹标记_p_user')}
+		<br>
+		<span class="xz_blue">{p_uid}</span>
+		${xzlt('_文件夹标记_p_uid')}
+		<br>
+		<span class="xz_blue">{p_tag}</span>
+		${xzlt('_文件夹标记_p_tag')}
+		<br>
+		<span class="xz_blue">{p_title}</span>
+		${xzlt('_文件夹标记_p_title')}
+		<br>
 		<span class="xz_blue">{id}</span>
 		${xzlt('_可用标记1')}
 		<br>
@@ -3674,6 +3653,10 @@ function addCenterWarps() {
 		<label for="setTagNameToFileName"><input type="checkbox" name="setTagNameToFileName" id="setTagNameToFileName" checked> ${xzlt('_启用')}</label>
 		&nbsp;&nbsp;&nbsp;
 		<span class="gray1 showFileNameResult"> ${xzlt('_预览文件名')}</span>
+		&nbsp;&nbsp;&nbsp;&nbsp;
+		<a class="gray1 how_to_create_folder" href="${xzlt('_文件夹提示网址')}" target="_blank" style="display:${isFirefox?'none':'inline'}"> ${xzlt('_如何建立文件夹')}</a>
+		&nbsp;&nbsp;
+		<a class="gray1" href="https://addons.mozilla.org/zh-CN/firefox/addon/pixiv-batch-downloader/" target="_blank" style="display:${isFirefox?'inline':'none'}"> ${xzlt('_ff不能建立文件夹')}</a>
 		</p>
 		</form>
 		<div class="download_panel">
@@ -3736,7 +3719,6 @@ function addCenterWarps() {
 	document.querySelector('.centerWrap_close').addEventListener('click', centerWrapHide);
 	document.querySelector('.showFileNameResult').addEventListener('click', () => showOutputInfoWrap('name'));
 	document.querySelector('.showFileNameTip').addEventListener('click', () => toggle(document.querySelector('.fileNameTip')));
-	document.querySelector('.showFolderNameTip').addEventListener('click', () => toggle(document.querySelector('.folderNameTip')));
 	document.querySelector('.showDownTip').addEventListener('click', () => toggle(document.querySelector('.downTip')));
 	document.querySelector('.centerWrap_toogle_option').addEventListener('click', toggleOptionArea);
 	// 添加提示事件
@@ -3757,14 +3739,15 @@ function addCenterWarps() {
 	// 输入框获得焦点时自动选择文本
 	let center_inputs = XZForm.querySelectorAll('input[type=text]');
 	for (const el of center_inputs) {
-		// 文件夹名和文件名例外
-		if (el.name !== 'folderNameRule' && el.name !== 'fileNameRule') {
+		// 文件名例外
+		if (el.name !== 'fileNameRule') {
 			el.addEventListener('focus', function () {
 				this.select();
 			});
 		}
 	}
 
+	appendValueToInput(XZForm.page_info_select, XZForm.fileNameRule);
 	appendValueToInput(XZForm.file_name_select, XZForm.fileNameRule);
 
 	// 开始下载按钮
@@ -3773,7 +3756,6 @@ function addCenterWarps() {
 			return false;
 		}
 		// 重置一些条件
-		getFolderName();
 		// 检查下载线程设置
 		let setThread = parseInt(XZForm.setThread.value);
 		if (setThread < 1 || setThread > 10 || isNaN(setThread)) {
@@ -3801,7 +3783,6 @@ function addCenterWarps() {
 		}
 		download_pause = false;
 		download_stop = false;
-		fileNameRule = XZForm.fileNameRule.value;
 
 		// 启动或继续 建立并发下载线程
 		addOutputInfo('<br>' + xzlt('_正在下载中') + '<br>');
@@ -3863,15 +3844,14 @@ function appendValueToInput(form, to) {
 		if (this.value === 'default') {
 			return false;
 		} else {
-			to.value = to.value + this.value;
-			// 保存命名规则。区分文件夹名和文件名
-			if (form.name === 'folder_name_select') {
-				if (to.value !== '' && (page_type === 1 || page_type === 2) && !loc_url.includes('bookmark.php')) {
-					saveXZSetting('folder_name', to.value);
-				}
-			} else if (form.name === 'file_name_select') {
-				saveXZSetting('user_set_name', to.value);
-			}
+			// 把选择项插入到光标位置,并设置新的光标位置
+			let position = to.selectionStart;
+			to.value = to.value.substr(0, position) + this.value + to.value.substr(position, to.value.length);
+			to.selectionStart = position + this.value.length;
+			to.selectionEnd = position + this.value.length;
+			to.focus();
+			// 保存命名规则
+			saveXZSetting('user_set_name', to.value);
 		}
 	})
 }
@@ -3926,7 +3906,6 @@ function readXZSetting() {
 			"quiet_download": true,
 			"download_thread": 6,
 			"user_set_name": "{id}",
-			"folder_name": "{userid}-{user}",
 			"tagName_to_fileName": true
 		};
 	} else {
@@ -3989,20 +3968,6 @@ function readXZSetting() {
 			saveXZSetting('download_thread', this.value);
 		}
 	});
-	// 设置文件夹命名规则，只在作品内页和画师列表页执行。因为其他页面已经设置了合适的默认命名规则了
-	if ((page_type === 1 || page_type === 2) && !loc_url.includes('bookmark.php')) {
-		let folderNameRule_input = XZForm.folderNameRule;
-		folderNameRule_input.value = xz_setting.folder_name;
-		// 保存文件夹命名规则
-		folderNameRule_input.addEventListener('change', function () {
-			if (this.value !== '') {
-				saveXZSetting('folder_name', this.value);
-			} else {
-				// 把下拉框恢复默认值
-				XZForm.folder_name_select.value = XZForm.folder_name_select.children[0].value
-			}
-		});
-	}
 
 	// 设置文件命名规则
 	let fileNameRule_input = XZForm.fileNameRule;
@@ -4116,8 +4081,7 @@ function showOutputInfoWrap(type) {
 		}, result)
 	} else if (type === 'name') { // 预览和拷贝图片名
 		result = img_info.reduce((total, now) => {
-			let ext = '.' + now.ext;
-			return total += (now.id + ext + ': ' + getFileName(now) + ext + '<br>'); // 在每个文件名前面加上它的原本的名字，方便用来做重命名
+			return total += (now.id + '.' + now.ext + ': ' + getFileName(now) + '<br>'); // 在每个文件名前面加上它的原本的名字，方便用来做重命名
 		}, result);
 	} else {
 		return false;
@@ -4128,67 +4092,114 @@ function showOutputInfoWrap(type) {
 
 // 生成文件名，传入参数为图片信息
 function getFileName(data) {
-	fileNameRule = XZForm.fileNameRule.value;
+	let result = XZForm.fileNameRule.value;
 	tagName_to_fileName = XZForm.setTagNameToFileName.checked;
 	// 为空时使用 {id}
-	fileNameRule = fileNameRule || '{id}';
-	// 处理宽高
-	let px = '';
-	if (fileNameRule.includes('{px}') && data.fullWidth !== undefined) {
-		px = data.fullWidth + 'x' + data.fullHeight;
-	}
-	// 拼接文件名，不包含后缀名
-	let result = '';
+	result = result || '{id}';
+	// 生成文件名
 	// 将序号部分格式化成 3 位数字。p 站投稿一次最多 200 张
 	// data.id = data.id.replace(/(\d.*p)(\d.*)/,  (...str)=> {
 	// 	return str[1] + str[2].padStart(3, '0');
 	// });
-	// 先替换掉预定义字段里的特殊符号，不替换用户输入的特殊符号
-	if (tagName_to_fileName) {
-		result = fileNameRule.replace('{id}', data.id).replace('{title}', 'title_' + data.title.replace(safe_fileName_rule, '_')).replace('{user}', 'user_' + data.user.replace(safe_fileName_rule, '_')).replace('{userid}', 'uid_' + data.userid).replace('{px}', px).replace('{tags}', 'tags_' + (data.tags.join(',')).replace(safe_fileName_rule, '_')).replace('{bmk}', 'bmk_' + data.bmk).replace(/undefined/g, '');
-	} else {
-		result = fileNameRule.replace('{id}', data.id).replace('{title}', data.title.replace(safe_fileName_rule, '_')).replace('{user}', data.user.replace(safe_fileName_rule, '_')).replace('{userid}', data.userid).replace('{px}', px).replace('{tags}', (data.tags.join(',')).replace(safe_fileName_rule, '_')).replace('{bmk}', data.bmk).replace(/undefined/g, '');
+	let cfg = [{
+		'name': '{p_user}',
+		'value': page_info.hasOwnProperty('p_user') ? getUserName() : '',
+		'prefix': '',
+		'safe': false
+	}, {
+		'name': '{p_uid}',
+		'value': page_info.hasOwnProperty('p_uid') ? getUserId() : '',
+		'prefix': '',
+		'safe': true
+	}, {
+		'name': '{p_title}',
+		'value': document.title.replace(/\[(0|↑|→|▶|↓|║|■|√| )\] /, '').replace(/^\(\d.*\) /, ''), // 去掉标题上的下载状态、消息数量提示
+		'prefix': '',
+		'safe': false
+	}, {
+		'name': '{p_tag}',
+		'value': page_info.p_tag ? page_info.p_tag : '',
+		'prefix': '',
+		'safe': false
+	}, {
+		'name': '{id}',
+		'value': data.id, // 值
+		'prefix': '', // 添加的前缀
+		'safe': true // 是否是安全的文件名。如果包含有一些特殊字符，就不安全，要进行替换
+	}, {
+		'name': '{title}',
+		'value': data.title,
+		'prefix': 'title_',
+		'safe': false
+	}, {
+		'name': '{user}',
+		'value': data.user,
+		'prefix': 'user_',
+		'safe': false
+	}, {
+		'name': '{userid}',
+		'value': data.userid,
+		'prefix': 'uid_',
+		'safe': true
+	}, {
+		'name': '{px}',
+		'value': (function () {
+			if (result.includes('{px}') && data.fullWidth !== undefined) {
+				return data.fullWidth + 'x' + data.fullHeight;
+			} else {
+				return ''
+			}
+		})(),
+		'prefix': '',
+		'safe': true
+	}, {
+		'name': '{tags}',
+		'value': data.tags.join(','),
+		'prefix': 'tags_',
+		'safe': false
+	}, {
+		'name': '{bmk}',
+		'value': data.bmk,
+		'prefix': 'bmk_',
+		'safe': false
+	}];
+
+	for (const item of cfg) {
+		if (result.includes(item.name)) {
+			if (item.value) { // 只有当标记有值时才继续操作. 所以空的标记会原样保留
+				let once = item.value;
+				if (tagName_to_fileName) {
+					once = item.prefix + once;
+				}
+				if (!item.safe) {
+					once = once.replace(safe_fileName_rule, '_');
+				}
+				result = result.replace(new RegExp(item.name, 'g'), once); // 将标记替换成最终值，如果有重复的标记，全部替换
+			}
+		}
 	}
-	if (allowFolder) { // 如果可以建立文件夹，替换掉特殊符号但保留用户输入的 /
-		result = result.replace(safe_folder_rule, '_');
-	} else { // 如果不可以建立文件夹，替换掉所有特殊符号
-		result = result.replace(safe_fileName_rule, '_');
+
+	// 去掉头尾的 /
+	if (result.startsWith('/')) {
+		result = result.replace('/', '');
 	}
-	if (data.ext === 'ugoira') { // 动图改变后缀名，添加前缀
+	if (result.endsWith('/')) {
+		result = result.substr(0, result.length - 1)
+	}
+
+	// 处理后缀名
+	result += '.' + data.ext;
+	if (data.ext === 'ugoira') { // 动图在最前面添加前缀
 		result = 'open_with_HoneyView-' + result;
 	}
-	return result;
-}
 
-// 获取文件夹名称
-function getFolderName() {
-	folder_name = XZForm.folderNameRule.value;
-	if (folder_name === '') {
-		return false;
+	// 处理空值，不能做文件夹名的字符，连续的 '//'。 有时候两个斜线中间的字段是空值，最后就变成两个斜线挨在一起了
+	result = result.replace(/undefined/g, '').replace(safe_folder_rule, '_').replace(/\/{2,9}/, '/');
+	// 脚本版的处理, 如果不可以建立文件夹，替换掉所有特殊符号
+	if (!allowFolder) {
+		result = result.replace(safe_fileName_rule, '_');
 	}
-	for (const key of Object.keys(folder_info)) {
-		if (key === 'user') {
-			folder_name = folder_name.replace(`{${key}}`, getUserName());
-		} else if (key === 'userid') {
-			folder_name = folder_name.replace(`{${key}}`, getUserId());
-		} else if (key === 'id') {
-			folder_name = folder_name.replace(`{${key}}`, getIllustId());
-		} else if (key === 'ptitle') { // 去掉标题上的下载状态、特殊符号、消息数量提示
-			folder_name = folder_name.replace(`{${key}}`, document.title.replace(/\[(0|↑|→|▶|↓|║|■|√| )\] /, '').replace(safe_fileName_rule, '_').replace(/^\(\d.*\) /, ''));
-		} else if (key === 'tag') { // 替换掉 tag 里的特殊符号
-			folder_name = folder_name.replace(`{${key}}`, folder_info[key].replace(safe_fileName_rule, '_'));
-		} else {
-			folder_name = folder_name.replace(`{${key}}`, folder_info[key]);
-		}
-	}
-	if (allowFolder) { // 如果可以建立文件夹，替换掉特殊符号但保留用户输入的 /
-		folder_name = folder_name.replace(safe_folder_rule, '_');
-		if (folder_name.startsWith('/')) { // 去掉首位的 /
-			folder_name = folder_name.replace('/', '');
-		}
-	} else { // 如果不可以建立文件夹，替换掉所有特殊符号
-		folder_name = folder_name.replace(safe_fileName_rule, '_');
-	}
+	return result;
 }
 
 // 开始下载 下载序号，要使用的显示队列的序号
@@ -4196,13 +4207,8 @@ function startDownload(downloadNo, downloadBar_no) {
 	changeTitle('↓');
 	// 获取文件名
 	let fullFileName = getFileName(img_info[downloadNo]);
-	// 获取文件夹名字
-	// 如果是浏览器 API 模式，则加入文件夹名称
-	if (GM_info.downloadMode === 'browser' && !quick && folder_name !== '') {
-		fullFileName = folder_name + '/' + fullFileName;
-	}
-	// 处理文件名长度 这里有个问题，因为无法预知浏览器下载文件夹的长度，所以只能预先设置一个值
-	fullFileName = fullFileName.substr(0, fileName_length) + '.' + img_info[downloadNo].ext;
+	// 处理文件名长度 这里有个问题，因为无法预知浏览器下载文件夹的长度，所以只能预先设置一个预设值
+	fullFileName = fullFileName.substr(0, fileName_length);
 	downloadBar_list[downloadBar_no].querySelector('.download_fileName').textContent = fullFileName;
 	GM_xmlhttpRequest({
 		method: 'GET',
@@ -4381,55 +4387,32 @@ function changeWantPage() {
 	}
 }
 
-// 设置文件夹信息
-function setFolderInfo() {
-	if (isFirefox) {
-		hideNotNeedOption([12]);
-		return false;
-	}
-	let folder_name_select = XZForm.folder_name_select;
+// 获取一些当前页面的信息，用于文件名中
+function getPageInfo() {
+	let page_info_select = XZForm.page_info_select;
 	// 添加文件夹可以使用的标记
-	folder_info = {};
-	folder_info.ptitle = ''; // 所有页面都可以使用 ptitle
-	if (page_type === 1) {
-		folder_info.id = '';
-	}
+	page_info = {};
+	page_info.p_title = ''; // 所有页面都可以使用 p_title
 	// 只有 1 和 2 可以使用画师信息
 	if (page_type === 1 || page_type === 2) {
 		// 一些信息可能需要从 dom 取得，在这里直接执行可能会出错，所以先留空
 		if (!loc_url.includes('bookmark.php')) { // 不是书签页
-			folder_info.user = '';
-			folder_info.userid = '';
-			folder_name_default = '{userid}-{user}';
-			// 如果有 tag 则追加 tag
-			if (getQuery(loc_url, 'tag')) {
-				folder_info.tag = decodeURIComponent(getQuery(loc_url, 'tag'));
-			}
-		} else { // 书签页，书签页首页可能没有tag，所以也要判断
-			if (getQuery(loc_url, 'tag')) {
-				folder_info.tag = decodeURIComponent(getQuery(loc_url, 'tag'));
-				folder_name_default = '{tag}';
-			} else {
-				folder_name_default = '{ptitle}';
-
-			}
+			page_info.p_user = '';
+			page_info.p_uid = '';
+		}
+		// 如果有 tag 则追加 tag
+		if (getQuery(loc_url, 'tag')) {
+			page_info.p_tag = decodeURIComponent(getQuery(loc_url, 'tag'));
 		}
 	} else if (page_type === 5) {
-		folder_info.tag = decodeURIComponent(getQuery(loc_url, 'word'));
-		folder_name_default = '{tag}';
-	} else {
-		folder_name_default = '{ptitle}';
-	}
-	// 在一些时候设置成默认的命名规则
-	if ((page_type !== 1 && page_type !== 2) || loc_url.includes('bookmark.php')) {
-		XZForm.folderNameRule.value = folder_name_default;
+		page_info.p_tag = decodeURIComponent(getQuery(loc_url, 'word'));
 	}
 	// 添加下拉选项
-	folder_name_select.innerHTML = '';
-	folder_name_select.insertAdjacentHTML('beforeend', '<option value="default">…</option>');
-	for (const key of Object.keys(folder_info)) {
+	page_info_select.innerHTML = '';
+	page_info_select.insertAdjacentHTML('beforeend', '<option value="default">…</option>');
+	for (const key of Object.keys(page_info)) {
 		let option_html = `<option value="{${key}}">{${key}}</option>`;
-		folder_name_select.insertAdjacentHTML('beforeend', option_html);
+		page_info_select.insertAdjacentHTML('beforeend', option_html);
 	}
 }
 
@@ -4469,8 +4452,7 @@ if (page_type !== undefined) {
 	addCenterWarps();
 	changeWantPage();
 	readXZSetting();
-	setFolderInfo();
-	appendValueToInput(XZForm.folder_name_select, XZForm.folderNameRule);
+	getPageInfo();
 }
 
 // 作品页无刷新进入其他作品页面时
@@ -4489,7 +4471,7 @@ if (page_type === 1 || page_type === 2) {
 		window.addEventListener(item, () => {
 			checkPageType(); // 当页面切换时，判断新页面的类型
 			changeWantPage();
-			setFolderInfo();
+			getPageInfo();
 			listen1();
 			// 当新旧页面的 page_type 不相同的时候
 			if (old_page_type !== page_type) {
