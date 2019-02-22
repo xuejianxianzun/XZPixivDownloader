@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.6.1
+// @version     6.6.2
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -829,10 +829,10 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'設置命名規則'
 	],
 	'_设置文件夹名的提示': [
-		`可以使用 '/' 建立文件夹`,
-		`フォルダは '/'で作成できます`,
-		`You can create a folder with '/'`,
-		`可以使用 '/' 建立資料夾`
+		`可以使用 '/' 建立文件夹<br>示例：{p_title}/{user}/{id}`,
+		`フォルダは '/'で作成できます<br>例：{p_title}/{user}/{id}`,
+		`You can create a folder with '/'<br>Example：{p_title}/{user}/{id}`,
+		`可以使用 '/' 建立資料夹<br>示例：{p_title}/{user}/{id}`
 	],
 	'_添加标记名称': [
 		'添加标记名称',
@@ -913,10 +913,10 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'bookmark-count，作品的收藏數。將它放在最前面就可以讓下載後的檔案依收藏數排序。'
 	],
 	'_可用标记5': [
-		'你可以使用多个标记；建议在不同标记之间添加分割用的字符。示例：{id}-{userid}-{px}<br>* 在pixivision里，只有id标记会生效',
-		'複数のタグを使用することができ；異なるタグ間に別の文字を追加することができます。例：{id}-{userid}-{px}<br>* pixivisionでは、idのみが利用可能です',
-		'You can use multiple tags, and you can add a separate character between different tags. Example: {id}-{userid}-{px}<br>* On pixivision, only id is available',
-		'你可以使用多個標記；建議在不同標記之間加入分割用的字元。範例：{id}-{userid}-{px}<br>* 在pixivision裡，只有id標記會生效'
+		'你可以使用多个标记；建议在不同标记之间添加分割用的字符。示例：{id}-{userid}-{px}<br>* 在某些情况下，会有一些标记不可用。',
+		'複数のタグを使用することができ；異なるタグ間に別の文字を追加することができます。例：{id}-{userid}-{px}<br>* 場合によっては、一部のタグが利用できず。',
+		'You can use multiple tags, and you can add a separate character between different tags. Example: {id}-{userid}-{px}<br>* In some cases, some tags will not be available.',
+		'你可以使用多個標記；建議在不同標記之間加入分割用的字元。範例：{id}-{userid}-{px}<br>* 在某些情況下，會有一些標記不可用。'
 	],
 	'_文件夹标记_p_user': [
 		'当前页面的画师名字',
