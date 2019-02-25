@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.6.2
+// @version     6.6.3
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -4190,7 +4190,8 @@ function getFileName(data) {
 	// 处理后缀名
 	result += '.' + data.ext;
 	if (data.ext === 'ugoira') { // 动图在最前面添加前缀
-		result = 'open_with_HoneyView-' + result;
+		let index = result.lastIndexOf('/');
+		result = result.substr(0, index + 1) + 'open_with_HoneyView-' + result.substr(index + 1, result.length);
 	}
 
 	// 处理空值，不能做文件夹名的字符，连续的 '//'。 有时候两个斜线中间的字段是空值，最后就变成两个斜线挨在一起了
@@ -4210,6 +4211,7 @@ function startDownload(downloadNo, downloadBar_no) {
 	// 处理文件名长度 这里有个问题，因为无法预知浏览器下载文件夹的长度，所以只能预先设置一个预设值
 	fullFileName = fullFileName.substr(0, fileName_length);
 	downloadBar_list[downloadBar_no].querySelector('.download_fileName').textContent = fullFileName;
+	// let GM_XHR =
 	GM_xmlhttpRequest({
 		method: 'GET',
 		url: img_info[downloadNo].url,
@@ -4217,7 +4219,12 @@ function startDownload(downloadNo, downloadBar_no) {
 			referer: 'https://www.pixiv.net/'
 		},
 		responseType: 'blob',
+		onabort: function () {},
 		onprogress: function (xhr) {
+			// 当体积大于指定值时中断下载。这里只是一个判断，还需要处理后续操作。
+			// if (xhr.total>1000000) {
+			// 	GM_XHR.abort('too large');
+			// }
 			// 显示下载进度
 			if (download_pause || download_stop) {
 				return false;
