@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.6.3
+// @version     6.6.4
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -4196,6 +4196,13 @@ function getFileName(data) {
 
 	// 处理空值，不能做文件夹名的字符，连续的 '//'。 有时候两个斜线中间的字段是空值，最后就变成两个斜线挨在一起了
 	result = result.replace(/undefined/g, '').replace(safe_folder_rule, '_').replace(/\/{2,9}/, '/');
+
+	// 快速下载不建立文件夹
+	if (quick) {
+		let index = result.lastIndexOf('/');
+		result = result.substr(index + 1, result.length)
+	}
+
 	// 脚本版的处理, 如果不可以建立文件夹，替换掉所有特殊符号
 	if (!allowFolder) {
 		result = result.replace(safe_fileName_rule, '_');
