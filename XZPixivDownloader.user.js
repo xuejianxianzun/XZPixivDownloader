@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.6.4
+// @version     6.6.5
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -1985,7 +1985,7 @@ function viewerIsShow() {
 			showViewerOther();
 		}
 	});
-})
+});
 
 // 修改title
 function changeTitle(string) {
@@ -2363,7 +2363,7 @@ function listSort() {
 	list_wrap.innerHTML = '';
 	imgList.forEach(data => {
 		list_wrap.insertAdjacentHTML('beforeend', data.e);
-	})
+	});
 }
 
 // tag搜索页的筛选任务执行完毕
@@ -2401,8 +2401,8 @@ function getNowPageNo() {
 		} else { //没有 length 属性的，不能使用 forEach，直接删除（querySelector、getElementById 没有 length 属性）
 			this.parentNode.removeChild(this);
 		}
-	}
-})
+	};
+});
 
 // 实现 toggle 方法，仅支持 block 和 none 切换
 function toggle(el) {
@@ -2567,7 +2567,7 @@ function getListPage() {
 		Array.from(now_illust).forEach(el => { //拼接作品的url
 			// discovery列表的url也是有额外后缀的，需要去掉
 			illust_url_list.push(el.href.split('&uarea')[0]);
-		})
+		});
 		addOutputInfo('<br>' + xzlt('_列表页获取完成2', illust_url_list.length));
 		getListUrlFinished();
 		return false;
@@ -2583,7 +2583,7 @@ function getListPage() {
 				return Promise.reject({
 					status: response.status,
 					statusText: response.statusText
-				})
+				});
 			}
 		})
 		.then(data => {
@@ -2703,7 +2703,7 @@ function getListPage() {
 					let nowHref = 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + data.illust_id;
 					let bookmarked = data.is_bookmarked;
 					checkNotDownType_result(nowClass, nowHref, bookmarked);
-				})
+				});
 				outputInfo.innerHTML = now_tips + '<br>' + xzlt('_排行榜进度', listPage_finished);
 				if (listPage_finished == part_number) {
 					addOutputInfo('<br>' + xzlt('_排行榜任务完成', illust_url_list.length));
@@ -2715,7 +2715,7 @@ function getListPage() {
 				let illust_list = JSON.parse(data).recommendations; //取出id列表
 				illust_list.forEach(data => { //拼接作品的url
 					illust_url_list.push('https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + data);
-				})
+				});
 				addOutputInfo('<br>' + xzlt('_列表页获取完成2', illust_url_list.length));
 				getListUrlFinished();
 			} else { // 不要把下面的if和这个else合并
@@ -2738,7 +2738,7 @@ function getListPage() {
 							bookmarked = true;
 						}
 						checkNotDownType_result(nowClass, nowHref, bookmarked);
-					})
+					});
 				} else {
 					let allPicArea = listPage_document.querySelectorAll('._image-items .image-item');
 					for (const el of allPicArea) {
@@ -2778,7 +2778,7 @@ function getListPage() {
 					getListUrlFinished();
 				}
 			}
-		})
+		});
 }
 
 // 第二个获取列表的函数，仅在tag搜索页和地区排行榜使用（不使用 ajax，从当前列表页直接获取所有内容页的列表）
@@ -2838,7 +2838,7 @@ function getListPage2() {
 			let nowHref = el.href;
 			let bookmarked = el.querySelector('._one-click-bookmark').classList.contains('on');
 			checkNotDownType_result(nowClass, nowHref, bookmarked);
-		})
+		});
 	}
 	insertOutputInfo();
 	addOutputInfo('<br>' + xzlt('_列表抓取完成开始获取作品页', illust_url_list.length));
@@ -3003,7 +3003,7 @@ function getListPage3(url) {
 				return Promise.reject({
 					status: response.status,
 					statusText: response.statusText
-				})
+				});
 			}
 		})
 		.then(data => {
@@ -3046,7 +3046,7 @@ function getListPage3(url) {
 					// 转换成数字
 					type2_id_list = type2_id_list.map(id => {
 						return parseInt(id);
-					})
+					});
 					// 升序排列
 					type2_id_list.sort(function (x, y) {
 						return x - y;
@@ -3126,7 +3126,7 @@ function getIllustPage(url) {
 				return Promise.reject({
 					status: response.status,
 					statusText: response.statusText
-				})
+				});
 			}
 		})
 		.then(data => {
@@ -3334,7 +3334,7 @@ function getIllustPage(url) {
 				default:
 					break;
 			}
-		})
+		});
 }
 
 // 测试图片url是否正确的函数。对于mode=big的作品和pixivision，可以拼接出图片url，只是后缀都是jpg的，所以要测试下到底是jpg还是png
@@ -3853,7 +3853,7 @@ function appendValueToInput(form, to) {
 			// 保存命名规则
 			saveXZSetting('user_set_name', to.value);
 		}
-	})
+	});
 }
 
 // 显示中间区域
@@ -3982,7 +3982,7 @@ function readXZSetting() {
 			saveXZSetting('user_set_name', this.value);
 		} else {
 			// 把下拉框恢复默认值
-			XZForm.file_name_select.value = XZForm.file_name_select.children[0].value
+			XZForm.file_name_select.value = XZForm.file_name_select.children[0].value;
 		}
 	});
 	// 设置标记添加到文件名
@@ -4078,7 +4078,7 @@ function showOutputInfoWrap(type) {
 	if (type === 'url') { // 拷贝图片 url
 		result = img_info.reduce((total, now) => {
 			return total += (now.url + '<br>');
-		}, result)
+		}, result);
 	} else if (type === 'name') { // 预览和拷贝图片名
 		result = img_info.reduce((total, now) => {
 			return total += (now.id + '.' + now.ext + ': ' + getFileName(now) + '<br>'); // 在每个文件名前面加上它的原本的名字，方便用来做重命名
@@ -4147,7 +4147,7 @@ function getFileName(data) {
 			if (result.includes('{px}') && data.fullWidth !== undefined) {
 				return data.fullWidth + 'x' + data.fullHeight;
 			} else {
-				return ''
+				return '';
 			}
 		})(),
 		'prefix': '',
@@ -4167,7 +4167,7 @@ function getFileName(data) {
 	for (const item of cfg) {
 		if (result.includes(item.name)) {
 			if (item.value) { // 只有当标记有值时才继续操作. 所以空的标记会原样保留
-				let once = item.value;
+				let once = String(item.value);
 				if (tagName_to_fileName) {
 					once = item.prefix + once;
 				}
@@ -4179,12 +4179,14 @@ function getFileName(data) {
 		}
 	}
 
+	// 处理空值，不能做文件夹名的字符，连续的 '//'。 有时候两个斜线中间的字段是空值，最后就变成两个斜线挨在一起了
+	result = result.replace(/undefined/g, '').replace(safe_folder_rule, '_').replace(/\/{2,9}/, '/');
 	// 去掉头尾的 /
 	if (result.startsWith('/')) {
 		result = result.replace('/', '');
 	}
 	if (result.endsWith('/')) {
-		result = result.substr(0, result.length - 1)
+		result = result.substr(0, result.length - 1);
 	}
 
 	// 处理后缀名
@@ -4194,19 +4196,17 @@ function getFileName(data) {
 		result = result.substr(0, index + 1) + 'open_with_HoneyView-' + result.substr(index + 1, result.length);
 	}
 
-	// 处理空值，不能做文件夹名的字符，连续的 '//'。 有时候两个斜线中间的字段是空值，最后就变成两个斜线挨在一起了
-	result = result.replace(/undefined/g, '').replace(safe_folder_rule, '_').replace(/\/{2,9}/, '/');
-
 	// 快速下载不建立文件夹
 	if (quick) {
 		let index = result.lastIndexOf('/');
-		result = result.substr(index + 1, result.length)
+		result = result.substr(index + 1, result.length);
 	}
 
 	// 脚本版的处理, 如果不可以建立文件夹，替换掉所有特殊符号
 	if (!allowFolder) {
 		result = result.replace(safe_fileName_rule, '_');
 	}
+
 	return result;
 }
 
@@ -4837,7 +4837,7 @@ if (page_type === 1) { //1. illust 作品页内页
 						fullWidth: '',
 						fullHeight: ''
 					}), index * ajax_for_illust_delay);
-				})
+				});
 			} else {
 				if (type == 'manga') {
 					imageList = document.querySelectorAll('.am__work__illust');
