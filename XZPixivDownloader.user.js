@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.6.5
+// @version     6.6.6
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -141,7 +141,9 @@ let quiet_download = true, // 是否快速下载。当可以下载时自动开�
 	only_down_bmk,
 	ratio_type = '0',
 	isFirefox = navigator.userAgent.includes('Firefox'),
-	allowFolder = GM_info.downloadMode === 'browser' && !isFirefox; // 是否可以建立下载文件夹
+	allowFolder = GM_info.downloadMode === 'browser' && !isFirefox, // 是否可以建立下载文件夹
+	pause_start_dealy = 2500, // 点击暂停后，一定时间后才允许点击开始下载按钮
+	can_start_time = 0; // 在此时间之后允许点击开始下载按钮
 
 // 多语言配置
 let lang_type; // 语言类型
@@ -2344,8 +2346,8 @@ function checkRatio(width, height) {
 // 根据对象的属性排序
 function sortByProperty(propertyName) {
 	return function (object1, object2) {
-		let value1 = object1[propertyName];
-		let value2 = object2[propertyName];
+		let value1 = parseInt(object1[propertyName]);
+		let value2 = parseInt(object2[propertyName]);
 		if (value2 < value1) { //倒序排列
 			return -1;
 		} else if (value2 > value1) {
@@ -3755,6 +3757,14 @@ function addCenterWarps() {
 		if (download_started || img_info.length === 0) { // 如果正在下载中，或无图片，则不予处理
 			return false;
 		}
+		// 检查是否是可以下载的时间
+		let time1 = new Date().getTime() - can_start_time;
+		if (time1 < 0) { // 时间未到
+			setTimeout(() => {
+				document.querySelector('.startDownload').click(); // 到时间了再点击开始按钮
+			}, Math.abs(time1));
+			return false;
+		}
 		// 重置一些条件
 		// 检查下载线程设置
 		let setThread = parseInt(XZForm.setThread.value);
@@ -3812,6 +3822,7 @@ function addCenterWarps() {
 			if (download_started) { // 如果正在下载中
 				download_pause = true; //发出暂停信号
 				download_started = false;
+				can_start_time = new Date().getTime() + pause_start_dealy; // 设置延迟一定时间后才允许继续下载
 				document.querySelector('.down_status').innerHTML = `<span style="color:#f00">${xzlt('_已暂停')}</span>`;
 				addOutputInfo(xzlt('_已暂停') + '<br><br>');
 			} else { // 不在下载中的话不允许启用暂停功能
