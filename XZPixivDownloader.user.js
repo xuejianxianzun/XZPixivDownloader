@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.6.6
+// @version     6.6.7
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -201,7 +201,7 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 	],
 	'_设置作品类型': [
 		'设置作品类型',
-		'仕事のタイプを設定する',
+		'ダウンロードする作品のタイプを設定する',
 		'Set the type of work',
 		'設定作品類型'
 	],
@@ -568,7 +568,7 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 	],
 	'_check_notdown_type_result3_html': [
 		'本次任务设置了排除作品类型:',
-		'この作業では、これらのタイプの作品レーションは除外されます：',
+		'このダウンロードでは、このタイプの作品は除外されます：',
 		'This task excludes these types of works:',
 		'本次工作設定了排除作品類型:'
 	],
@@ -923,13 +923,13 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 	'_文件夹标记_p_user': [
 		'当前页面的画师名字',
 		'アーティスト名',
-		'Artist name',
+		'Artist name of this page',
 		'畫師的名字'
 	],
 	'_文件夹标记_p_uid': [
 		'当前页面的画师id',
 		'アーティストID',
-		'Artist id',
+		'Artist id of this page',
 		'畫師的id'
 	],
 	'_文件夹标记_p_tag': [
@@ -941,7 +941,7 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 	'_文件夹标记_p_title': [
 		'当前页面的标题',
 		'ページのタイトル',
-		'The title of the page',
+		'The title of this page',
 		'網頁的標題'
 	],
 	'_预览文件名': [
@@ -1126,7 +1126,7 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 	],
 	'_相关作品大于0': [
 		' （下载相关作品必须大于 0）',
-		' （ダウンロード関連作品は0より大きくなければならない）',
+		' （ダウンロードする関連作品の数は0より大きくなければならない）',
 		'  (Download related works must be greater than 0)',
 		' （下載相關作品必須大於 0）'
 	],
@@ -1144,19 +1144,19 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 	],
 	'_下载该tag中的作品': [
 		'下载该tag中的作品',
-		'タグで作品をダウンロードする',
+		'タグの作品をダウンロードする',
 		'Download the work in the tag',
 		'下載該tag中的作品'
 	],
 	'_下载书签': [
 		'下载书签中的作品',
-		'このブックマークでこの作品をダウンロード',
+		'ブックマークされた作品をダウンロードする',
 		'Download the works in this bookmark',
 		'下載書籤中的作品'
 	],
 	'_默认下载多页': [
 		', 如有多页，默认会下载全部。',
-		'複数のページがある場合、デフォルトがダウンロードされます。',
+		'複数のページがある場合、デフォルトでダウンロードされます。',
 		', If there are multiple pages, the default will be downloaded.',
 		', 如有多頁，預設會下載全部。'
 	],
@@ -1192,7 +1192,7 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 	],
 	'_在结果中筛选弹窗': [
 		'将在当前作品列表中再次过滤，请输入要求的最低收藏数: ',
-		'将在当前作品列表中再次筛选，请输入要求的最低收藏数',
+		'現在の作品リストで再度フィルタリングされます。要求された作品の最小数を入力してください',
 		'Will be filtered again in the current list of works. Please enter the required minimum number of bookmarks:',
 		'將在目前作品清單中再次篩選，請輸入要求的最低收藏數:'
 	],
@@ -1498,7 +1498,7 @@ if (!tip_chrome72) {
 // 添加 css 样式
 styleE = document.createElement('style');
 document.body.appendChild(styleE);
-styleE.textContent = `#header-banner.ad,._1N-LC6t,._2vNejsc,._3M6FtEB,._3jgsYyw,._premium-lead-promotion-banner,._premium-lead-tag-search-bar,.ad-bigbanner,.ad-footer,.ad-multiple_illust_viewer,.ads_anchor,.ads_area,.adsbygoogle,.popular-introduction-overlay,.ui-fixed-container aside,[name=header],section.ad{display:none!important;z-index:-999!important;width:0!important;height:0!important;opacity:0!important}#viewerWarpper{margin:24px auto 15px;overflow:hidden;background:#fff;padding:0 16px;display:none;border-top:1px solid #eee;border-bottom:1px solid #eee}#viewerWarpper ul{max-width:568px;margin:24px auto;padding:0 16px;display:flex;justify-content:flex-start;align-items:center;flex-wrap:nowrap;overflow:auto}#viewerWarpper li{display:flex;flex-shrink:0;margin-right:8px;overflow:hidden}#viewerWarpper li img{cursor:pointer;max-height:144px;width:auto}.viewer-toolbar .viewer-next,.viewer-toolbar .viewer-prev{background-color:rgba(0,0,0,.8);border-radius:50%;cursor:pointer;height:100px;width:100px;overflow:hidden}.viewer-backdrop{background:rgba(0,0,0,.8)}.viewer-toolbar .viewer-prev{position:fixed;left:-70px;top:40%}.viewer-toolbar .viewer-prev::before{top:40px;left:70px;position:absolute}.viewer-toolbar .viewer-next{position:fixed;right:-70px;top:40%}#quick_down_btn,#rightButton{line-height:20px;border-radius:3px;color:#fff;padding:8px;box-sizing:content-box;right:0;text-align:center;cursor:pointer}.viewer-toolbar .viewer-next::before{left:10px;top:40px;position:absolute}#quick_down_btn,#rightButton,.centerWrap{position:fixed;z-index:1000;font-size:14px}.black-background{background:rgba(0,0,0,1)}#rightButton{top:15%;background:#BECAD7}#quick_down_btn{top:20%;background:#0096fa}li{list-style:none}.centerWrap{display:none;width:650px;left:-350px;margin-left:50%;background:#fff;top:3%;color:#333;padding:25px;border-radius:15px;border:1px solid #ddd;box-shadow:0 0 25px #2ca6df}.centerWrap p{line-height:24px;margin:0}.centerWrap .tip{color:#999}.centerWrap_head{height:30px;position:relative;padding-bottom:10px}.centerWrap_head *{vertical-align:middle}.centerWrap_title{display:block;line-height:30px;text-align:center;font-size:18px}.centerWrap_close,.centerWrap_toogle_option,.chrome_extension,.firefox_extension,.github_url{font-size:18px;position:absolute;top:0;right:0;width:30px;height:30px;text-align:center;cursor:pointer;color:#666;user-select:none}.download_progress1,.right1{position:relative}.centerWrap_close:hover,.centerWrap_toogle_option:hover{color:#0096fa}.centerWrap_toogle_option{right:40px}.chrome_extension,.firefox_extension{display:block;right:80px;text-decoration:none}.github_url{display:block;right:120px}.centerWrap_head img{max-width:100%;width:16px}.setinput_style1{width:50px;min-width:50px;line-height:20px;font-size:14px!important;height:20px;text-indent:4px;box-sizing:border-box;border:none!important;border-bottom:1px solid #999!important;outline:0}.progressBar1,.right1{width:500px}.setinput_style1:focus{border-bottom:1px solid #0096fa!important;background:0 0!important}.fileNameRule,.folderNameRule{min-width:150px}.setinput_tag{min-width:300px}.how_to_create_folder,.showFileNameResult,.showFileNameTip,.showFolderNameTip{cursor:pointer}.fileNameTip,.folderNameTip{display:none;padding-top:5px}.centerWrap_btns{padding:10px 0 0;font-size:0}.XZTipEl,.centerWrap_btns div,.progressTip{color:#fff;font-size:14px}.centerWrap_btns div{display:inline-block;min-width:100px;max-width:105px;padding:8px 10px;text-align:center;min-height:20px;line-height:20px;border-radius:4px;margin-right:35px;cursor:pointer;margin-bottom:10px;vertical-align:top}.progress,.progressBar{border-radius:11px;height:22px}.centerWrap_btns_free div{max-width:140px;margin-right:15px}.centerWrap_down_tips{line-height:28px}.right1{display:inline-block;height:22px;vertical-align:middle}.progressBar{position:absolute;background:#6792A2}.progress{background:#0eb3f3;transition:.15s}.progressTip{position:absolute;line-height:22px}.progress1{width:0}.progressTip1{width:500px;text-align:center}.centerWrap_down_list{display:none}.centerWrap_down_list ul{padding-top:5px;margin:0;padding-left:0}.downloadBar{position:relative;width:100%;padding:5px 0;height:22px;box-sizing:content-box}.progressBar2{width:100%}.progress2{width:0}.progressTip2{width:100%}.download_fileName{max-width:60%;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;vertical-align:top;display:inline-block;text-indent:1em}.showDownTip{padding-top:10px;cursor:pointer;display:inline-block}.XZTipEl,.downTip,.download_a,.download_panel{display:none}.settingNameStyle1{width:100px;cursor:pointer;margin-right:10px}.XZTipEl{position:fixed;z-index:1001;max-width:400px;left:0;top:0;background:#02a3ec;padding:6px 8px;border-radius:5px;line-height:20px;word-break:break-word}.fwb{font-weight:700}.gray1{color:#999}.xz_blue{color:#0ea8ef!important}.outputInfoWrap{padding:20px 30px;width:520px;background:#fff;border-radius:20px;z-index:9999;box-shadow:0 0 15px #2ca6df;display:none;position:fixed;top:15%;margin-left:-300px;left:50%}.outputUrlTitle{height:20px;line-height:20px;text-align:center;font-size:18px;color:#179FDD}.outputInfoContent{border:1px solid #ccc;transition:.3s;font-size:14px;margin-top:10px;padding:5px 10px;overflow:auto;max-height:400px;line-height:20px}.outputInfoContent::selection{background:#179FDD;color:#fff}.outputUrlFooter{height:60px;text-align:center}.outputUrlClose{cursor:pointer;position:absolute;width:30px;height:30px;top:20px;right:30px;z-index:9999;font-size:18px;text-align:center}.outputUrlClose:hover{color:#179FDD}.outputUrlCopy{height:34px;line-height:34px;min-width:100px;padding:2px 25px;margin-top:15px;background:#179FDD;display:inline-block;color:#fff;font-size:14px;border-radius:6px;cursor:pointer}#down_id_input,#outputInfo{margin:6px auto;background:#fff}.fastScreenArea a{display:inline-block;padding:10px}#quickBookmarkEl{font-size:34px;line-height:30px;margin-right:15px;cursor:pointer;color:#333;text-decoration:none;display:block}#outputInfo{padding:10px;font-size:14px;width:950px}#down_id_input{width:600px;height:80px;font-size:12px;padding:7px;display:none;border:1px solid #179FDD}.sc-cLxPOX{padding-top:0}@keyframes exTip{0%{opacity:1}100%{opacity:0}}.extension_tip{animation:exTip 0.2s linear 0s infinite alternate forwards;filter: invert(58%) sepia(77%) saturate(2661%) hue-rotate(165deg) brightness(95%) contrast(97%);}`;
+styleE.textContent = `#header-banner.ad,._1N-LC6t,._2vNejsc,._3M6FtEB,._3jgsYyw,._premium-lead-promotion-banner,._premium-lead-tag-search-bar,.ad-bigbanner,.ad-footer,.ad-multiple_illust_viewer,.ads_anchor,.ads_area,.adsbygoogle,.popular-introduction-overlay,.ui-fixed-container aside,[name=header],section.ad{display:none!important;z-index:-999!important;width:0!important;height:0!important;opacity:0!important}#viewerWarpper{margin:24px auto 15px;overflow:hidden;background:#fff;padding:0 16px;display:none;border-top:1px solid #eee;border-bottom:1px solid #eee}#viewerWarpper ul{max-width:568px;margin:24px auto;padding:0 16px;display:flex;justify-content:flex-start;align-items:center;flex-wrap:nowrap;overflow:auto}#viewerWarpper li{display:flex;flex-shrink:0;margin-right:8px;overflow:hidden}#viewerWarpper li img{cursor:pointer;max-height:144px;width:auto}.viewer-toolbar .viewer-next,.viewer-toolbar .viewer-prev{background-color:rgba(0,0,0,.8);border-radius:50%;cursor:pointer;height:100px;width:100px;overflow:hidden}.viewer-backdrop{background:rgba(0,0,0,.8)}.viewer-toolbar .viewer-prev{position:fixed;left:-70px;top:40%}.viewer-toolbar .viewer-prev::before{top:40px;left:70px;position:absolute}.viewer-toolbar .viewer-next{position:fixed;right:-70px;top:40%}#quick_down_btn,#rightButton{line-height:20px;border-radius:3px;color:#fff;padding:10px;box-sizing:content-box;right:0;text-align:center;cursor:pointer}.viewer-toolbar .viewer-next::before{left:10px;top:40px;position:absolute}#quick_down_btn,#rightButton,.centerWrap{position:fixed;z-index:1000;font-size:14px}.black-background{background:rgba(0,0,0,1)}#rightButton{top:15%;background:#80b9f7}#quick_down_btn{top:20%;background:#0096fa}li{list-style:none}.centerWrap{display:none;width:650px;left:-350px;margin-left:50%;background:#fff;top:3%;color:#333;padding:25px;border-radius:15px;border:1px solid #ddd;box-shadow:0 0 25px #2ca6df}.centerWrap p{line-height:24px;margin:0}.centerWrap .tip{color:#999}.centerWrap_head{height:30px;position:relative;padding-bottom:10px}.centerWrap_head *{vertical-align:middle}.centerWrap_title{display:block;line-height:30px;text-align:center;font-size:18px}.centerWrap_close,.centerWrap_toogle_option,.chrome_extension,.firefox_extension,.github_url{font-size:18px;position:absolute;top:0;right:0;width:30px;height:30px;text-align:center;cursor:pointer;color:#666;user-select:none}.download_progress1,.right1{position:relative}.centerWrap_close:hover,.centerWrap_toogle_option:hover{color:#0096fa}.centerWrap_toogle_option{right:40px}.chrome_extension,.firefox_extension{display:block;right:80px;text-decoration:none}.github_url{display:block;right:120px}.centerWrap_head img{max-width:100%;width:16px}.setinput_style1{width:50px;min-width:50px;line-height:20px;font-size:14px!important;height:20px;text-indent:4px;box-sizing:border-box;border:none!important;border-bottom:1px solid #999!important;outline:0}.progressBar1,.right1{width:500px}.setinput_style1:focus{border-bottom:1px solid #0096fa!important;background:0 0!important}.fileNameRule,.folderNameRule{min-width:150px}.setinput_tag{min-width:300px}.how_to_create_folder,.showFileNameResult,.showFileNameTip,.showFolderNameTip{cursor:pointer}.fileNameTip,.folderNameTip{display:none;padding-top:5px}.centerWrap_btns{padding:10px 0 0;font-size:0}.XZTipEl,.centerWrap_btns div,.progressTip{color:#fff;font-size:14px}.centerWrap_btns div{display:inline-block;min-width:100px;max-width:105px;padding:8px 10px;text-align:center;min-height:20px;line-height:20px;border-radius:4px;margin-right:35px;cursor:pointer;margin-bottom:10px;vertical-align:top}.progress,.progressBar{border-radius:11px;height:22px}.centerWrap_btns_free div{max-width:140px;margin-right:15px}.centerWrap_down_tips{line-height:28px}.right1{display:inline-block;height:22px;vertical-align:middle}.progressBar{position:absolute;background:#6792A2}.progress{background:#0eb3f3;transition:.15s}.progressTip{position:absolute;line-height:22px}.progress1{width:0}.progressTip1{width:500px;text-align:center}.centerWrap_down_list{display:none}.centerWrap_down_list ul{padding-top:5px;margin:0;padding-left:0}.downloadBar{position:relative;width:100%;padding:5px 0;height:22px;box-sizing:content-box}.progressBar2{width:100%}.progress2{width:0}.progressTip2{width:100%}.download_fileName{max-width:60%;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;vertical-align:top;display:inline-block;text-indent:1em}.showDownTip{padding-top:10px;cursor:pointer;display:inline-block}.XZTipEl,.downTip,.download_a,.download_panel{display:none}.settingNameStyle1{width:100px;cursor:pointer;margin-right:10px}.XZTipEl{position:fixed;z-index:1001;max-width:400px;left:0;top:0;background:#02a3ec;padding:6px 8px;border-radius:5px;line-height:20px;word-break:break-word}.fwb{font-weight:700}.gray1{color:#999}.xz_blue{color:#0ea8ef!important}.outputInfoWrap{padding:20px 30px;width:520px;background:#fff;border-radius:20px;z-index:9999;box-shadow:0 0 15px #2ca6df;display:none;position:fixed;top:15%;margin-left:-300px;left:50%}.outputUrlTitle{height:20px;line-height:20px;text-align:center;font-size:18px;color:#179FDD}.outputInfoContent{border:1px solid #ccc;transition:.3s;font-size:14px;margin-top:10px;padding:5px 10px;overflow:auto;max-height:400px;line-height:20px}.outputInfoContent::selection{background:#179FDD;color:#fff}.outputUrlFooter{height:60px;text-align:center}.outputUrlClose{cursor:pointer;position:absolute;width:30px;height:30px;top:20px;right:30px;z-index:9999;font-size:18px;text-align:center}.outputUrlClose:hover{color:#179FDD}.outputUrlCopy{height:34px;line-height:34px;min-width:100px;padding:2px 25px;margin-top:15px;background:#179FDD;display:inline-block;color:#fff;font-size:14px;border-radius:6px;cursor:pointer}#down_id_input,#outputInfo{margin:6px auto;background:#fff}.fastScreenArea a{display:inline-block;padding:10px}#quickBookmarkEl{font-size:34px;line-height:30px;margin-right:15px;cursor:pointer;color:#333;text-decoration:none;display:block}#outputInfo{padding:10px;font-size:14px;width:950px}#down_id_input{width:600px;height:80px;font-size:12px;padding:7px;display:none;border:1px solid #179FDD}.sc-cLxPOX{padding-top:0}@keyframes exTip{0%{opacity:1}100%{opacity:0}}.extension_tip{animation:exTip 0.2s linear 0s infinite alternate forwards;filter: invert(58%) sepia(77%) saturate(2661%) hue-rotate(165deg) brightness(95%) contrast(97%);}`;
 
 // 创建输出抓取进度的区域
 let outputInfo = document.createElement('div');
@@ -2872,21 +2872,18 @@ function getUserId() {
 }
 
 // 获取用户名称
+// 测试用户 https://www.pixiv.net/member.php?id=2793583 他的用户名比较特殊
 function getUserName() {
-	let isLogin;
-	if (typeof window.dataLayer !== 'undefined') {
-		isLogin = window.dataLayer[0].login === 'yes' ? true : false;
-	} else {
-		isLogin = /login: 'yes'/.test(document.body.innerHTML);
+	let result='';
+	if(page_type===1){	// 内容页，从中间大图的 alt 信息里获取
+		let main_img=document.querySelectorAll('figure>div>div')[1].querySelector('img');
+		result= main_img.alt.split('/ ')[1];
+	}else{	// 画师作品列表页
+		let titleContent = document.querySelector('meta[property="og:title"]').content;
+		let regexp = new RegExp('「([^」]*)', 'i'); // 测试用的用户名，本身末尾是个」，匹配后会去掉用户名它最后的」
+		result= regexp.exec(titleContent)[1].replace(/ {1,9}$/,'');	// 有时候末尾会有空格，要去掉
 	}
-	let titleContent = isLogin ? old_title : document.querySelector('meta[property="og:title"]').content;
-	let regexp = '「([^」]*)';
-	if (titleContent.split('「').length > 2 && loc_url.includes('member_illust.php')) { // 判断是否是内容页
-		regexp = `/${regexp}`;
-	}
-	regexp = new RegExp(regexp, 'i');
-	let [, username] = regexp.exec(titleContent);
-	return username;
+	return result;
 }
 
 // 从 url 中取出指定的查询条件
@@ -3615,6 +3612,8 @@ function addCenterWarps() {
 		<span class="gray1 showFileNameTip"> ${xzlt('_查看标记的含义')}</span>
 		</p>
 		<p class="fileNameTip tip">
+		${xzlt('_设置文件夹名的提示').replace('<br>','. ')}
+		<br>
 		<span class="xz_blue">{p_user}</span>
 		${xzlt('_文件夹标记_p_user')}
 		<br>
