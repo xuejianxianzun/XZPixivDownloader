@@ -927,3 +927,7 @@ Chrome 72 因为增加了一些限制，导致 Tampermonkey 一些功能失效�
 - 修复 getUserName 的 bug
 
 之前 getUserName 会使用 old_title，这是有问题的，不同语言的 title 不一样，导致严重错误，英语语言下完全无法下载。现在修复了。
+
+## 6.6.8
+
+修复 bug
