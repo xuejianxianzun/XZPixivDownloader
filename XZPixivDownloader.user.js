@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.6.8
+// @version     6.6.9
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -2599,6 +2599,12 @@ function getListPage() {
 				let this_one_info;
 				this_one_info = listPage_document.querySelector(tag_search_lv1_selector).getAttribute('data-items'); // 保存这一次的信息
 				this_one_info = JSON.parse(this_one_info); // 转化为数组
+				// 删除广告信息
+				this_one_info.forEach((val, index, array) => {
+					if (val.isAdContainer) {
+						array.splice(index, 1);
+					}
+				});
 				display_cover = XZForm.setDisplayCover.checked;
 				let list_wrap = document.querySelector(tag_search_list_wrap);
 				for (const data of this_one_info) {
