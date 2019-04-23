@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.7.5
+// @version     6.7.6
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -96,8 +96,8 @@ let quiet_download = true, // 是否快速下载。当可以下载时自动开�
 	tag_search_new_html, // tag搜索页作品的html
 	xz_multiple_html, // tag搜索页作品的html中的多图标识
 	xz_gif_html, // tag搜索页作品的html中的动图标识
-	safe_fileName_rule = new RegExp(/\\|\/|:|\?|"|<|'|>|\*|\||\.$/g), // 安全的文件名
-	safe_folder_rule = new RegExp(/\\|:|\?|"|<|'|>|\*|\||\.$/g), // 文件夹名，允许斜线 /
+	safe_fileName_rule = new RegExp(/\\|\/|:|\?|"|<|'|>|\*|\||~|\u200b|\.$/g), // 安全的文件名
+	safe_folder_rule = new RegExp(/\\|:|\?|"|<|'|>|\*|\||~|\u200b|\.$/g), // 文件夹名，允许斜线 /
 	rightButton, // 右侧按钮
 	centerWrap, // 中间设置面板
 	center_btn_wrap, // 中间插入按钮的区域
