@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.7.4
+// @version     6.7.5
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -2983,16 +2983,16 @@ function readyGetListPage3 () {
 		if (getQuery(loc_url, 'type') === 'illust') { // 插画分类
 			works_type = 1;
 			if (tag_mode) { // 带 tag
-				api_url = `https://www.pixiv.net/ajax/user/${getUserId()}/illusts/tag/${getQuery(loc_url, 'tag')}?offset=${offset_number}&limit=${requset_number}`;
+				api_url = `https://www.pixiv.net/ajax/user/${getUserId()}/illusts/tag?tag=${getQuery(loc_url, 'tag')}&offset=${offset_number}&limit=${requset_number}`;
 			}
 		} else if (getQuery(loc_url, 'type') === 'manga') { // 漫画分类
 			works_type = 2;
 			if (tag_mode) { // 带 tag
-				api_url = `https://www.pixiv.net/ajax/user/${getUserId()}/manga/tag/${getQuery(loc_url, 'tag')}?offset=${offset_number}&limit=${requset_number}`;
+				api_url = `https://www.pixiv.net/ajax/user/${getUserId()}/manga/tag?tag=${getQuery(loc_url, 'tag')}&offset=${offset_number}&limit=${requset_number}`;
 			}
 		} else if (tag_mode) { // url 里没有插画也没有漫画，但是有 tag，则是在资料页首页点击了 tag，需要同时获取插画和漫画
 			works_type = 4;
-			api_url = `https://www.pixiv.net/ajax/user/${getUserId()}/illustmanga/tag/${getQuery(loc_url, 'tag')}?offset=${offset_number}&limit=${requset_number}`;
+			api_url = `https://www.pixiv.net/ajax/user/${getUserId()}/illustmanga/tag?tag=${getQuery(loc_url, 'tag')}&offset=${offset_number}&limit=${requset_number}`;
 		}
 	} else if (loc_url.includes('bookmark.php')) { // 书签页面，需要多次循环获取
 		works_type = 3;
@@ -3050,9 +3050,9 @@ function getListPage3 (url) {
 					}
 				} else { // 带 tag 的话
 					if (works_type === 1 || works_type === 2 || works_type === 4) { // 插画、漫画、或者全都要并带 tag ，数据结构都一样
-						// https://www.pixiv.net/ajax/user/27517/illusts/tag/%E5%A5%B3%E3%81%AE%E5%AD%90?offset=0&limit=9999999
-						// https://www.pixiv.net/ajax/user/27517/manga/tag/%E5%A5%B3%E3%81%AE%E5%AD%90?offset=0&limit=9999999
-						// https://www.pixiv.net/ajax/user/544479/illustmanga/tag/%E6%9D%B1%E9%A2%A8%E8%B0%B7%E6%97%A9%E8%8B%97?offset=0&limit=9999999
+						// https://www.pixiv.net/ajax/user/27517/illusts/tag?tag=%E5%A5%B3%E3%81%AE%E5%AD%90&offset=0&limit=9999999
+						// https://www.pixiv.net/ajax/user/27517/manga/tag?tag=%E5%A5%B3%E3%81%AE%E5%AD%90&offset=0&limit=9999999
+						// https://www.pixiv.net/ajax/user/544479/illustmanga/tag?tag=%E6%9D%B1%E9%A2%A8%E8%B0%B7%E6%97%A9%E8%8B%97&offset=0&limit=9999999
 						let works = data.body.works;
 						works.forEach(data => type2_id_list.push(data.id));
 					} else if (works_type === 5) { // 动图
