@@ -10,6 +10,10 @@
 
 它实质上是一个用户脚本（UserScript），必须使用用户脚本管理器来安装。
 
+**注意：**
+
+本工具有 Chrome 扩展版本，你可以在 [Chrome webstore](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl) 安装。推荐使用扩展版，因为它建立文件夹更方便。如果你安装了扩展版，就不需要脚本版了。
+
 ## 推荐环境：
 
 浏览器：**Chrome** [(下载Chrome浏览器，此链接需要翻墙)](https://www.google.com/chrome/)
@@ -33,8 +37,6 @@
 本工具有浏览器扩展版本。如果你想使用浏览器扩展，可以卸载脚本版，然后安装浏览器扩展。
 
 Chrome：[Chrome webstore](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl)
-
-Firefox：[Mozilla addons](https://addons.mozilla.org/zh-CN/firefox/addon/pixiv-batch-downloader/)
 
 ## 支持的语言：
 

@@ -8,6 +8,10 @@ Some additional features have been added, such as removing ads, quick collection
 
 It is essentially a user script (UserScript) that must be installed using the User Script Manager.
 
+**note:**
+
+This tool has a Chrome extension and can be installed in the [Chrome webstore](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl). The extended version is recommended because it makes it easier to create folders.If you have an extended version installed, you don't need a scripted version.
+
 ### Recommended Use:
 
 Browser: **Chrome** [(download Chrome browser)](https://www.google.com/chrome/)

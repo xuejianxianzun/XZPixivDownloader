@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.7.6
+// @version     6.7.7
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag。支持简繁中文、日语、英语。github: https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja Pixiv ピクチャバッチダウンローダ，クイックブックマーク，広告をブロックする，エトセトラ。
 // @description:en Pixiv image downloader, quick bookmarks, block ads, etc.
@@ -301,13 +301,13 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'设置宽高比例',
 		'縦横比を設定する',
 		'Set the aspect ratio',
-		'設置寬高比例'
+		'設定寬高比例'
 	],
 	'_设置宽高比例_title': [
 		'设置宽高比例，也可以手动输入宽高比',
 		'縦横比を設定するか、手動で縦横比を入力します',
 		'Set the aspect ratio, or manually enter the aspect ratio',
-		'設置寬高比，也可以手動輸入寬高比'
+		'設定寬高比，也可以手動輸入寬高比'
 	],
 	'_不限制': [
 		'不限制',
@@ -337,7 +337,7 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'本次任务设置了宽高比：{}',
 		'このタスクは縦横比を設定します：{}',
 		'This task sets the aspect ratio: {}',
-		'本次任務設置了寬高比：{}'
+		'本次工作設定了寬高比：{}'
 	],
 	'_宽高比必须是数字': [
 		'宽高比必须是数字',
@@ -520,16 +520,16 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'工作開始<br>本次工作條件: 收藏數不低於{}，向下擷取{}頁'
 	],
 	'_want_page_弹出框文字_page_type10': [
-		'你想要下载多少页？请输入数字。\r\n当前模式下，列表页的页数最多只有',
+		'您想要下载多少页？请输入数字。\r\n当前模式下，列表页的页数最多只有',
 		'ダウンロードしたいページ数を入力してください。 \r\n最大値：',
 		'Please enter the number of pages you want to download.\r\n The maximum value is ',
-		'你想要下載多少頁？請輸入數字。\r\n目前模式下，清單頁的頁數最多只有'
+		'您想要下載多少頁？請輸入數字。\r\n目前模式下，清單頁的頁數最多只有'
 	],
 	'_输入超过了最大值': [
-		'你输入的数字超过了最大值',
+		'您输入的数字超过了最大值',
 		'入力した番号が最大値を超えています',
 		'The number you entered exceeds the maximum',
-		'你輸入的數字超過了最大值'
+		'您輸入的數字超過了最大值'
 	],
 	'_多图作品下载张数': [
 		'多图作品将下载前{}张图片',
@@ -697,7 +697,7 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'该作品已被删除',
 		'作品は削除されました',
 		'The work has been deleted',
-		'該作品已被移除'
+		'該作品已被刪除'
 	],
 	'_作品页状态码403': [
 		'无权访问请求的url 403',
@@ -775,7 +775,7 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'已复制到剪贴板，可直接粘贴',
 		'クリップボードにコピーされました',
 		'Has been copied to the clipboard',
-		'已複製到剪貼簿，可直接貼上'
+		'已複製至剪貼簿，可直接貼上'
 	],
 	'_下载设置': [
 		'下载设置',
@@ -829,13 +829,13 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'设置命名规则',
 		'命名規則を設定する',
 		'Set naming rules',
-		'設置命名規則'
+		'設定命名規則'
 	],
 	'_设置文件夹名的提示': [
 		`可以使用 '/' 建立文件夹<br>示例：{p_title}/{user}/{id}`,
 		`フォルダは '/'で作成できます<br>例：{p_title}/{user}/{id}`,
 		`You can create a folder with '/'<br>Example：{p_title}/{user}/{id}`,
-		`可以使用 '/' 建立資料夹<br>示例：{p_title}/{user}/{id}`
+		`可以使用 '/' 建立資料夾<br>範例：{p_title}/{user}/{id}`
 	],
 	'_添加标记名称': [
 		'添加标记名称',
@@ -871,25 +871,25 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'查看标记的含义',
 		'タグの意味を表示する',
 		'View the meaning of the tag',
-		'檢視標記的含義'
+		'檢視標記的意義'
 	],
 	'_可用标记1': [
 		'默认文件名，如 44920385_p0',
 		'デフォルトのファイル名，例 44920385_p0',
 		'Default file name, for example 44920385_p0',
-		'默認檔案名，如 44920385_p0'
+		'預設檔案名稱，如 44920385_p0'
 	],
 	'_可用标记9': [
 		'数字 id，如 44920385',
 		'44920385 などの番号 ID',
 		'Number id, for example 44920385',
-		'数字 id，如 44920385'
+		'數字 id，如 44920385'
 	],
 	'_可用标记10': [
 		'图片在作品内的序号，如 0、1、2、3……',
 		'0、1、2、3など、作品の写真のシリアル番号。',
 		'The serial number of the picture in the work, such as 0, 1, 2, 3...',
-		'图片在作品内的序号，如 0、1、2、3……'
+		'圖片在作品內的序號，如 0、1、2、3……'
 	],
 	'_可用标记2': [
 		'作品标题',
@@ -907,7 +907,7 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'画师名字',
 		'アーティスト名',
 		'Artist name',
-		'畫師名字'
+		'畫師名稱'
 	],
 	'_可用标记6': [
 		'画师 id',
@@ -928,40 +928,40 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'bookmark-count，作品的收藏數。將它放在最前面就可以讓下載後的檔案依收藏數排序。'
 	],
 	'_可用标记5': [
-		'你可以使用多个标记；建议在不同标记之间添加分割用的字符。示例：{id}-{userid}-{px}<br>* 在某些情况下，会有一些标记不可用。',
+		'您可以使用多个标记；建议在不同标记之间添加分割用的字符。示例：{id}-{userid}-{px}<br>* 在某些情况下，会有一些标记不可用。',
 		'複数のタグを使用することができ；異なるタグ間に別の文字を追加することができます。例：{id}-{userid}-{px}<br>* 場合によっては、一部のタグが利用できず。',
 		'You can use multiple tags, and you can add a separate character between different tags. Example: {id}-{userid}-{px}<br>* In some cases, some tags will not be available.',
-		'你可以使用多個標記；建議在不同標記之間加入分割用的字元。範例：{id}-{userid}-{px}<br>* 在某些情況下，會有一些標記不可用。'
+		'您可以使用多個標記；建議在不同標記之間加入分隔用的字元。範例：{id}-{userid}-{px}<br>* 在某些情況下，會有一些標記不可用。'
 	],
 	'_文件夹标记_p_user': [
 		'当前页面的画师名字',
 		'アーティスト名',
 		'Artist name of this page',
-		'畫師的名字'
+		'目前頁面的畫師名稱'
 	],
 	'_文件夹标记_p_uid': [
 		'当前页面的画师id',
 		'アーティストID',
 		'Artist id of this page',
-		'畫師的id'
+		'目前頁面的畫師id'
 	],
 	'_文件夹标记_p_tag': [
 		'当前页面的 tag',
 		'現在のタグ',
 		'Current tag',
-		'當前頁面的 tag'
+		'目前頁面的 tag'
 	],
 	'_文件夹标记_p_title': [
 		'当前页面的标题',
 		'ページのタイトル',
 		'The title of this page',
-		'網頁的標題'
+		'目前頁面的標題'
 	],
 	'_预览文件名': [
 		'预览文件名',
 		'ファイル名のプレビュー',
 		'Preview file name',
-		'預覽檔名'
+		'預覽檔案名稱'
 	],
 	'_设置下载线程': [
 		'设置下载线程',
@@ -1030,16 +1030,16 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'檢視下載說明'
 	],
 	'_下载说明': [
-		'下载的文件保存在浏览器的下载目录里。<br>.ugoira 后缀名的文件是动态图的源文件，可以使用软件 <a href="https://en.bandisoft.com/honeyview/" target="_blank">HoneyView</a> 查看。<br>请不要在浏览器的下载选项里选中\'总是询问每个文件的保存位置\'。<br>如果作品标题或tag里含有不能做文件名的字符，会被替换成下划线_。<br>如果下载进度卡住不动了，你可以先点击“暂停下载”按钮，之后点击“开始下载”按钮，尝试继续下载。<br>QQ群：499873152',
+		'下载的文件保存在浏览器的下载目录里。<br>.ugoira 后缀名的文件是动态图的源文件，可以使用软件 <a href="https://en.bandisoft.com/honeyview/" target="_blank">HoneyView</a> 查看。<br>请不要在浏览器的下载选项里选中\'总是询问每个文件的保存位置\'。<br>如果作品标题或tag里含有不能做文件名的字符，会被替换成下划线_。<br>如果下载进度卡住不动了，您可以先点击“暂停下载”按钮，之后点击“开始下载”按钮，尝试继续下载。<br>QQ群：499873152',
 		'ダウンロードしたファイルは、ブラウザのダウンロードディレクトリに保存されます。<br>.ugoiraサフィックスファイルは、動的グラフのソースファイルです，ソフトウェア <a href="https://en.bandisoft.com/honeyview/" target="_blank">HoneyView</a> を使用して表示することができます。<br>ダウンロードの進行状況が継続できない場合は、[ダウンロードの一時停止]ボタンをクリックし、[ダウンロードの開始]ボタンをクリックしてダウンロードを続行します。',
 		'The downloaded file is saved in the browser`s download directory.<br>The .ugoira suffix file is the source file for the dynamic graph, Can be viewed using the software <a href="https://en.bandisoft.com/honeyview/" target="_blank">HoneyView</a>.<br>If the download progress is stuck, you can click the "Pause Download" button and then click the "Start Download" button to try to continue the download.',
-		'下載的檔案儲存在瀏覽器的下載目錄裡。<br>.ugoira 後綴的檔案是動態圖的原始檔，可以使用軟體 <a href="https://en.bandisoft.com/honeyview/" target="_blank">HoneyView</a> 查看。<br>請不要在瀏覽器的下載選項裡選取\'總是詢問每個檔案的儲存位置\'。<br>如果作品標題或tag裡含有不能做檔名的字元，會被取代成下劃線_。<br>如果下載進度卡住不動了，你可以先點擊“暫停下載”按鈕，之後點擊“開始下載”按鈕，嘗試繼續下載。'
+		'下載的檔案儲存在瀏覽器的下載目錄裡。<br>.ugoira 尾碼的檔案是動態圖的原始檔，可以使用軟體 <a href="https://en.bandisoft.com/honeyview/" target="_blank">HoneyView</a> 查看。<br>請不要在瀏覽器的下載選項裡選取\'總是詢問每個檔案的儲存位置\'。<br>如果作品標題或tag裡含有不能做檔名的字元，會被取代成下劃線_。<br>如果下載進度卡住不動了，您可以先點擊“暫停下載”按鈕，之後點擊“開始下載”按鈕，嘗試繼續下載。'
 	],
 	'_正在下载中': [
 		'正在下载中',
 		'ダウンロード',
 		'downloading',
-		'正在下載中'
+		'正在下載'
 	],
 	'_下载完毕': [
 		'下载完毕!',
@@ -1111,7 +1111,7 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'转换中，请等待……',
 		'変換ではお待ちください...',
 		'In the conversion, please wait...',
-		'轉換中，請等待……'
+		'轉換中，請稍候……'
 	],
 	'_转换完成': [
 		'转换完成',
@@ -1198,10 +1198,10 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'在結果中篩選'
 	],
 	'_在结果中筛选_title': [
-		'如果本页筛选后作品太多，可以提高收藏数的要求，在结果中筛选。达不到要求的会被隐藏而不是删除。所以你可以反复进行筛选。被隐藏的项目不会被下载。',
+		'如果本页筛选后作品太多，可以提高收藏数的要求，在结果中筛选。达不到要求的会被隐藏而不是删除。所以您可以反复进行筛选。被隐藏的项目不会被下载。',
 		'あなたは何度も選別することができて、要求の作品が隠されて、それからダウンロードされません。',
 		'You can make multiple screening , fail to meet the required works will be hidden, and will not be downloaded.',
-		'如果本頁篩選後作品太多，可以提高收藏數的要求，在結果中篩選。達不到要求的會被隱藏而不是刪除。所以你可以反覆進行篩選。被隱藏的項目不會被下載。'
+		'如果本頁篩選後作品太多，可以提高收藏數的要求，在結果中篩選。達不到要求的會被隱藏而不是刪除。所以您可以反覆進行篩選。被隱藏的項目不會被下載。'
 	],
 	'_在结果中筛选弹窗': [
 		'将在当前作品列表中再次过滤，请输入要求的最低收藏数: ',
@@ -1285,7 +1285,7 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'退出手动删除',
 		'削除モードを終了する',
 		'Exit manually delete',
-		'離開手動刪除'
+		'結束手動刪除'
 	],
 	'_清空作品列表': [
 		'清空作品列表',
@@ -1357,7 +1357,7 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'下载为你推荐的图片',
 		'あなたのお勧め作品をダウンロードする',
 		'Download for your recommended works',
-		'下載為你推薦的圖片'
+		'下載為您推薦的圖片'
 	],
 	'_下载相似图片': [
 		'下载相似图片',
@@ -1366,16 +1366,16 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'下載相似圖片'
 	],
 	'_要获取的作品个数': [
-		'你想要获取多少个作品？（注意是个数而不是页数）\r\n请输入数字，最大值为',
+		'您想要获取多少个作品？（注意是个数而不是页数）\r\n请输入数字，最大值为',
 		'いくつの作品をダウンロードしたいですか？ （ページ数ではなく作品数に注意してください）\r\n数値を入力してください。最大値は',
 		'How many works do you want to download? (Note that the number of works rather than the number of pages)\r\nPlease enter a number, max ',
-		'你想要取得多少個作品？（注意是個數而不是頁數）\r\n請輸入數字，最大值為'
+		'您想要取得多少個作品？（注意是個數而不是頁數）\r\n請輸入數字，最大值為'
 	],
 	'_要获取的作品个数2': [
-		'你想要获取多少个作品？',
+		'您想要获取多少个作品？',
 		'いくつの作品をダウンロードしたいですか？',
 		'How many works do you want to download?',
-		'你想要取得多少個作品？'
+		'您想要取得多少個作品？'
 	],
 	'_数字提示1': [
 		'-1, 或者大于 0',
@@ -1384,10 +1384,10 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'-1, 或是大於 0'
 	],
 	'_超过最大值': [
-		'你输入的数字超过了最大值',
+		'您输入的数字超过了最大值',
 		'入力した番号が最大値を超えています',
 		'The number you entered exceeds the maximum',
-		'你輸入的數字超過了最大值'
+		'您輸入的數字超過了最大值'
 	],
 	'_下载大家的新作品': [
 		'下载大家的新作品',
@@ -1417,7 +1417,7 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'请输入作品id。如果有多个id，则以换行分割（即每行一个id）',
 		'イラストレーターIDを入力してください。 複数のidがある場合は、1行に1つのidを付けます。',
 		'Please enter the illustration id. If there is more than one id, one id per line.',
-		'請輸入作品id。如果有多個id，則以換行分割（即每行一個id）'
+		'請輸入作品id。如果有多個id，則以換行分隔（即每行一個id）'
 	],
 	'_开始下载': [
 		'开始下载',
@@ -1480,10 +1480,10 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'當“開始下載”狀態可用時，自動開始下載，不需要點選下載按鈕。'
 	],
 	'_chrome72的提示': [
-		'XZPixivDownloader：\nChrome 的 72 版本会导致 Tampermonkey 的部分功能失效。如果你遇到了下载失败的情况，请将 Tampermonkey 升级到最新版（4.8 和以上）。\n此外，你也可以使用本工具的浏览器扩展版。（点击下载设置右上角的 Chrome 图标）',
+		'XZPixivDownloader：\nChrome 的 72 版本会导致 Tampermonkey 的部分功能失效。如果您遇到了下载失败的情况，请将 Tampermonkey 升级到最新版（4.8 和以上）。\n此外，您也可以使用本工具的浏览器扩展版。（点击下载设置右上角的 Chrome 图标）',
 		'XZPixivDownloader：\nChromeの72バージョンはTampermonkeyの機能のいくつかを無効にするでしょう。 ダウンロードに失敗した場合は、Tampermonkeyを最新バージョン（4.8以上）にアップグレードしてください。 \nまた、このツールのブラウザ拡張機能も使用できます。 （ダウンロード設定の右上にあるChromeアイコンをクリックしてください）',
 		`XZPixivDownloader：\nThe 72 version of Chrome will disable some of Tampermonkey's features. If you are experiencing a download failure, upgrade Tampermonkey to the latest version (4.8 and above). \nIn addition, you can also use the browser extension of this tool. (Click the Chrome icon in the top right corner of the download settings)`,
-		'XZPixivDownloader：\nChrome 的 72 版本會導致 Tampermonkey 的部分功能失效。如果你遇到了下載失敗的情況，請將 Tampermonkey 升級到最新版（4.8 和以上）。\n此外，你也可以使用本工具的瀏覽器擴展版。 （點擊下載設置右上角的 Chrome 圖標）'
+		'XZPixivDownloader：\nChrome 的 72 版本會導致 Tampermonkey 的部分功能失效。如果您遇到了下載失敗的情況，請將 Tampermonkey 升級到最新版（4.8 和以上）。\n此外，您也可以使用本工具的瀏覽器擴展版。 （點擊下載設置右上角的 Chrome 圖標）'
 	]
 };
 
@@ -1524,8 +1524,8 @@ function quickBookmark () {
 		quickBookmark();
 	}, 300);
 
-	let toolbar; // 因为 p 站改版 class 经常变，所以从父元素查找，父元素的 class 变化没那么频繁. figure 元素
-	let toolbar_parent = document.querySelectorAll('figure>div');
+	let toolbar; // 因为 p 站改版 class 经常变，所以从父元素查找，父元素的 class 变化没那么频繁. main 元素
+	let toolbar_parent = document.querySelectorAll('main > section');
 	for (const el of toolbar_parent) {
 		if (el.querySelector('div>section')) {
 			toolbar = el.querySelector('div>section');
@@ -1772,7 +1772,7 @@ function loadViewer () {
 
 // 创建图片查看器 html 元素，并绑定一些事件
 function createViewer () {
-	if (!document.querySelector('figure figcaption')) { // 如果图片中间部分的元素还未生成，则过一会儿再检测
+	if (!document.querySelector('main figcaption')) { // 如果图片中间部分的元素还未生成，则过一会儿再检测
 		setTimeout(() => {
 			createViewer();
 		}, 200);
@@ -1784,7 +1784,7 @@ function createViewer () {
 	viewerWarpper.id = 'viewerWarpper';
 	viewerUl = document.createElement('ul');
 	viewerWarpper.appendChild(viewerUl);
-	document.querySelector('figure figcaption').insertAdjacentElement('beforebegin', viewerWarpper);
+	document.querySelector('main figcaption').insertAdjacentElement('beforebegin', viewerWarpper);
 
 	// 图片查看器显示之后
 	viewerUl.addEventListener('shown', () => {
