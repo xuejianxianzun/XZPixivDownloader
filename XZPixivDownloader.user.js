@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.8.0
+// @version     6.8.1
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag；给未分类作品添加 tag。支持简繁中文、日语、英语。Github:  https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja アーティスト、ブックマーク、リーダーボード、検索ページなどのアーティストのオリジナル作品を一括ダウンロードする、人気の作品を表示する、フォルダを作成する、動画をgifに変換する、広告をすばやくブロックする、自動的にタグを追加する ;お気に入りの数でタグをすばやく検索し、分類されていない作品にタグを追加します。Github:  https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:en Batch download original works of artists such as artists, bookmarks, leaderboards, search pages, etc.; view popular works; create folders; convert moving images to gif; block ads; quickly collect works (automatically add tags); do not jump to view multiple p works ; Quickly search for tags by number of favorites; add tags to unclassified works. Github:  https://github.com/xuejianxianzun/XZPixivDownloader
@@ -1618,7 +1618,7 @@ function addBookmark (id, tags, tt, hide) {
 	});
 }
 
-// 添加 tag
+// 准备添加 tag
 async function readyAddTag () {
 	let add_list = [];	// 需要添加的作品列表
 	let index = 0;
@@ -1637,6 +1637,42 @@ async function readyAddTag () {
 	}
 }
 
+// 从收藏的作品里获取信息，每个作品返回 id 和 tag 信息
+function getInfoFromBookmark (url) {
+	return fetch(url, {
+		credentials: "same-origin"
+	})
+		.then(response => {
+			if (response.ok) {
+				return response.json();
+			} else {
+				if (response.status === 403) {
+					console.log('permission denied');
+				}
+				return Promise.reject({
+					status: response.status,
+					statusText: response.statusText
+				});
+			}
+		})
+		.then(data => {
+			let works = data.body.works;
+			let result = [];
+			if (works.length >= 1 && works[0].bookmarkData) {	// 判断了作品的 bookmarkData，如果为假说明这是在别人的收藏页面，不再获取数据。
+				works.forEach(data => {
+
+					result.push({
+						'id': data.id,
+						'tags': encodeURI(data.tags.join(' ')),
+						'restrict': data.bookmarkData.private
+					});
+				});
+			}
+			return result;
+		});
+}
+
+// 添加 tag
 function addTag (index, add_list, add_tag_btn) {
 	setTimeout(() => {
 		if (index < add_list.length) {
@@ -1648,35 +1684,6 @@ function addTag (index, add_list, add_tag_btn) {
 			add_tag_btn.textContent = `√ complete`;
 		}
 	}, 100);
-}
-
-// 从收藏的作品里获取信息，每个作品返回 id 和 tag 信息
-function getInfoFromBookmark (url) {
-	return fetch(url, {
-		credentials: "same-origin"
-	})
-		.then(response => {
-			if (response.ok) {
-				return response.json();
-			} else {
-				return Promise.reject({
-					status: response.status,
-					statusText: response.statusText
-				});
-			}
-		})
-		.then(data => {
-			let works = data.body.works;
-			let result = [];
-			works.forEach(data => {
-				result.push({
-					'id': data.id,
-					'tags': encodeURI(data.tags.join(' ')),
-					'restrict': data.bookmarkData.private
-				});
-			});
-			return result;
-		});
 }
 
 // 初始化动图
@@ -4553,9 +4560,17 @@ function getPageInfo () {
 	// 只有 1 和 2 可以使用画师信息
 	if (page_type === 1 || page_type === 2) {
 		// 一些信息可能需要从 dom 取得，在这里直接执行可能会出错，所以先留空
+		let add_tag_btn = document.getElementById('add_tag_btn');
 		if (!loc_url.includes('bookmark.php')) { // 不是书签页
 			page_info.p_user = '';
 			page_info.p_uid = '';
+			if (add_tag_btn) {
+				add_tag_btn.style.display = 'none';
+			}
+		} else {
+			if (add_tag_btn) {
+				add_tag_btn.style.display = 'inline-block';
+			}
 		}
 		// 如果有 tag 则追加 tag
 		if (getQuery(loc_url, 'tag')) {
@@ -4727,6 +4742,9 @@ function PageType2 () {
 			['title', xzlt('_添加tag')]
 		]);
 		add_tag_btn.id = 'add_tag_btn';
+		if (!loc_url.includes('bookmark.php')) {
+			add_tag_btn.style.display = 'none';
+		}
 		add_tag_btn.addEventListener('click', readyAddTag);
 	}
 }
