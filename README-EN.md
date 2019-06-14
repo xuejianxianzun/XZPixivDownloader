@@ -4,7 +4,7 @@
 
 This is a Pixiv image downloader written in JavaScript that supports many page types and filters.
 
-Some additional features have been added, such as removing ads, quick collections, and viewing patterns.
+Some additional features have been added, such as removing ads, quick collections, Add tag to unclassified work, and viewing pictures.
 
 It is essentially a user script (UserScript) that must be installed using the User Script Manager.
 
