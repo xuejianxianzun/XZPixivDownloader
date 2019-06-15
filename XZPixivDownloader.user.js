@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.8.1
+// @version     6.8.2
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag；给未分类作品添加 tag。支持简繁中文、日语、英语。Github:  https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja アーティスト、ブックマーク、リーダーボード、検索ページなどのアーティストのオリジナル作品を一括ダウンロードする、人気の作品を表示する、フォルダを作成する、動画をgifに変換する、広告をすばやくブロックする、自動的にタグを追加する ;お気に入りの数でタグをすばやく検索し、分類されていない作品にタグを追加します。Github:  https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:en Batch download original works of artists such as artists, bookmarks, leaderboards, search pages, etc.; view popular works; create folders; convert moving images to gif; block ads; quickly collect works (automatically add tags); do not jump to view multiple p works ; Quickly search for tags by number of favorites; add tags to unclassified works. Github:  https://github.com/xuejianxianzun/XZPixivDownloader
@@ -1573,9 +1573,7 @@ function quickBookmark () {
 						tagArray[1] = 'オリジナル';
 					}
 					let tagString = encodeURI(tagArray.join(' '));
-					let tt = unsafeWindow.globalInitData.token;
-					// 储存 token，以备其他页面需要
-					localStorage.setItem('xz_use_token', tt);
+					let tt = getToken();
 					// 调用添加收藏的 api
 					addBookmark(getIllustId(), tagString, tt)
 						.then(response => response.json())
@@ -1597,12 +1595,19 @@ function quickBookmarkEnd () {
 	quickBookmarkElement.style.color = '#FF4060';
 	quickBookmarkElement.href = `/bookmark_add.php?type=illust&illust_id=${getIllustId()}`;
 }
+// 获取 token
+function getToken () {
+	if (unsafeWindow.globalInitData) {
+		return unsafeWindow.globalInitData.token;
+	}
+	if (document.querySelector('input[name="tt"]')) {
+		return document.querySelector('input[name="tt"]').value;
+	}
+	return false;
+}
 
 // 添加收藏
 function addBookmark (id, tags, tt, hide) {
-	if (!tt) {
-		tt = localStorage.getItem('xz_use_token');
-	}
 	if (!hide) {	// 公开作品
 		hide = 0;
 	} else {	// 非公开作品
@@ -1633,7 +1638,7 @@ async function readyAddTag () {
 		add_tag_btn.textContent = `√ no need`;
 		return false;
 	} else {
-		addTag(index, add_list, add_tag_btn);
+		addTag(index, add_list, getToken(), add_tag_btn);
 	}
 }
 
@@ -1648,6 +1653,7 @@ function getInfoFromBookmark (url) {
 			} else {
 				if (response.status === 403) {
 					console.log('permission denied');
+					document.getElementById('add_tag_btn').textContent = `× permission denied`;
 				}
 				return Promise.reject({
 					status: response.status,
@@ -1673,13 +1679,13 @@ function getInfoFromBookmark (url) {
 }
 
 // 添加 tag
-function addTag (index, add_list, add_tag_btn) {
+function addTag (index, add_list, tt, add_tag_btn) {
 	setTimeout(() => {
 		if (index < add_list.length) {
-			addBookmark(add_list[index].id, add_list[index].tags, '', add_list[index].restrict);
+			addBookmark(add_list[index].id, add_list[index].tags, tt, add_list[index].restrict);
 			index++;
 			add_tag_btn.textContent = `${index} / ${add_list.length}`;
-			addTag(index, add_list, add_tag_btn);
+			addTag(index, add_list, tt, add_tag_btn);
 		} else {
 			add_tag_btn.textContent = `√ complete`;
 		}
@@ -4715,7 +4721,6 @@ function PageType1 () {
 	gif_img_list = document.createElement('div');
 	gif_img_list.style.display = 'none';
 	document.body.appendChild(gif_img_list);
-
 }
 
 // 执行 page_type 2
@@ -4736,8 +4741,8 @@ function PageType2 () {
 		quick_down_btn.remove();
 	}
 
-	// 如果存在 token，则添加“添加 tag”得按钮
-	if (localStorage.getItem('xz_use_token')) {
+	// 如果存在 token，则添加“添加 tag”的按钮
+	if (getToken()) {
 		let add_tag_btn = addCenterButton('div', xz_blue, xzlt('_添加tag'), [
 			['title', xzlt('_添加tag')]
 		]);
