@@ -2,6 +2,10 @@
 
 ![仙尊 pixiv 下载器 中文截图](https://wx4.sinaimg.cn/large/640defebly1fzm7xsi3dfj20kl0jftay.jpg)
 
+## 注意：
+
+本工具有 Chrome 扩展版本，你可以在 [Chrome webstore](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl) 安装。我推荐大家使用扩展版。如果你安装了扩展版，需要关闭这个脚本版。
+
 # 简介：
 
 这是一个使用 JavaScript 编写的 Pixiv 图片下载器，支持多种页面类型和筛选条件。
@@ -9,10 +13,6 @@
 现在也增加了一些辅助功能，如去除广告、快速收藏、看图模式、给未分类作品添加 tag 等。
 
 它实质上是一个用户脚本（UserScript），必须使用用户脚本管理器来安装。
-
-**注意：**
-
-本工具有 Chrome 扩展版本，你可以在 [Chrome webstore](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl) 安装。推荐使用扩展版，因为它建立文件夹更方便。如果你安装了扩展版，就不需要脚本版了。
 
 ## 推荐环境：
 
@@ -82,9 +82,9 @@ English （机翻，韩语设置下也使用英语文本）
 
 2 [作品列表页](https://www.pixiv.net/member_illust.php?id=544479)
 
-3 [tag列表页](https://www.pixiv.net/member_illust.php?id=544479&tag=%E6%9D%B1%E6%96%B9)
+2 [tag列表页](https://www.pixiv.net/member_illust.php?id=544479&tag=%E6%9D%B1%E6%96%B9)
 
-4 [收藏页面](https://www.pixiv.net/bookmark.php)
+2 [收藏页面](https://www.pixiv.net/bookmark.php)
 
 5 [tag搜索页](https://www.pixiv.net/search.php?s_mode=s_tag&word=saber)
 

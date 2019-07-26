@@ -1005,3 +1005,11 @@ p 站最近在 tag 搜索页的 R-18 分类里，增加了广告信息，导致�
 ## 6.8.3
 
 p 站代码又变了，获取画师名的代码做了相应的修改。现在其实是更简单了，挺好的。
+
+## 6.8.4
+
+** 本脚本版未来可能不再有大的更新，只会修复 bug 和维护基础功能。希望用户尽快迁移到 Chrome 扩展版 [Chrome webstore](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl) **
+
+- 下载书签作品时会倒序下载。
+
+- 添加提示，提醒用户安装扩展版。

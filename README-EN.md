@@ -1,5 +1,9 @@
 ![仙尊 pixiv 下载器 英文截图](https://wx4.sinaimg.cn/large/640defebly1fzm7xsh5vdj20kw0iz0v6.jpg)
 
+## Note:
+
+This tool has a Chrome extension and can be installed in the [Chrome webstore](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl). I recommend everyone to use the extended version. If you have an extended version installed, you will need to close this scripted version.
+
 # Introduction:
 
 This is a Pixiv image downloader written in JavaScript that supports many page types and filters.
@@ -7,10 +11,6 @@ This is a Pixiv image downloader written in JavaScript that supports many page t
 Some additional features have been added, such as removing ads, quick collections, Add tag to unclassified work, and viewing pictures.
 
 It is essentially a user script (UserScript) that must be installed using the User Script Manager.
-
-**note:**
-
-This tool has a Chrome extension and can be installed in the [Chrome webstore](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl). The extended version is recommended because it makes it easier to create folders.If you have an extended version installed, you don't need a scripted version.
 
 ### Recommended Use:
 
