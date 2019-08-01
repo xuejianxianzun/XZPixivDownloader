@@ -1,10 +1,14 @@
 [View English introduction](https://github.com/xuejianxianzun/XZPixivDownloader/blob/master/README-EN.md)
 
-![仙尊 pixiv 下载器 中文截图](https://wx4.sinaimg.cn/large/640defebly1fzm7xsi3dfj20kl0jftay.jpg)
-
 ## 注意：
 
-本工具有 Chrome 扩展版本，你可以在 [Chrome webstore](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl) 安装。我推荐大家使用扩展版。如果你安装了扩展版，需要关闭这个脚本版。
+**这个版本（脚本版）未来只会进行基础的维护，不再添加新功能。请用户尽快迁移到 Chrome 扩展版本。**
+
+安装 Chrome 扩展版：[Chrome webstore](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl) 
+
+[Chrome 扩展版的 wiki](https://github.com/xuejianxianzun/PixivBatchDownloader/wiki)
+
+**如果你安装了扩展版，需要禁用这个脚本版。** 不要让两个版本同时运行。
 
 # 简介：
 
@@ -13,6 +17,8 @@
 现在也增加了一些辅助功能，如去除广告、快速收藏、看图模式、给未分类作品添加 tag 等。
 
 它实质上是一个用户脚本（UserScript），必须使用用户脚本管理器来安装。
+
+![仙尊 pixiv 下载器 中文截图](https://wx4.sinaimg.cn/large/640defebly1fzm7xsi3dfj20kl0jftay.jpg)
 
 ## 推荐环境：
 
