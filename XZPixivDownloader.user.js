@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.8.5
+// @version     6.8.6
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag；给未分类作品添加 tag。支持简繁中文、日语、英语。Github:  https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja アーティスト、ブックマーク、リーダーボード、検索ページなどのアーティストのオリジナル作品を一括ダウンロードする、人気の作品を表示する、フォルダを作成する、動画をgifに変換する、広告をすばやくブロックする、自動的にタグを追加する ;お気に入りの数でタグをすばやく検索し、分類されていない作品にタグを追加します。Github:  https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:en Batch download original works of artists such as artists, bookmarks, leaderboards, search pages, etc.; view popular works; create folders; convert moving images to gif; block ads; quickly collect works (automatically add tags); do not jump to view multiple p works ; Quickly search for tags by number of favorites; add tags to unclassified works. Github:  https://github.com/xuejianxianzun/XZPixivDownloader
@@ -3602,7 +3602,7 @@ function addCenterButton (tag = 'div', bg = xz_blue, text = '', attr = []) {
 // 输出右侧按钮区域
 function addRightButton () {
 	rightButton = document.createElement('div');
-	rightButton.textContent = '📌';
+	rightButton.textContent = '↓';
 	rightButton.id = 'rightButton';
 	document.body.appendChild(rightButton);
 	// 绑定切换右侧按钮显示的事件
@@ -4776,7 +4776,7 @@ function PageType1 () {
 	// 在右侧创建快速下载按钮
 	let quick_down_btn = document.createElement('div');
 	quick_down_btn.id = 'quick_down_btn';
-	quick_down_btn.textContent = '🔻';
+	quick_down_btn.textContent = '↓';
 	quick_down_btn.setAttribute('title', xzlt('_快速下载本页'));
 	document.body.appendChild(quick_down_btn);
 	quick_down_btn.addEventListener('click', () => {

@@ -1017,3 +1017,9 @@ p 站代码又变了，获取画师名的代码做了相应的修改。现在其
 ## 6.8.5
 
 添加说明，提醒用户迁移到扩展版。
+
+## 6.8.6
+
+由 phenixl 提交的 pull：
+增加XMP Sidecar 文件保存TAG，保存前整理TAG
+https://github.com/xuejianxianzun/XZPixivDownloader/pull/27
