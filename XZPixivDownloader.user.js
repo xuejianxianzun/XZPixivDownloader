@@ -41,6 +41,7 @@ if (sessionStorage.getItem('xz_pixiv_extension')) {
 }
 
 let quiet_download = true, // 是否快速下载。当可以下载时自动开始下载（无需点击下载按钮）
+	download_XMPsidecar = false, //是否下载XML Sidecar文件
 	download_thread_deauflt = 6, // 同时下载的线程数，可以通过设置 download_thread 修改
 	multiple_down_number = 0, // 设置多图作品下载前几张图片。0为不限制，全部下载。改为1则只下载第一张。这是因为有时候多p作品会导致要下载的图片过多，此时可以设置只下载前几张，减少下载量
 	display_cover = true, //是否显示tag搜索页里面的封面图片。如果tag搜索页的图片数量太多，那么加载封面图可能要很久，并且可能因为占用大量带宽导致抓取中断。这种情况下可以将此参数改为false，不加载封面图。
@@ -1491,6 +1492,18 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'When the &quot;Start Downloa&quot; status is available, the download starts automatically and no need to click the download button.',
 		'當“開始下載”狀態可用時，自動開始下載，不需要點選下載按鈕。'
 	],
+	'_是否下载XMP': [
+		'是否创建XMP Sidecar',
+		'Whether to create XMP sidecar file',
+		'XMPコンパニオンファイルを作成するかどうか',
+		'是否創建XMP Sidecar'
+	],
+	'_是否下载XMP的提示': [
+		'创建保存Tag的XMP Sidecar文件。支持的软件包括：Adobe全家桶，Xnviewer',
+		'Create XMP Sidecar file. Supply by: Adobe software, Xnviewer',
+		'タグを保持するXMPサイドカーファイルを作成します。 サポートされているソフトウェアは次のとおりです。AdobeFamily Bar、Xnviewer',
+		'創建保存Tag的XMP Sidecar文件。支持的軟件包括：Adobe全家桶，Xnviewer'
+	],
 	'_chrome72的提示': [
 		'XZPixivDownloader：\nChrome 的 72 版本会导致 Tampermonkey 的部分功能失效。如果您遇到了下载失败的情况，请将 Tampermonkey 升级到最新版（4.8 和以上）。\n此外，您也可以使用本工具的浏览器扩展版。（点击下载设置右上角的 Chrome 图标）',
 		'XZPixivDownloader：\nChromeの72バージョンはTampermonkeyの機能のいくつかを無効にするでしょう。 ダウンロードに失敗した場合は、Tampermonkeyを最新バージョン（4.8以上）にアップグレードしてください。 \nまた、このツールのブラウザ拡張機能も使用できます。 （ダウンロード設定の右上にあるChromeアイコンをクリックしてください）',
@@ -1523,7 +1536,7 @@ if (!tip_chrome72) {
 // 添加 css 样式
 styleE = document.createElement('style');
 document.body.appendChild(styleE);
-styleE.textContent = `#header-banner.ad,._1N-LC6t,._2vNejsc,._3M6FtEB,._3jgsYyw,._premium-lead-promotion-banner,._premium-lead-tag-search-bar,.ad-bigbanner,.ad-footer,.ad-multiple_illust_viewer,.ads_anchor,.ads_area,.adsbygoogle,.popular-introduction-overlay,.ui-fixed-container aside,[name=header],section.ad{display:none!important;z-index:-999!important;width:0!important;height:0!important;opacity:0!important}#viewerWarpper{margin:24px auto 15px;overflow:hidden;background:#fff;padding:0 16px 68px;display:none;border-top:1px solid #eee;border-bottom:1px solid #eee}#viewerWarpper ul{max-width:568px;margin:24px auto;padding:0 16px 48px;display:flex;justify-content:flex-start;align-items:center;flex-wrap:nowrap;overflow:auto}#viewerWarpper li{display:flex;flex-shrink:0;margin-right:8px;overflow:hidden}#viewerWarpper li img{cursor:pointer;max-height:144px;width:auto}.viewer-toolbar .viewer-next,.viewer-toolbar .viewer-prev{background-color:rgba(0,0,0,.8);border-radius:50%;cursor:pointer;height:100px;width:100px;overflow:hidden}.viewer-backdrop{background:rgba(0,0,0,.8)}.viewer-toolbar .viewer-prev{position:fixed;left:-70px;top:40%}.viewer-toolbar .viewer-prev::before{top:40px;left:70px;position:absolute}.viewer-toolbar .viewer-next{position:fixed;right:-70px;top:40%}#quick_down_btn,#rightButton{line-height:20px;border-radius:3px;color:#fff;padding:10px;box-sizing:content-box;right:0;text-align:center;cursor:pointer}.viewer-toolbar .viewer-next::before{left:10px;top:40px;position:absolute}#quick_down_btn,#rightButton,.centerWrap{position:fixed;z-index:1000;font-size:14px}.black-background{background:rgba(0,0,0,1)}#rightButton{top:15%;background:#80b9f7}#quick_down_btn{top:20%;background:#0096fa}li{list-style:none}.centerWrap{display:none;width:650px;left:-350px;margin-left:50%;background:#fff;top:3%;color:#333;padding:25px;border-radius:15px;border:1px solid #ddd;box-shadow:0 0 25px #2ca6df;max-height: calc(94% - 50px);overflow: auto;}.centerWrap p{line-height:24px;margin:0}.centerWrap .tip{color:#999}.centerWrap_head{height:30px;position:relative;padding-bottom:10px}.centerWrap_head *{vertical-align:middle}.centerWrap_title{display:block;line-height:30px;text-align:center;font-size:18px}.centerWrap_close,.centerWrap_toogle_option,.chrome_extension,.firefox_extension,.github_url{font-size:18px;position:absolute;top:0;right:0;width:30px;height:30px;text-align:center;cursor:pointer;color:#666;user-select:none}.download_progress1,.right1{position:relative}.centerWrap_close:hover,.centerWrap_toogle_option:hover{color:#0096fa}.centerWrap_toogle_option{right:40px}.chrome_extension,.firefox_extension{display:block;right:80px;text-decoration:none}.github_url{display:block;right:120px}.centerWrap_head img{max-width:100%;width:16px}.setinput_style1{width:50px;min-width:50px;line-height:20px;font-size:14px!important;height:20px;text-indent:4px;box-sizing:border-box;border:none!important;border-bottom:1px solid #999!important;outline:0}.progressBar1,.right1{width:500px}.setinput_style1:focus{border-bottom:1px solid #0096fa!important;background:0 0!important}.fileNameRule,.folderNameRule{min-width:150px}.setinput_tag{min-width:300px}.how_to_create_folder,.showFileNameResult,.showFileNameTip,.showFolderNameTip{cursor:pointer}.fileNameTip,.folderNameTip{display:none;padding-top:5px}.centerWrap_btns{padding:10px 0 0;font-size:0}.XZTipEl,.centerWrap_btns div,.progressTip{color:#fff;font-size:14px}.centerWrap_btns div{display:inline-block;min-width:100px;max-width:105px;padding:8px 10px;text-align:center;min-height:20px;line-height:20px;border-radius:4px;margin-right:35px;cursor:pointer;margin-bottom:10px;vertical-align:top}.progress,.progressBar{border-radius:11px;height:22px}.centerWrap_btns_free div{max-width:140px;margin-right:15px}.centerWrap_down_tips{line-height:28px}.right1{display:inline-block;height:22px;vertical-align:middle}.progressBar{position:absolute;background:#6792A2}.progress{background:#0eb3f3;transition:.15s}.progressTip{position:absolute;line-height:22px}.progress1{width:0}.progressTip1{width:500px;text-align:center}.centerWrap_down_list{display:none}.centerWrap_down_list ul{padding-top:5px;margin:0;padding-left:0}.downloadBar{position:relative;width:100%;padding:5px 0;height:22px;box-sizing:content-box}.progressBar2{width:100%}.progress2{width:0}.progressTip2{width:100%}.download_fileName{max-width:60%;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;vertical-align:top;display:inline-block;text-indent:1em}.showDownTip{padding-top:10px;cursor:pointer;display:inline-block}.XZTipEl,.downTip,.download_a,.download_panel{display:none}.settingNameStyle1{width:100px;cursor:pointer;margin-right:10px}.XZTipEl{position:fixed;z-index:1001;max-width:400px;left:0;top:0;background:#02a3ec;padding:6px 8px;border-radius:5px;line-height:20px;word-break:break-word}.fwb{font-weight:700}.gray1{color:#999}.xz_blue{color:#0ea8ef!important}.outputInfoWrap{padding:20px 30px;width:520px;background:#fff;border-radius:20px;z-index:9999;box-shadow:0 0 15px #2ca6df;display:none;position:fixed;top:15%;margin-left:-300px;left:50%}.outputUrlTitle{height:20px;line-height:20px;text-align:center;font-size:18px;color:#179FDD}.outputInfoContent{border:1px solid #ccc;transition:.3s;font-size:14px;margin-top:10px;padding:5px 10px;overflow:auto;max-height:350px;line-height:20px}.outputInfoContent::selection{background:#179FDD;color:#fff}.outputUrlFooter{height:60px;text-align:center}.outputUrlClose{cursor:pointer;position:absolute;width:30px;height:30px;top:20px;right:30px;z-index:9999;font-size:18px;text-align:center}.outputUrlClose:hover{color:#179FDD}.outputUrlCopy{height:34px;line-height:34px;min-width:100px;padding:2px 25px;margin-top:15px;background:#179FDD;display:inline-block;color:#fff;font-size:14px;border-radius:6px;cursor:pointer}#down_id_input,#outputInfo{margin:6px auto;background:#fff}.fastScreenArea a{display:inline-block;padding:10px}#quickBookmarkEl{font-size:34px;line-height:30px;margin-right:15px;cursor:pointer;color:#333;text-decoration:none;display:block}#outputInfo{padding:10px;font-size:14px;width:950px}#down_id_input{width:600px;height:80px;font-size:12px;padding:7px;display:none;border:1px solid #179FDD}.sc-cLxPOX{padding-top:0}@keyframes exTip{0%{opacity:1}100%{opacity:0}}.extension_tip{animation:exTip 0.2s linear 0s infinite alternate forwards;filter: invert(58%) sepia(77%) saturate(2661%) hue-rotate(165deg) brightness(95%) contrast(97%);}`;
+styleE.textContent = `#header-banner.ad,._1N-LC6t,._2vNejsc,._3M6FtEB,._3jgsYyw,._premium-lead-promotion-banner,._premium-lead-tag-search-bar,.ad-bigbanner,.ad-footer,.ad-multiple_illust_viewer,.ads_anchor,.ads_area,.adsbygoogle,.popular-introduction-overlay,.ui-fixed-container aside,[name=header],section.ad{display:none!important;z-index:-999!important;width:0!important;height:0!important;opacity:0!important}#viewerWarpper{margin:24px auto 15px;overflow:hidden;background:#fff;padding:0 16px 68px;display:none;border-top:1px solid #eee;border-bottom:1px solid #eee}#viewerWarpper ul{max-width:568px;margin:24px auto;padding:0 16px 48px;display:flex;justify-content:flex-start;align-items:center;flex-wrap:nowrap;overflow:auto}#viewerWarpper li{display:flex;flex-shrink:0;margin-right:8px;overflow:hidden}#viewerWarpper li img{cursor:pointer;max-height:144px;width:auto}.viewer-toolbar .viewer-next,.viewer-toolbar .viewer-prev{background-color:rgba(0,0,0,.8);border-radius:50%;cursor:pointer;height:100px;width:100px;overflow:hidden}.viewer-backdrop{background:rgba(0,0,0,.8)}.viewer-toolbar .viewer-prev{position:fixed;left:-70px;top:40%}.viewer-toolbar .viewer-prev::before{top:40px;left:70px;position:absolute}.viewer-toolbar .viewer-next{position:fixed;right:-70px;top:40%}#quick_down_btn,#rightButton{line-height:20px;border-radius:3px;color:#fff;padding:10px;box-sizing:content-box;right:0;text-align:center;cursor:pointer}.viewer-toolbar .viewer-next::before{left:10px;top:40px;position:absolute}#quick_down_btn,#rightButton,.centerWrap{position:fixed;z-index:5000;font-size:14px}.black-background{background:rgba(0,0,0,1)}#rightButton{top:15%;background:#80b9f7}#quick_down_btn{top:20%;background:#0096fa}li{list-style:none}.centerWrap{display:none;width:650px;left:-350px;margin-left:50%;background:#fff;top:3%;z-index:5000;color:#333;padding:25px;border-radius:15px;border:1px solid #ddd;box-shadow:0 0 25px #2ca6df;max-height: calc(94% - 50px);overflow: auto;}.centerWrap p{line-height:24px;margin:0}.centerWrap .tip{color:#999}.centerWrap_head{height:30px;position:relative;padding-bottom:10px}.centerWrap_head *{vertical-align:middle}.centerWrap_title{display:block;line-height:30px;text-align:center;font-size:18px}.centerWrap_close,.centerWrap_toogle_option,.chrome_extension,.firefox_extension,.github_url{font-size:18px;position:absolute;top:0;right:0;width:30px;height:30px;text-align:center;cursor:pointer;color:#666;user-select:none}.download_progress1,.right1{position:relative}.centerWrap_close:hover,.centerWrap_toogle_option:hover{color:#0096fa}.centerWrap_toogle_option{right:40px}.chrome_extension,.firefox_extension{display:block;right:80px;text-decoration:none}.github_url{display:block;right:120px}.centerWrap_head img{max-width:100%;width:16px}.setinput_style1{width:50px;min-width:50px;line-height:20px;font-size:14px!important;height:20px;text-indent:4px;box-sizing:border-box;border:none!important;border-bottom:1px solid #999!important;outline:0}.progressBar1,.right1{width:500px}.setinput_style1:focus{border-bottom:1px solid #0096fa!important;background:0 0!important}.fileNameRule,.folderNameRule{min-width:150px}.setinput_tag{min-width:300px}.how_to_create_folder,.showFileNameResult,.showFileNameTip,.showFolderNameTip{cursor:pointer}.fileNameTip,.folderNameTip{display:none;padding-top:5px}.centerWrap_btns{padding:10px 0 0;font-size:0}.XZTipEl,.centerWrap_btns div,.progressTip{color:#fff;font-size:14px}.centerWrap_btns div{display:inline-block;min-width:100px;max-width:105px;padding:8px 10px;text-align:center;min-height:20px;line-height:20px;border-radius:4px;margin-right:35px;cursor:pointer;margin-bottom:10px;vertical-align:top}.progress,.progressBar{border-radius:11px;height:22px}.centerWrap_btns_free div{max-width:140px;margin-right:15px}.centerWrap_down_tips{line-height:28px}.right1{display:inline-block;height:22px;vertical-align:middle}.progressBar{position:absolute;background:#6792A2}.progress{background:#0eb3f3;transition:.15s}.progressTip{position:absolute;line-height:22px}.progress1{width:0}.progressTip1{width:500px;text-align:center}.centerWrap_down_list{display:none}.centerWrap_down_list ul{padding-top:5px;margin:0;padding-left:0}.downloadBar{position:relative;width:100%;padding:5px 0;height:22px;box-sizing:content-box}.progressBar2{width:100%}.progress2{width:0}.progressTip2{width:100%}.download_fileName{max-width:60%;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;vertical-align:top;display:inline-block;text-indent:1em}.showDownTip{padding-top:10px;cursor:pointer;display:inline-block}.XZTipEl,.downTip,.download_a,.download_panel{display:none}.settingNameStyle1{width:100px;cursor:pointer;margin-right:10px}.XZTipEl{position:fixed;z-index:5001;max-width:400px;left:0;top:0;background:#02a3ec;padding:6px 8px;border-radius:5px;line-height:20px;word-break:break-word}.fwb{font-weight:700}.gray1{color:#999}.xz_blue{color:#0ea8ef!important}.outputInfoWrap{padding:20px 30px;width:520px;background:#fff;border-radius:20px;z-index:9999;box-shadow:0 0 15px #2ca6df;display:none;position:fixed;top:15%;margin-left:-300px;left:50%}.outputUrlTitle{height:20px;line-height:20px;text-align:center;font-size:18px;color:#179FDD}.outputInfoContent{border:1px solid #ccc;transition:.3s;font-size:14px;margin-top:10px;padding:5px 10px;overflow:auto;max-height:350px;line-height:20px}.outputInfoContent::selection{background:#179FDD;color:#fff}.outputUrlFooter{height:60px;text-align:center}.outputUrlClose{cursor:pointer;position:absolute;width:30px;height:30px;top:20px;right:30px;z-index:9999;font-size:18px;text-align:center}.outputUrlClose:hover{color:#179FDD}.outputUrlCopy{height:34px;line-height:34px;min-width:100px;padding:2px 25px;margin-top:15px;background:#179FDD;display:inline-block;color:#fff;font-size:14px;border-radius:6px;cursor:pointer}#down_id_input,#outputInfo{margin:6px auto;background:#fff}.fastScreenArea a{display:inline-block;padding:10px}#quickBookmarkEl{font-size:34px;line-height:30px;margin-right:15px;cursor:pointer;color:#333;text-decoration:none;display:block}#outputInfo{padding:10px;font-size:14px;width:950px}#down_id_input{width:600px;height:80px;font-size:12px;padding:7px;display:none;border:1px solid #179FDD}.sc-cLxPOX{padding-top:0}@keyframes exTip{0%{opacity:1}100%{opacity:0}}.extension_tip{animation:exTip 0.2s linear 0s infinite alternate forwards;filter: invert(58%) sepia(77%) saturate(2661%) hue-rotate(165deg) brightness(95%) contrast(97%);}`;
 
 // 创建输出抓取进度的区域
 let outputInfo = document.createElement('div');
@@ -3589,7 +3602,7 @@ function addCenterButton (tag = 'div', bg = xz_blue, text = '', attr = []) {
 // 输出右侧按钮区域
 function addRightButton () {
 	rightButton = document.createElement('div');
-	rightButton.textContent = '↓';
+	rightButton.textContent = '📌';
 	rightButton.id = 'rightButton';
 	document.body.appendChild(rightButton);
 	// 绑定切换右侧按钮显示的事件
@@ -3720,6 +3733,11 @@ function addCenterWarps () {
 		<p class="XZFormP8">
 		<span class="xztip settingNameStyle1" data-tip="${xzlt('_快速下载的提示')}">${xzlt('_是否快速下载')}<span class="gray1"> ? </span></span>
 		<label for="setQuietDownload"><input type="checkbox" name="setQuietDownload" id="setQuietDownload"> ${xzlt('_启用')}</label>
+		</p>
+		<p class="XZFormP14">
+		<span class="xztip settingNameStyle1" data-tip="${xzlt('_是否下载XMP的提示')}">${xzlt('_是否下载XMP')}<span class="gray1"> ? </span></span>
+		<label for="setXMPDownload"><input type="checkbox" name="setXMPDownload" id="setXMPDownload"> ${xzlt('_启用')}</label>
+		<a href=https://en.wikipedia.org/wiki/Extensible_Metadata_Platform>What is XMP?</a>
 		</p>
 		</div>
 		<div class="centerWrap_btns centerWrap_btns_free">
@@ -4064,7 +4082,8 @@ function readXZSetting () {
 			"quiet_download": true,
 			"download_thread": 6,
 			"user_set_name": "{id}",
-			"tagName_to_fileName": true
+			"tagName_to_fileName": true,
+			"download_XMPsidecar": false
 		};
 	} else {
 		xz_setting = JSON.parse(xz_setting);
@@ -4116,6 +4135,13 @@ function readXZSetting () {
 	// 保存快速下载
 	setQuietDownload_input.addEventListener('click', function () {
 		saveXZSetting('quiet_download', this.checked);
+	});
+	// 设置XMP下载
+	let setXMPDownload_input = XZForm.setXMPDownload;
+	setXMPDownload_input.checked = xz_setting.download_XMPsidecar;
+	// 保存XMP下载
+	setXMPDownload_input.addEventListener('click', function () {
+		saveXZSetting('download_XMPsidecar', this.checked);
 	});
 	// 设置下载线程
 	let setThread_input = XZForm.setThread;
@@ -4426,6 +4452,72 @@ function startDownload (downloadNo, downloadBar_no) {
 			}
 		}
 	});
+
+	download_XMPsidecar = XZForm.setXMPDownload.checked;
+	if (download_XMPsidecar) {
+		//在下载时生成XMP blob对象
+		let tags = img_info[downloadNo].tags;
+
+		//加入作者进标签, |分隔在xnview中可以划分子tag
+		tags.push('USER|' + img_info[downloadNo].user);
+		//下载来源标记
+		tags.push('PIXIV-DOWNLOADER');
+		//添加标题	
+		tags.push('TITLE|' + img_info[downloadNo].title);
+
+		//过滤Pixiv 杂乱的标签		
+		//鬼滅の刃1000users入り => 1000users入り
+		const filter = /.*\D(\d+users入り)/;
+
+		for (var i = 0; i < tags.length; i++) {
+			tags[i] = tags[i].toUpperCase();
+
+			if (filter.test(tags[i])) {
+				tags[i] = tags[i].replace(filter, '$1');
+			}
+		}
+
+		//Pixiv Tag是区分大小写的，这里去重
+		let uniTags = [...new Set(tags)];
+		let xmpBlob = createSimpleXmpBlob(uniTags);
+		let xmpFilename = fullFileName + '.xmp';
+
+		// 下载XMP，因为是本地文件。没必要用click_download_a控制进程数量，和占用downloadBar
+		let a = document.createElement('a');
+		let xmpUrl = window.URL.createObjectURL(xmpBlob);
+		a.href = xmpUrl;
+		a.download = xmpFilename;
+		document.body.appendChild(a);
+		a.click();
+		addOutputInfo("<br/> XMP 下载完毕");
+		//延时100ms后释放blog URL
+		setTimeout(() => {
+			window.URL.revokeObjectURL(xmpUrl);			
+		},100);	
+		
+
+	}
+
+}
+
+//在本地创建XMP对象
+function createSimpleXmpBlob(tags) {
+	if (tags.length <= 0) { return; }
+
+	//创建XMP输出text
+	let outstr, tagfield = '';
+
+	tags.forEach(element => {
+		tagfield += '<rdf:li>' + element + '</rdf:li>';
+	});
+
+	const xmpTemplateP1 = '<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core 5.6.0"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/" xmlns:MicrosoftPhoto="http://ns.microsoft.com/photo/1.0/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:lr="http://ns.adobe.com/lightroom/1.0/"><xmp:Label/><dc:subject><rdf:Bag>';
+	const xmpTemplateP2 = '</rdf:Bag></dc:subject><lr:hierarchicalSubject><rdf:Bag>';
+	const xmpTemplateP3 = '</rdf:Bag></lr:hierarchicalSubject></rdf:Description></rdf:RDF></x:xmpmeta>';
+	outstr = xmpTemplateP1 + tagfield + xmpTemplateP2 + tagfield + xmpTemplateP3;
+
+	let blob = new Blob([outstr], { type: "text/xml" });
+	return blob;
 }
 
 // 下载到硬盘
@@ -4684,7 +4776,7 @@ function PageType1 () {
 	// 在右侧创建快速下载按钮
 	let quick_down_btn = document.createElement('div');
 	quick_down_btn.id = 'quick_down_btn';
-	quick_down_btn.textContent = '↓';
+	quick_down_btn.textContent = '🔻';
 	quick_down_btn.setAttribute('title', xzlt('_快速下载本页'));
 	document.body.appendChild(quick_down_btn);
 	quick_down_btn.addEventListener('click', () => {
