@@ -4,6 +4,8 @@
 
 Install Chrome extension：[Chrome webstore](https://chrome.google.com/webstore/detail/ffejdpkplpkdjebmffnblnchbcjppcff) 
 
+[Chrome extension Github page](https://github.com/xuejianxianzun/PixivBatchDownloader)
+
 [Chrome extension wiki](https://github.com/xuejianxianzun/PixivBatchDownloader/wiki)
 
 ** If you have an extended version installed, you will need to disable this script version. ** Do not let both versions run at the same time.

@@ -6,6 +6,8 @@
 
 安装 Chrome 扩展版：[Chrome webstore](https://chrome.google.com/webstore/detail/ffejdpkplpkdjebmffnblnchbcjppcff) 
 
+[Chrome 扩展版 Github 页面](https://github.com/xuejianxianzun/PixivBatchDownloader)
+
 [Chrome 扩展版的 wiki](https://github.com/xuejianxianzun/PixivBatchDownloader/wiki)
 
 **如果你安装了扩展版，需要禁用这个脚本版。** 不要让两个版本同时运行。
