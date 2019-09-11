@@ -2,7 +2,7 @@
 
 **This version (script version) will only perform basic maintenance in the future and will not add new features. Please migrate to the Chrome extension as soon as possible.**
 
-Install Chrome extension：[Chrome webstore](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl) 
+Install Chrome extension：[Chrome webstore](https://chrome.google.com/webstore/detail/ffejdpkplpkdjebmffnblnchbcjppcff) 
 
 [Chrome extension wiki](https://github.com/xuejianxianzun/PixivBatchDownloader/wiki)
 
@@ -38,7 +38,7 @@ The downloaded file will be saved in your browser's download directory.
 
 This tool has a browser extension. If you want to use a browser extension, you can uninstall the scripted version and install the browser extension.
 
-Chrome：[Chrome webstore](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl)
+Chrome：[Chrome webstore](https://chrome.google.com/webstore/detail/ffejdpkplpkdjebmffnblnchbcjppcff)
 
 Firefox：[Mozilla addons](https://addons.mozilla.org/zh-CN/firefox/addon/pixiv-batch-downloader/)
 

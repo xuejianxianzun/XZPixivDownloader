@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.8.6
+// @version     6.8.7
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag；给未分类作品添加 tag。支持简繁中文、日语、英语。Github:  https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja アーティスト、ブックマーク、リーダーボード、検索ページなどのアーティストのオリジナル作品を一括ダウンロードする、人気の作品を表示する、フォルダを作成する、動画をgifに変換する、広告をすばやくブロックする、自動的にタグを追加する ;お気に入りの数でタグをすばやく検索し、分類されていない作品にタグを追加します。Github:  https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:en Batch download original works of artists such as artists, bookmarks, leaderboards, search pages, etc.; view popular works; create folders; convert moving images to gif; block ads; quickly collect works (automatically add tags); do not jump to view multiple p works ; Quickly search for tags by number of favorites; add tags to unclassified works. Github:  https://github.com/xuejianxianzun/XZPixivDownloader
@@ -809,10 +809,10 @@ let xz_lang = { // 储存语言配置。在属性名前面加上下划线，和�
 		'推薦使用本工具的瀏覽器擴展程序。 <br>如果腳本版下載圖片失敗，請安裝瀏覽器擴展程序。 <br>因為兩者不能同時運行，所以安裝擴展版之後，必須禁用腳本版。 <br>最後重啟瀏覽器即可使用。'
 	],
 	'_扩展提示2': [
-		'我推荐您使用本工具的 Chrome 浏览器的扩展程序，它有更好的使用体验。<br><a href="https://chrome.google.com/webstore/detail/pixiv-batch-downloader/hfgoikdmppghehigkckknikdgdcjbfpl" target="_blank" style="color: #0ea8ef;">前往安装页面</a> <a href="https://github.com/xuejianxianzun/PixivBatchDownloader/wiki" target="_blank" style="color: #0ea8ef;">Wiki</a><br>安装扩展版之后，你需要禁用这个脚本版，并且重启浏览器。',
-		'当ツールのChromeブラウザの拡張プログラムをお勧めします。より良い体験ができます。<br><a href="https://chrome.google.com/webstore/detail/pixiv-batch-downloader/hfgoikdmppghehigkckknikdgdcjbfpl" target="_blank" style="color: #0ea8ef;">インストールページへ</a>  <a href="https://github.com/xuejianxianzun/PixivBatchDownloader/wiki" target="_blank" style="color: #0ea8ef;">Wiki</a><br>拡張版をインストールするには、このバージョンを使用を禁止し、ブラウザを再起動する必要があります。',
-		'I recommend using the Chrome extension for this tool, which has a better experience.<br> <a href="https://chrome.google.com/webstore/detail/pixiv-batch-downloader/hfgoikdmppghehigkckknikdgdcjbfpl" target="_blank" style="color: #0ea8ef;">Go to the installation page</a>  <a href="https://github.com/xuejianxianzun/PixivBatchDownloader/wiki" target="_blank" style="color: #0ea8ef;">Wiki</a><br>After installing the extension, you need to disable this script version and restart the browser.',
-		'我推薦您使用本工具的 Chrome 瀏覽器擴展程序，它有更好的使用體驗。<br><a href="https://chrome.google.com/webstore/detail/pixiv-batch-downloader/hfgoikdmppghehigkckknikdgdcjbfpl" target="_blank" style="color: #0ea8ef;">前往安装页面</a>  <a href="https://github.com/xuejianxianzun/PixivBatchDownloader/wiki" target="_blank" style="color: #0ea8ef;">Wiki</a><br>安裝擴展版之後，你需要禁用這個腳本版，并且重啟瀏覽器。'
+		'我推荐您使用本工具的 Chrome 浏览器的扩展程序，它有更好的使用体验。<br><a href="https://chrome.google.com/webstore/detail/pixiv-batch-downloader/ffejdpkplpkdjebmffnblnchbcjppcff" target="_blank" style="color: #0ea8ef;">前往安装页面</a> <a href="https://github.com/xuejianxianzun/PixivBatchDownloader/wiki" target="_blank" style="color: #0ea8ef;">Wiki</a><br>安装扩展版之后，你需要禁用这个脚本版，并且重启浏览器。',
+		'当ツールのChromeブラウザの拡張プログラムをお勧めします。より良い体験ができます。<br><a href="https://chrome.google.com/webstore/detail/pixiv-batch-downloader/ffejdpkplpkdjebmffnblnchbcjppcff" target="_blank" style="color: #0ea8ef;">インストールページへ</a>  <a href="https://github.com/xuejianxianzun/PixivBatchDownloader/wiki" target="_blank" style="color: #0ea8ef;">Wiki</a><br>拡張版をインストールするには、このバージョンを使用を禁止し、ブラウザを再起動する必要があります。',
+		'I recommend using the Chrome extension for this tool, which has a better experience.<br> <a href="https://chrome.google.com/webstore/detail/pixiv-batch-downloader/ffejdpkplpkdjebmffnblnchbcjppcff" target="_blank" style="color: #0ea8ef;">Go to the installation page</a>  <a href="https://github.com/xuejianxianzun/PixivBatchDownloader/wiki" target="_blank" style="color: #0ea8ef;">Wiki</a><br>After installing the extension, you need to disable this script version and restart the browser.',
+		'我推薦您使用本工具的 Chrome 瀏覽器擴展程序，它有更好的使用體驗。<br><a href="https://chrome.google.com/webstore/detail/pixiv-batch-downloader/ffejdpkplpkdjebmffnblnchbcjppcff" target="_blank" style="color: #0ea8ef;">前往安装页面</a>  <a href="https://github.com/xuejianxianzun/PixivBatchDownloader/wiki" target="_blank" style="color: #0ea8ef;">Wiki</a><br>安裝擴展版之後，你需要禁用這個腳本版，并且重啟瀏覽器。'
 	],
 	'_快捷键切换显示隐藏': [
 		'使用 Alt + X，可以显示和隐藏下载面板',
@@ -3671,7 +3671,7 @@ function addCenterWarps () {
 		<span class="centerWrap_title xz_blue"> ${xzlt('_下载设置')}</span>
 		<a class="xztip github_url" data-tip="${xzlt('_Github')}" href="https://github.com/xuejianxianzun/XZPixivDownloader" target="_blank"><img src="https://s1.ax1x.com/2018/11/12/iLeI4x.png" /></a>
 		<a class="xztip firefox_extension extension_tip" data-tip="${xzlt('_扩展提示')}" href="https://addons.mozilla.org/zh-CN/firefox/addon/pixiv-batch-downloader/" target="_blank" style="display:none;">🦊</a>
-		<a class="xztip chrome_extension extension_tip" data-tip="${xzlt('_扩展提示')}" href="https://chrome.google.com/webstore/detail/pixiv-batch-downloader/hfgoikdmppghehigkckknikdgdcjbfpl" target="_blank"><img src="https://s1.ax1x.com/2018/11/12/iLEY3F.png" /></a>
+		<a class="xztip chrome_extension extension_tip" data-tip="${xzlt('_扩展提示')}" href="https://chrome.google.com/webstore/detail/pixiv-batch-downloader/ffejdpkplpkdjebmffnblnchbcjppcff" target="_blank"><img src="https://s1.ax1x.com/2018/11/12/iLEY3F.png" /></a>
 		<div class="xztip centerWrap_toogle_option" data-tip="${xzlt('_收起展开设置项')}">▲</div>
 		<div class="xztip centerWrap_close" data-tip="${xzlt('_快捷键切换显示隐藏')}">X</div>
 		</div>

@@ -1008,7 +1008,7 @@ p 站代码又变了，获取画师名的代码做了相应的修改。现在其
 
 ## 6.8.4
 
-** 本脚本版未来可能不再有大的更新，只会修复 bug 和维护基础功能。希望用户尽快迁移到 Chrome 扩展版 [Chrome webstore](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl) **
+** 本脚本版未来可能不再有大的更新，只会修复 bug 和维护基础功能。希望用户尽快迁移到 Chrome 扩展版 [Chrome webstore](https://chrome.google.com/webstore/detail/ffejdpkplpkdjebmffnblnchbcjppcff) **
 
 - 下载书签作品时会倒序下载。
 
@@ -1023,3 +1023,7 @@ p 站代码又变了，获取画师名的代码做了相应的修改。现在其
 由 phenixl 提交的 pull：
 增加XMP Sidecar 文件保存TAG，保存前整理TAG
 https://github.com/xuejianxianzun/XZPixivDownloader/pull/27
+
+## 6.8.7
+
+chrome 扩展版之前被下架了，现在重新上架，url 变了。这次把代码里的安装地址改为新的地址。

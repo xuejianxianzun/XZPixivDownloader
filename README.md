@@ -4,7 +4,7 @@
 
 **这个版本（脚本版）未来只会进行基础的维护，不再添加新功能。请用户尽快迁移到 Chrome 扩展版本。**
 
-安装 Chrome 扩展版：[Chrome webstore](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl) 
+安装 Chrome 扩展版：[Chrome webstore](https://chrome.google.com/webstore/detail/ffejdpkplpkdjebmffnblnchbcjppcff) 
 
 [Chrome 扩展版的 wiki](https://github.com/xuejianxianzun/PixivBatchDownloader/wiki)
 
@@ -42,7 +42,7 @@
 
 本工具有浏览器扩展版本。如果你想使用浏览器扩展，可以卸载脚本版，然后安装浏览器扩展。
 
-Chrome：[Chrome webstore](https://chrome.google.com/webstore/detail/hfgoikdmppghehigkckknikdgdcjbfpl)
+Chrome：[Chrome webstore](https://chrome.google.com/webstore/detail/ffejdpkplpkdjebmffnblnchbcjppcff)
 
 ## 支持的语言：
 
