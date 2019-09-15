@@ -1027,3 +1027,7 @@ https://github.com/xuejianxianzun/XZPixivDownloader/pull/27
 ## 6.8.7
 
 chrome 扩展版之前被下架了，现在重新上架，url 变了。这次把代码里的安装地址改为新的地址。
+
+## 6.8.8
+
+chrome 扩展版又被下架了。所以把安装地址改为离线安装的教程地址。
