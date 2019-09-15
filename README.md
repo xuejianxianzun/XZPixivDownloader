@@ -44,7 +44,7 @@
 
 本工具有浏览器扩展版本。如果你想使用浏览器扩展，可以卸载脚本版，然后安装浏览器扩展。
 
-Chrome：[Chrome webstore](https://chrome.google.com/webstore/detail/ffejdpkplpkdjebmffnblnchbcjppcff)
+[GitHub](https://github.com/xuejianxianzun/PixivBatchDownloader/wiki/2.-%E5%AE%89%E8%A3%85#%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85)
 
 ## 支持的语言：
 

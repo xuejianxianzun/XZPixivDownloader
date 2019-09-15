@@ -40,9 +40,7 @@ The downloaded file will be saved in your browser's download directory.
 
 This tool has a browser extension. If you want to use a browser extension, you can uninstall the scripted version and install the browser extension.
 
-Chrome：[Chrome webstore](https://chrome.google.com/webstore/detail/ffejdpkplpkdjebmffnblnchbcjppcff)
-
-Firefox：[Mozilla addons](https://addons.mozilla.org/zh-CN/firefox/addon/pixiv-batch-downloader/)
+[GitHub](https://github.com/xuejianxianzun/PixivBatchDownloader/wiki/2.-%E5%AE%89%E8%A3%85#%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85)
 
 # Supported languages:
 
