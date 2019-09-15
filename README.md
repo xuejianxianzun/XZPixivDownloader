@@ -4,7 +4,7 @@
 
 **这个版本（脚本版）未来只会进行基础的维护，不再添加新功能。请用户尽快迁移到 Chrome 扩展版本。**
 
-安装 Chrome 扩展版：[Chrome webstore](https://chrome.google.com/webstore/detail/ffejdpkplpkdjebmffnblnchbcjppcff) 
+安装 Chrome 扩展版：[离线安装](https://github.com/xuejianxianzun/PixivBatchDownloader/wiki/2.-%E5%AE%89%E8%A3%85#%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85) 
 
 [Chrome 扩展版 Github 页面](https://github.com/xuejianxianzun/PixivBatchDownloader)
 

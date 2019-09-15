@@ -2,7 +2,7 @@
 
 **This version (script version) will only perform basic maintenance in the future and will not add new features. Please migrate to the Chrome extension as soon as possible.**
 
-Install Chrome extension：[Chrome webstore](https://chrome.google.com/webstore/detail/ffejdpkplpkdjebmffnblnchbcjppcff) 
+Install Chrome extension：[Offline installation tutorial](https://github.com/xuejianxianzun/PixivBatchDownloader/wiki/2.-%E5%AE%89%E8%A3%85#%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85) 
 
 [Chrome extension Github page](https://github.com/xuejianxianzun/PixivBatchDownloader)
 
