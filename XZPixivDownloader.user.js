@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.8.8
+// @version     6.8.9
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag；给未分类作品添加 tag。支持简繁中文、日语、英语。Github:  https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja アーティスト、ブックマーク、リーダーボード、検索ページなどのアーティストのオリジナル作品を一括ダウンロードする、人気の作品を表示する、フォルダを作成する、動画をgifに変換する、広告をすばやくブロックする、自動的にタグを追加する ;お気に入りの数でタグをすばやく検索し、分類されていない作品にタグを追加します。Github:  https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:en Batch download original works of artists such as artists, bookmarks, leaderboards, search pages, etc.; view popular works; create folders; convert moving images to gif; block ads; quickly collect works (automatically add tags); do not jump to view multiple p works ; Quickly search for tags by number of favorites; add tags to unclassified works. Github:  https://github.com/xuejianxianzun/XZPixivDownloader
@@ -24,10 +24,10 @@
 // @run-at      document-end
 // ==/UserScript==
 
-/* author:  xuejianxianzun 雪见仙尊
+/* author:  xuejianxianzun; 雪见仙尊
  * E-mail:  xuejianxianzun@gmail.com
  * Github： https://github.com/xuejianxianzun/XZPixivDownloader
- * blog:    https://saber.love/pixiv
+ * Website: https://pixiv.download/
  * QQ群:    499873152
  */
 
@@ -2979,9 +2979,20 @@ function getListPage2 () {
 }
 
 // 获取作品id，可以传参，无参数则从当前 url 匹配
-function getIllustId (url) {
-	let str = url || location.search;
-	return /illust_id=(\d*\d)/.exec(str)[1];
+function getIllustId(url) {
+	const str = url || window.location.search || loc_url;
+	if (str.includes('illust_id')) {
+			// 传统 url
+			return /illust_id=(\d*\d)/.exec(str)[1];
+	}
+	else if (str.includes('/artworks/')) {
+			// 新版 url
+			return /artworks\/(\d*\d)/.exec(str)[1];
+	}
+	else {
+			// 直接取出 url 中的数字
+			return /\d*\d/.exec(loc_url)[0];
+	}
 }
 
 // 获取用户id
@@ -4704,7 +4715,11 @@ function checkPageType () {
 	loc_url = location.href;
 	if (location.hostname === 'www.pixiv.net' && location.pathname === '/') {
 		page_type = 0;
-	} else if (loc_url.includes('illust_id') && !loc_url.includes('mode=manga') && !loc_url.includes('bookmark_detail') && !loc_url.includes('bookmark_add') && !loc_url.includes('response.php')) {
+	} else if ((loc_url.includes('illust_id') || loc_url.includes('/artworks/')) &&
+	!loc_url.includes('mode=manga') &&
+	!loc_url.includes('bookmark_detail') &&
+	!loc_url.includes('bookmark_add') &&
+	!loc_url.includes('response.php')) {
 		page_type = 1;
 	} else if (!loc_url.includes('mode=manga&illust_id') && (/member_illust\.php\?.*id=/.test(loc_url) || loc_url.includes('member.php?id=') || loc_url.includes('bookmark.php'))) {
 		page_type = 2;
