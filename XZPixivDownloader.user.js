@@ -3,7 +3,7 @@
 // @name:ja     XZ Pixiv Batch Downloader
 // @name:en     XZ Pixiv Batch Downloader
 // @namespace   http://saber.love/?p=3102
-// @version     6.8.9
+// @version     6.9.0
 // @description 批量下载画师、书签、排行榜、搜索页等作品原图；查看热门作品；建立文件夹；转换动图为 gif；屏蔽广告；快速收藏作品（自动添加tag）；不跳转直接查看多 p 作品；按收藏数快速搜索 tag；给未分类作品添加 tag。支持简繁中文、日语、英语。Github:  https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:ja アーティスト、ブックマーク、リーダーボード、検索ページなどのアーティストのオリジナル作品を一括ダウンロードする、人気の作品を表示する、フォルダを作成する、動画をgifに変換する、広告をすばやくブロックする、自動的にタグを追加する ;お気に入りの数でタグをすばやく検索し、分類されていない作品にタグを追加します。Github:  https://github.com/xuejianxianzun/XZPixivDownloader
 // @description:en Batch download original works of artists such as artists, bookmarks, leaderboards, search pages, etc.; view popular works; create folders; convert moving images to gif; block ads; quickly collect works (automatically add tags); do not jump to view multiple p works ; Quickly search for tags by number of favorites; add tags to unclassified works. Github:  https://github.com/xuejianxianzun/XZPixivDownloader
@@ -2996,18 +2996,25 @@ function getIllustId(url) {
 }
 
 // 获取用户id
-function getUserId () {
-	let user_id = '';
-	// 首先尝试从 url 中取得
-	let test = /(\?|&)id=(\d{1,9})/.exec(location.search);
-	if (test) {
-		user_id = test[2];
-	} else if (document.querySelector('.user-name')) { //旧版页面的头像（在书签页面使用）
-		user_id = /\?id=(\d{1,9})/.exec(document.querySelector('.user-name').href)[1];
-	} else { // 新版页面的头像，因为经常改版，不得已改成从整个源码匹配了
-		user_id = /member\.php\?id=(\d{1,9})/.exec(document.getElementById('root').innerHTML)[1];
-	}
-	return user_id;
+function getUserId() {
+    let userId = '';
+    // 首先尝试从 url 中获取
+    const test = /(\?|&)id=(\d{1,9})/.exec(window.location.search);
+    const nameElement = document.querySelector('.user-name');
+    if (test) {
+        userId = test[2];
+    }
+    else if (nameElement) {
+        // 从旧版页面的头像获取（在书签页面使用）
+        userId = /\?id=(\d{1,9})/.exec(nameElement.href)[1];
+    }
+    else {
+        // 从新版页面的头像获取，因为经常改版，不得已改成从源码匹配了
+        const el = document.getElementById('root') || document.getElementById('spa-contents');
+        // 在 PC 模式的新版页面使用 root，在手机模式的新版页面使用 spa-contents
+        userId = /member\.php\?id=(\d{1,9})/.exec(el.innerHTML)[1];
+    }
+    return userId;
 }
 
 // 获取作品信息，包含对动图的处理
